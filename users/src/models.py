@@ -4,7 +4,7 @@ import uuid
 
 from sqlalchemy import Column, String, DateTime, UUID
 
-from database import Base
+from src.database import Base
 
 
 class User(Base):

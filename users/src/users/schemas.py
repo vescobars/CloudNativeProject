@@ -1,7 +1,8 @@
 """ Pydantic schemas for request and response bodiess """
-from typing import Optional
+import uuid
+from typing import Optional, Annotated
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, AfterValidator
 
 
 class CreateUserRequestSchema(BaseModel):
@@ -14,3 +15,17 @@ class CreateUserRequestSchema(BaseModel):
     phoneNumber: Optional[str] = None
     dni: Optional[str] = None
     fullName: Optional[str] = None
+
+
+def check_uuid4(v: str) -> str:
+    """Returns value error if str is not a valid UUID4"""
+    uuid.UUID(v)
+    return v
+
+
+class CreateUserResponseSchema(BaseModel):
+    """
+    Returned when creating a user successfully
+    """
+    id: str = Annotated[str, AfterValidator(check_uuid4)]
+    createdAt: str
