@@ -1,12 +1,9 @@
 """ /users router """
-from typing import Union
-
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
-from starlette.responses import Response
 
 from src.constants import datetime_to_str
 from src.database import engine

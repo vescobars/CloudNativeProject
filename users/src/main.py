@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 
 from src import models
-from src.database import engine, SessionLocal
+from src.database import engine
 from src.users.router import router as users_router
 
 models.Base.metadata.create_all(bind=engine)

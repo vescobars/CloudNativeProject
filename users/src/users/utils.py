@@ -16,7 +16,8 @@ from src.users.schemas import CreateUserRequestSchema
 
 class Users:
 
-    def create_user(self, data: CreateUserRequestSchema, session: Session) -> UserSchema:
+    @staticmethod
+    def create_user(data: CreateUserRequestSchema, session: Session) -> UserSchema:
         """
         Insert a new user into the Users table
         """
