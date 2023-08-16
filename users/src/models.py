@@ -12,7 +12,7 @@ class User(Base):
 
     id = Column(UUID, primary_key=True, index=True, nullable=False, default=uuid.uuid4())
     username = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
     phoneNumber = Column(String)
     dni = Column(String)
     fullName = Column(String)
