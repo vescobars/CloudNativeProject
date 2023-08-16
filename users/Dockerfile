@@ -1,5 +1,5 @@
 FROM python:3.9
-LABEL authors="coldblade2000"
+LABEL authors="d.granadam@uniandes.edu.co"
 WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt

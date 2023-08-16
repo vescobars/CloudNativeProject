@@ -1,3 +1,5 @@
+""" Main class of FastAPI Users Microservice """
+
 from fastapi import FastAPI
 
 from src.routers.users import router as users_router

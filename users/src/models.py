@@ -1,3 +1,5 @@
+""" SQLAlchemy models for all global entities """
+
 import uuid
 
 from sqlalchemy import Column, String, DateTime, UUID
