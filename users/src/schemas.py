@@ -16,7 +16,7 @@ class UserStatus(str, Enum):
     VERIFICADO = 'VERIFICADO'
 
 
-class UserBase(BaseModel):
+class UserSchema(BaseModel):
     """
     Defines the pydantic model (schema) for a User
     """
