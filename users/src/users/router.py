@@ -15,7 +15,6 @@ from src.database import get_session
 
 router = APIRouter()
 
-
 @router.post("/")
 def create_user(
         user_data: CreateUserRequestSchema, sess: Session = Depends(get_session)
