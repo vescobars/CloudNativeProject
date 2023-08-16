@@ -4,53 +4,61 @@ import hashlib
 from secrets import token_urlsafe
 from typing import Tuple
 
-from src.database import SessionLocal
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from src.constants import TOKEN_LENGTH_BYTES, DEFAULT_SALT_LENGTH_BYTES
+from src.exceptions import UniqueConstraintViolatedException
 from src.models import User
-from src.schemas import UserSchema
+from src.schemas import UserSchema, UserStatusEnum
 from src.users.schemas import CreateUserRequestSchema
 
 
 class Users:
-    def __init__(self):
-        self.Session = SessionLocal
 
-    def create_user(self, data: CreateUserRequestSchema):
+    def create_user(self, data: CreateUserRequestSchema, session: Session) -> UserSchema:
         """
         Insert a new user into the Users table
         """
-        with SessionLocal() as session:
-            current_time = datetime.datetime.now()
+        new_user = None
+        with session:
+            current_time = datetime.datetime.now(datetime.timezone.utc)
+            password_hash, salt = create_salted_hash(data.password)
+            try:
+                new_user = User(
+                    username=data.username,
+                    email=data.email,
+                    phoneNumber=data.phoneNumber,
+                    dni=data.dni,
+                    fullName=data.fullName,
+                    status=UserStatusEnum.NO_VERIFICADO,
 
-            new_user = User(
-                username=data.username,
-                email=data.email,
-                phoneNumber=data.phoneNumber,
-                dni=data.dni,
-                fullName=data.fullName,
+                    passwordHash=password_hash,
+                    salt=salt,
+                    token=generate_token(TOKEN_LENGTH_BYTES),
 
-                passwordHash
-            salt
-            token
-            status
-            expireAt
-            createdAt
-            updateAt
-            )
+                    expireAt=current_time,
+                    createdAt=current_time,
+                    updateAt=current_time
+                )
 
-            session.add(new_user)
-            session.commit()
+                session.add(new_user)
+                session.commit()
+            except IntegrityError as e:
+                raise UniqueConstraintViolatedException(e)
+        return new_user
 
 
-def generate_salt() -> str:
+def generate_token(byte_length=DEFAULT_SALT_LENGTH_BYTES) -> str:
     """
-    Generates a random 32 byte hash and returns it as a string encoded in url-safe Base64
+    Generates X random bytes and encodes it as a url-safe Base64 string
     Returns:
-
+        str: cryptographically-safe random string
     """
-    return token_urlsafe(32)
+    return token_urlsafe(byte_length)
 
 
-def create_salted_hash(data, salt=generate_salt()) -> Tuple[str, str]:
+def create_salted_hash(data, salt=generate_token()) -> Tuple[str, str]:
     """
     Generates a salted hash of 'data' and returns both the hash and salt.
     Salt is automatically generated if it is not provided
@@ -64,5 +72,5 @@ def create_salted_hash(data, salt=generate_salt()) -> Tuple[str, str]:
     """
 
     concatenation = data + salt
-    data_hash = hashlib.sha256(concatenation, usedforsecurity=True)
+    data_hash = hashlib.sha256(concatenation.encode(), usedforsecurity=True)
     return data_hash.hexdigest(), salt
