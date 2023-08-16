@@ -7,7 +7,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, UUID4, Field, EmailStr
 
 
-class UserStatus(str, Enum):
+class UserStatusEnum(str, Enum):
     """
     Defines the available statuses for a user
     """
@@ -32,7 +32,7 @@ class UserSchema(BaseModel):
     passwordHash: str
     salt: str
     token: str
-    status: UserStatus = Field(default=UserStatus.NO_VERIFICADO)
+    status: UserStatusEnum = Field(default=UserStatusEnum.NO_VERIFICADO)
 
     expireAt: datetime = Field(default_factory=datetime.now)
     createdAt: datetime = Field(default_factory=datetime.now)
