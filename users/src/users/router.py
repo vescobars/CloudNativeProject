@@ -9,6 +9,16 @@ from src.models import User
 router = APIRouter()
 
 
+@router.post("/users")
+async def create_user():
+    """
+    Creates a user with the given data.
+    Username and email must be unique, validated by DB model UNIQUE constraint
+    """
+
+    return Response(content="pong", media_type="application/text", status_code=200)
+
+
 @router.get("/ping")
 async def ping():
     """
@@ -18,7 +28,7 @@ async def ping():
     return Response(content="pong", media_type="application/text", status_code=200)
 
 
-@router.get("/reset")
+@router.post("/reset")
 async def reset():
     """
     Clears the users table

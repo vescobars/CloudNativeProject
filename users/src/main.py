@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 
-from src.routers.users import router as users_router
+from src.users.router import router as users_router
 
 app = FastAPI()
 
