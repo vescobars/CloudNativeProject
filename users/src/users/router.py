@@ -6,7 +6,6 @@ from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from src.constants import datetime_to_str
-from src.database import engine
 from src.exceptions import UniqueConstraintViolatedException
 from src.models import User
 from src.users.schemas import CreateUserRequestSchema, CreateUserResponseSchema
@@ -55,7 +54,9 @@ def ping():
 
 
 @router.post("/reset")
-async def reset():
+async def reset(
+    session: Session = Depends(get_session),
+):
     """
     Clears the users table
     Returns:
@@ -64,9 +65,9 @@ async def reset():
     try:
         statement = delete(User)
         print(statement)
-        with engine.connect() as conn:
-            _ = conn.execute(statement)
-            conn.commit()
+        with session:
+            session.execute(statement)
+            session.commit()
     except Exception as e:
         print("ERROR: /users/reset")
         print(e)
