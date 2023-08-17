@@ -40,7 +40,6 @@ def test_reset(
     session.add(mock_user)
     session.commit()
     assert session.scalar(select(func.count()).select_from(User)) == 1, "Table couldn't be set up successfully"
-
     response = client.post("/users/reset")
     assert response.status_code == 200, "The request failed for an unknown reason"
     assert "los datos fueron eliminados" in str(response.json()['msg'])
