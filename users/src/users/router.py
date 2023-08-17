@@ -15,9 +15,11 @@ from src.database import get_session
 
 router = APIRouter()
 
+
 @router.post("/")
 def create_user(
-        user_data: CreateUserRequestSchema, sess: Session = Depends(get_session)
+        user_data: CreateUserRequestSchema, response: Response,
+        sess: Session = Depends(get_session),
 ) -> CreateUserResponseSchema:
     """
     Creates a user with the given data.
@@ -30,6 +32,7 @@ def create_user(
             id=str(new_user.id),
             createdAt=datetime_to_str(new_user.createdAt),
         )
+        response.status_code = 201
         return response_body
     except UniqueConstraintViolatedException as e:
         print(e)
