@@ -2,27 +2,26 @@ from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import orm
+from sqlalchemy import event, orm
+from sqlalchemy.orm import scoped_session
 
-from src.database import Session, Base, engine
+from src.database import SessionLocal, Base, engine
 from src.main import app
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def session() -> Generator:
     Base.metadata.create_all(bind=engine)
-    connection = engine.connect()
-
+    sess = SessionLocal(expire_on_commit=False)
     # begin a non-ORM transaction
-    transaction = connection.begin()
-    session = orm.Session(bind=connection)
-    yield session
-    session.close()
-    transaction.rollback()
-    connection.close()
+    savepoint = sess.begin_nested()
 
+    yield sess
 
-@pytest.fixture(scope="session")
+    sess.rollback()
+    sess.close()
+
+@pytest.fixture(scope="module")
 def client() -> Generator:
     with TestClient(app) as c:
         yield c

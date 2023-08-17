@@ -8,7 +8,7 @@ SQLALCHEMY_DATABASE_URL = "postgresql://postgres:password@0.0.0.0:5432/db"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
 )
-Session = sessionmaker(autocommit=False, autoflush=True, bind=engine, expire_on_commit=False)
+SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine, expire_on_commit=False)
 
 Base = declarative_base()
 
@@ -16,9 +16,9 @@ Base = declarative_base()
 # Dependency
 def get_session():
     """Shares a single db session to be used throughout the service"""
-    session = Session()
-    print("Tried to get session")
+    session = SessionLocal()
     try:
         yield session
     finally:
         session.close()
+

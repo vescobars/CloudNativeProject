@@ -1,10 +1,15 @@
 """ /users router """
+import json
+import logging
+from typing import Annotated
+
 from fastapi import APIRouter, HTTPException, Depends, Response
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
+from src import database
 from src.constants import datetime_to_str
 from src.exceptions import UniqueConstraintViolatedException
 from src.models import User
@@ -18,7 +23,7 @@ router = APIRouter()
 @router.post("/")
 def create_user(
         user_data: CreateUserRequestSchema, response: Response,
-        sess: Session = Depends(get_session),
+        sess: Annotated[Session, Depends(get_session)],
 ) -> CreateUserResponseSchema:
     """
     Creates a user with the given data.
@@ -70,11 +75,12 @@ async def reset(
             session.commit()
     except Exception as e:
         print("ERROR: /users/reset")
-        print(e)
+        logging.error(e)
         return JSONResponse(
             status_code=500,
             content={
-                "msg": "Un error desconocido ha ocurrido"
+                "msg": "Un error desconocido ha ocurrido",
+                "error": json.dumps(e)
             })
 
     return {"msg": "Todos los datos fueron eliminados"}
