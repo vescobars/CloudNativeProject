@@ -37,7 +37,7 @@ class UpdateUserRequestSchema(BaseModel):
     """
     Used when updating a user
     """
-    status: str = Optional[UserStatusEnum]
-    phoneNumber: Optional[str]
-    dni: Optional[str]
-    fullName: Optional[str]
+    status: Optional[UserStatusEnum] = None
+    phoneNumber: Optional[str] = None
+    dni: Optional[str] = None
+    fullName: Optional[str] = None

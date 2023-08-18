@@ -1,12 +1,15 @@
 """ /users router """
+import datetime
 import json
 import logging
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Depends, Response
 from fastapi.responses import JSONResponse
+from psycopg2 import DataError
 from pydantic import ValidationError
-from sqlalchemy import delete
+from sqlalchemy import delete, select
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from src import database
@@ -43,27 +46,33 @@ def create_user(
         raise HTTPException(status_code=412, detail="That email or username already exists")
 
 
-@router.post("/")
+@router.patch("/{user_id}")
 def update_user(
-        user_data: UpdateUserRequestSchema,
+        user_id: str, user_data: UpdateUserRequestSchema, response: Response,
         sess: Annotated[Session, Depends(get_session)],
-) -> CreateUserResponseSchema:
+) -> dict:
     """
-    Creates a user with the given data.
-    Username and email must be unique, validated by DB model UNIQUE constraint
+    Updates a user with the given data.
+
     """
     try:
-        users_util = Users()
-        new_user = users_util.create_user(user_data, sess)
-        response_body: CreateUserResponseSchema = CreateUserResponseSchema(
-            id=str(new_user.id),
-            createdAt=datetime_to_str(new_user.createdAt),
-        )
-        response.status_code = 201
-        return response_body
-    except UniqueConstraintViolatedException as e:
-        print(e)
-        raise HTTPException(status_code=412, detail="That email or username already exists")
+        retrieved_user = sess.execute(
+            select(User).where(User.id == user_id)
+        ).scalar_one()
+
+        updated = False
+        for field in ['status', 'dni', 'fullName', 'phoneNumber']:
+            if getattr(user_data, field):
+                setattr(retrieved_user, field, getattr(user_data, field))
+                updated = True
+        if updated:
+            retrieved_user.updatedAt = datetime.datetime.now()
+            sess.commit()
+        else:
+            raise HTTPException(status_code=400, detail="Solicitud vacía")
+        return {"msg": "el usuario ha sido actualizado"}
+    except (NoResultFound, DataError, TypeError):
+        raise HTTPException(status_code=404, detail="El usuario no fue encontrado")
 
 
 @router.get("/ping")
