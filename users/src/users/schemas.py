@@ -4,6 +4,8 @@ from typing import Optional, Annotated
 
 from pydantic import BaseModel, EmailStr, Field, AfterValidator
 
+from src.schemas import UserStatusEnum
+
 
 class CreateUserRequestSchema(BaseModel):
     """
@@ -29,3 +31,13 @@ class CreateUserResponseSchema(BaseModel):
     """
     id: str = Annotated[str, AfterValidator(check_uuid4)]
     createdAt: str
+
+
+class UpdateUserRequestSchema(BaseModel):
+    """
+    Used when updating a user
+    """
+    status: str = Optional[UserStatusEnum]
+    phoneNumber: Optional[str]
+    dni: Optional[str]
+    fullName: Optional[str]

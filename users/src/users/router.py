@@ -13,7 +13,7 @@ from src import database
 from src.constants import datetime_to_str
 from src.exceptions import UniqueConstraintViolatedException
 from src.models import User
-from src.users.schemas import CreateUserRequestSchema, CreateUserResponseSchema
+from src.users.schemas import CreateUserRequestSchema, CreateUserResponseSchema, UpdateUserRequestSchema
 from src.users.utils import Users
 from src.database import get_session
 
@@ -23,6 +23,29 @@ router = APIRouter()
 @router.post("/")
 def create_user(
         user_data: CreateUserRequestSchema, response: Response,
+        sess: Annotated[Session, Depends(get_session)],
+) -> CreateUserResponseSchema:
+    """
+    Creates a user with the given data.
+    Username and email must be unique, validated by DB model UNIQUE constraint
+    """
+    try:
+        users_util = Users()
+        new_user = users_util.create_user(user_data, sess)
+        response_body: CreateUserResponseSchema = CreateUserResponseSchema(
+            id=str(new_user.id),
+            createdAt=datetime_to_str(new_user.createdAt),
+        )
+        response.status_code = 201
+        return response_body
+    except UniqueConstraintViolatedException as e:
+        print(e)
+        raise HTTPException(status_code=412, detail="That email or username already exists")
+
+
+@router.post("/")
+def update_user(
+        user_data: UpdateUserRequestSchema,
         sess: Annotated[Session, Depends(get_session)],
 ) -> CreateUserResponseSchema:
     """
