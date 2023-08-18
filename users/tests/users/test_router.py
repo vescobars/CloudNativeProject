@@ -72,6 +72,7 @@ def test_create_user_unique_violation(
     response = client.post("/users", json=payload.model_dump())
     assert response.status_code == 412
 
+
 def test_create_user_validation_error(
         client: TestClient, session: Session, faker
 ):
@@ -93,7 +94,6 @@ def test_create_user_validation_error(
 
     response = client.post("/users", json=payload)
     assert response.status_code == 400
-
 
 
 def test_ping(client: TestClient):
