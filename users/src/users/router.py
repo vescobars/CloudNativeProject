@@ -41,12 +41,6 @@ def create_user(
     except UniqueConstraintViolatedException as e:
         print(e)
         raise HTTPException(status_code=412, detail="That email or username already exists")
-    except ValidationError as e:
-        print(e)
-        raise HTTPException(status_code=400, detail={
-            "msg": "Request body is not properly structured",
-            "errors": e
-        })
 
 
 @router.get("/ping")
@@ -60,7 +54,7 @@ def ping():
 
 @router.post("/reset")
 async def reset(
-    session: Session = Depends(get_session),
+        session: Session = Depends(get_session),
 ):
     """
     Clears the users table
