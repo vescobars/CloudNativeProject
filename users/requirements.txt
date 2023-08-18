@@ -5,3 +5,5 @@ pydantic~=2.1.1
 psycopg2-binary
 httpx
 pytest
+coverage
+Faker

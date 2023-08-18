@@ -74,13 +74,10 @@ async def reset(
             session.execute(statement)
             session.commit()
     except Exception as e:
-        print("ERROR: /users/reset")
         logging.error(e)
         return JSONResponse(
-            status_code=500,
-            content={
-                "msg": "Un error desconocido ha ocurrido",
-                "error": json.dumps(e)
+            status_code=500, content={
+                "msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)
             })
 
     return {"msg": "Todos los datos fueron eliminados"}
