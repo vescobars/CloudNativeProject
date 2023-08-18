@@ -14,6 +14,7 @@ from src.users.schemas import CreateUserRequestSchema
 def test_create_user(
         client: TestClient, session: Session, faker
 ):
+    """Checks that POST /users functions correctly and creates the user"""
     session.execute(
         delete(User)
     )
@@ -34,14 +35,65 @@ def test_create_user(
     assert "id" in response_body
     assert "createdAt" in response_body
 
-
-    retrieved_user = session.execute(select(User).where(User.id == response_body['id'])).first()[0]
+    retrieved_user = session.execute(
+        select(User).where(User.id == response_body['id'])
+    ).first()[0]
 
     assert retrieved_user.username == payload.username
     assert retrieved_user.email == payload.email
     assert retrieved_user.phoneNumber == payload.phoneNumber
     assert retrieved_user.fullName == payload.fullName
     assert retrieved_user.dni is None
+
+
+def test_create_user_unique_violation(
+        client: TestClient, session: Session, faker
+):
+    """
+    Checks that POST /users functions gives a correct response when
+    a duplicated email/username is uploaded
+    """
+    session.execute(
+        delete(User)
+    )
+    session.commit()
+    profile = faker.simple_profile()
+    payload = CreateUserRequestSchema(
+        username=profile['username'],
+        password=faker.password(),
+        email=profile['mail'],
+        phoneNumber=faker.phone_number(),
+        dni=profile['name']
+    )
+
+    response = client.post("/users", json=payload.model_dump())
+    assert response.status_code == 201
+
+    response = client.post("/users", json=payload.model_dump())
+    assert response.status_code == 412
+
+def test_create_user_validation_error(
+        client: TestClient, session: Session, faker
+):
+    """
+    GIVEN I try to send an invalid request body
+    I EXPECT a 400 error
+    """
+    session.execute(
+        delete(User)
+    )
+    session.commit()
+    profile = faker.simple_profile()
+    payload = {
+        "username": profile['username'],
+        "email": profile['mail'],
+        "phoneNumber": faker.phone_number(),
+        "fullName": profile['name']
+    }
+
+    response = client.post("/users", json=payload)
+    assert response.status_code == 400
+
 
 
 def test_ping(client: TestClient):
