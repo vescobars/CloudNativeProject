@@ -65,7 +65,7 @@ class Users:
                     updated = True
 
             if updated:
-                retrieved_user.updatedAt = datetime.datetime.now()
+                retrieved_user.updateAt = datetime.datetime.now(datetime.timezone.utc)
                 sess.commit()
             return updated
         except (NoResultFound, DataError, TypeError):
