@@ -4,11 +4,13 @@ import hashlib
 from secrets import token_urlsafe
 from typing import Tuple
 
-from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
 from sqlalchemy.orm import Session
 
 from src.constants import TOKEN_LENGTH_BYTES, DEFAULT_SALT_LENGTH_BYTES
-from src.exceptions import UniqueConstraintViolatedException
+from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException, InvalidRequestException
 from src.models import User
 from src.schemas import UserSchema, UserStatusEnum
 from src.users.schemas import CreateUserRequestSchema
@@ -49,6 +51,25 @@ class Users:
                 raise UniqueConstraintViolatedException(e)
         return new_user
 
+    @staticmethod
+    def update_user(user_id:str, user_data: CreateUserRequestSchema, sess: Session) -> bool:
+        try:
+            retrieved_user = sess.execute(
+                select(User).where(User.id == user_id)
+            ).scalar_one()
+
+            updated = False
+            for field in ['status', 'dni', 'fullName', 'phoneNumber']:
+                if getattr(user_data, field):
+                    setattr(retrieved_user, field, getattr(user_data, field))
+                    updated = True
+
+            if updated:
+                retrieved_user.updatedAt = datetime.datetime.now()
+                sess.commit()
+            return updated
+        except (NoResultFound, DataError, TypeError):
+            raise UserNotFoundException()
 
 def generate_token(byte_length=DEFAULT_SALT_LENGTH_BYTES) -> str:
     """

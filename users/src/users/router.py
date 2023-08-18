@@ -14,8 +14,9 @@ from sqlalchemy.orm import Session
 
 from src import database
 from src.constants import datetime_to_str
-from src.exceptions import UniqueConstraintViolatedException
+from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException, InvalidRequestException
 from src.models import User
+from src.users import utils
 from src.users.schemas import CreateUserRequestSchema, CreateUserResponseSchema, UpdateUserRequestSchema
 from src.users.utils import Users
 from src.database import get_session
@@ -48,7 +49,7 @@ def create_user(
 
 @router.patch("/{user_id}")
 def update_user(
-        user_id: str, user_data: UpdateUserRequestSchema, response: Response,
+        user_id: str, user_data: UpdateUserRequestSchema,
         sess: Annotated[Session, Depends(get_session)],
 ) -> dict:
     """
@@ -56,22 +57,15 @@ def update_user(
 
     """
     try:
-        retrieved_user = sess.execute(
-            select(User).where(User.id == user_id)
-        ).scalar_one()
-
-        updated = False
-        for field in ['status', 'dni', 'fullName', 'phoneNumber']:
-            if getattr(user_data, field):
-                setattr(retrieved_user, field, getattr(user_data, field))
-                updated = True
+        updated = Users.update_user(user_id, user_data, sess)
         if updated:
-            retrieved_user.updatedAt = datetime.datetime.now()
-            sess.commit()
+            return {"msg": "el usuario ha sido actualizado"}
         else:
-            raise HTTPException(status_code=400, detail="Solicitud vacía")
-        return {"msg": "el usuario ha sido actualizado"}
-    except (NoResultFound, DataError, TypeError):
+            raise InvalidRequestException()
+
+    except InvalidRequestException:
+        raise HTTPException(status_code=400, detail="Solicitud vacía")
+    except UserNotFoundException:
         raise HTTPException(status_code=404, detail="El usuario no fue encontrado")
 
 
