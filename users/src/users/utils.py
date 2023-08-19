@@ -1,6 +1,6 @@
 """ Utils for users """
-import datetime
 import hashlib
+from datetime import datetime, timezone, timedelta
 from secrets import token_urlsafe
 from typing import Tuple
 
@@ -9,10 +9,11 @@ from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
 from sqlalchemy.orm import Session
 
 from src.constants import TOKEN_LENGTH_BYTES, DEFAULT_SALT_LENGTH_BYTES
-from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException
+from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException, IncorrectUserPasswordException
 from src.models import User
 from src.schemas import UserSchema, UserStatusEnum
-from src.users.schemas import CreateUserRequestSchema, UpdateUserRequestSchema
+from src.users.schemas import CreateUserRequestSchema, UpdateUserRequestSchema, GenerateTokenRequestSchema, \
+    GenerateTokenResponseSchema
 
 
 class Users:
@@ -24,7 +25,7 @@ class Users:
         """
         new_user = None
         with session:
-            current_time = datetime.datetime.now(datetime.timezone.utc)
+            current_time = datetime.now(timezone.utc)
             password_hash, salt = create_salted_hash(data.password)
             try:
                 new_user = User(
@@ -64,9 +65,47 @@ class Users:
                     updated = True
 
             if updated:
-                retrieved_user.updateAt = datetime.datetime.now(datetime.timezone.utc)
+                retrieved_user.updateAt = datetime.now(timezone.utc)
                 sess.commit()
             return updated
+        except (NoResultFound, DataError, TypeError):
+            raise UserNotFoundException()
+
+    @staticmethod
+    def generate_new_token(req_data: GenerateTokenRequestSchema,
+                           sess: Session) -> GenerateTokenResponseSchema:
+        """
+        Checks if the given password is correct, and if so generates a new token and returns it
+        Args:
+            req_data:
+            sess:
+
+        Returns:
+            the user id, the token and the time it will expire at
+        """
+        try:
+            retrieved_user: User = sess.execute(
+                select(User).where(User.username == req_data.username)
+            ).scalar_one()
+
+            pass_attempt_hash, _ = create_salted_hash(req_data.password, salt=retrieved_user.salt)
+            if retrieved_user.passwordHash != pass_attempt_hash:
+                raise IncorrectUserPasswordException()
+
+            retrieved_user.salt = generate_token(TOKEN_LENGTH_BYTES)
+            retrieved_user.expireAt = datetime.now(timezone.utc) + timedelta(
+                days=3
+            )
+            #
+            retrieved_user.updateAt = datetime.now(timezone.utc)
+
+            sess.commit()
+            return GenerateTokenResponseSchema(
+                id=retrieved_user.id,
+                token=retrieved_user.token,
+                expireAt=retrieved_user.expireAt
+            )
+
         except (NoResultFound, DataError, TypeError):
             raise UserNotFoundException()
 

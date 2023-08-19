@@ -1,12 +1,14 @@
 import datetime
 import uuid
 
+import requests
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select, func
 from sqlalchemy.orm import Session
 
 from src.models import User
 from src.schemas import UserStatusEnum
+from src.users.router import create_user
 from src.users.schemas import CreateUserRequestSchema
 
 
@@ -150,6 +152,48 @@ def test_update_user(
     assert retrieved_user.status == second_profile['status']
     assert retrieved_user.fullName == second_profile['fullName']
     assert retrieved_user.dni == second_profile['dni']
+
+
+def test_gen_token(
+        client: TestClient, session: Session, faker
+):
+    """
+    GIVEN I send a valid username and password
+    I EXPECT a 200 response and new valid token, with attached ID and expireAt date
+    """
+    session.execute(
+        delete(User)
+    )
+    profile = faker.simple_profile()
+    create_user_payload = CreateUserRequestSchema(
+        username=profile['username'],
+        password=faker.password(),
+        email=profile['mail'],
+    )
+    mock_user = create_user(create_user_payload, requests.Response(), sess=session)
+
+    credentials = {
+        "username": create_user_payload.username,
+        "password": create_user_payload.password,
+    }
+
+    response = client.post("/users/auth", json=credentials)
+    assert response.status_code == 200
+
+    response_body = response.json()
+    expireAtTime = datetime.datetime.strptime(response_body['expireAt'], "%Y-%m-%dT%H:%M:%S.%fZ")
+    assert response_body['id'] == str(mock_user.id)
+    assert response_body['token'] is not None
+    assert expireAtTime > datetime.datetime.utcnow()
+
+    retrieved_user = session.execute(
+        select(User).where(User.id == str(mock_user.id))
+    ).scalar_one()
+
+    session.refresh(retrieved_user)
+
+    assert retrieved_user.token == response_body['token']
+    assert retrieved_user.expireAt == expireAtTime
 
 
 def test_ping(client: TestClient):

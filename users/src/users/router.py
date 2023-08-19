@@ -1,25 +1,21 @@
 """ /users router """
-import datetime
 import json
 import logging
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Depends, Response
 from fastapi.responses import JSONResponse
-from psycopg2 import DataError
-from pydantic import ValidationError
-from sqlalchemy import delete, select
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
-from src import database
 from src.constants import datetime_to_str
-from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException, InvalidRequestException
-from src.models import User
-from src.users import utils
-from src.users.schemas import CreateUserRequestSchema, CreateUserResponseSchema, UpdateUserRequestSchema
-from src.users.utils import Users
 from src.database import get_session
+from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException, InvalidRequestException, \
+    IncorrectUserPasswordException
+from src.models import User
+from src.users.schemas import CreateUserRequestSchema, CreateUserResponseSchema, UpdateUserRequestSchema, \
+    GenerateTokenRequestSchema, GenerateTokenResponseSchema
+from src.users.utils import Users
 
 router = APIRouter()
 
@@ -67,6 +63,22 @@ def update_user(
         raise HTTPException(status_code=400, detail="Solicitud vacía")
     except UserNotFoundException:
         raise HTTPException(status_code=404, detail="El usuario no fue encontrado")
+
+
+@router.post("/auth")
+def generate_new_token(
+        req_data: GenerateTokenRequestSchema,
+        sess: Annotated[Session, Depends(get_session)],
+) -> GenerateTokenResponseSchema:
+    """
+    Generates new security token if correctly authenticated
+    """
+    try:
+        token_info = Users.generate_new_token(req_data, sess)
+        return token_info
+
+    except (IncorrectUserPasswordException, UserNotFoundException):
+        raise HTTPException(status_code=404, detail="El usuario y/o contraseña no fue encontrado")
 
 
 @router.get("/ping")

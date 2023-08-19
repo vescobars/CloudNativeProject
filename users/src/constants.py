@@ -11,6 +11,7 @@ DB_HOST = os.environ.get("DB_HOST")
 DB_PORT = os.environ.get("DB_PORT")
 DB_NAME = os.environ.get("DB_NAME")
 
+
 def datetime_to_str(date: datetime) -> str:
     """Returns a datetime as string in the correct ISO format"""
     return date.isoformat(sep="T", timespec="seconds").split("+")[0]

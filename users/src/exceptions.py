@@ -11,3 +11,7 @@ class UserNotFoundException(Exception):
 
 class InvalidRequestException(Exception):
     """The request body was empty or otherwise invalid"""
+
+
+class IncorrectUserPasswordException(Exception):
+    """The username or password given was invalid"""

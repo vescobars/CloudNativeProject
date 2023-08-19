@@ -1,4 +1,5 @@
 """ Pydantic schemas for request and response bodiess """
+import datetime
 import uuid
 from typing import Optional, Annotated
 
@@ -41,3 +42,20 @@ class UpdateUserRequestSchema(BaseModel):
     phoneNumber: Optional[str] = None
     dni: Optional[str] = None
     fullName: Optional[str] = None
+
+
+class GenerateTokenRequestSchema(BaseModel):
+    """
+    Used when requesting a new token
+    """
+    username: str = Field(min_length=1)
+    password: str = Field(min_length=1)
+
+
+class GenerateTokenResponseSchema(BaseModel):
+    """
+    Used when requesting a new token
+    """
+    id: uuid.UUID
+    token: str
+    expireAt: datetime.datetime
