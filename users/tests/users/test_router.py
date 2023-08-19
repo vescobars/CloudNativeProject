@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+import pytest
 import requests
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select, func
@@ -194,6 +195,37 @@ def test_gen_token(
 
     assert retrieved_user.token == response_body['token']
     assert retrieved_user.expireAt == expireAtTime
+
+
+@pytest.mark.parametrize("username_suffix", [False, True, None])
+def test_gen_token_wrong_pass(
+        username_suffix: str, client: TestClient, session: Session, faker
+):
+    """
+    GIVEN I send an invalid username and password, or just an invalid password
+    I EXPECT a 404 response
+    GIVEN I don't send a username,
+    I EXPECT a 400 response
+    """
+    session.execute(
+        delete(User)
+    )
+    profile = faker.simple_profile()
+    create_user_payload = CreateUserRequestSchema(
+        username=profile['username'],
+        password=faker.password(),
+        email=profile['mail'],
+    )
+    create_user(create_user_payload, requests.Response(), sess=session)
+    credentials = {
+        "password": faker.password(),
+    }
+    if username_suffix is not None:
+        credentials['username'] = create_user_payload.username if username_suffix else faker.name(),
+
+    response = client.post("/users/auth", json=credentials)
+
+    assert response.status_code == 400 if username_suffix is None else 404
 
 
 def test_ping(client: TestClient):
