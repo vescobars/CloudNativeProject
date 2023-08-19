@@ -1,7 +1,6 @@
 import datetime
 import uuid
 
-from faker import Faker
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select, func
 from sqlalchemy.orm import Session
@@ -94,6 +93,63 @@ def test_create_user_validation_error(
 
     response = client.post("/users", json=payload)
     assert response.status_code == 400
+
+
+def test_update_user(
+        client: TestClient, session: Session, faker
+):
+    """
+    GIVEN I send a new status, fullName, phoneNumber and dni
+    I EXPECT a 200 response and the changes to be reflected in database
+    """
+    session.execute(
+        delete(User)
+    )
+    profile = faker.simple_profile()
+    mock_user = User(
+        username=profile['username'],
+        email=profile['mail'],
+        phoneNumber=faker.phone_number(),
+        dni=faker.password(),
+        fullName=profile['name'],
+        passwordHash="a68f7b00815178c7996ddc88208224198a584ce22faf75b19bfeb24ed6f90a59",
+        salt="ES25GfW7i4Pp1BqXtASUFXJFe9PMb_7o-2v73v3svWc",
+        token="eHBL1jbhBY6GfZ96DC03BlxM38SPF3npRBceefRgnkTpByFexOe7RPPDdLCh9gejD6Fe6Kdl_s5C3Gljqh3WM2xW1IGdlZQYg"
+              "V0_v55tw_NB19oMzH2t9AjKycEDdwmqPFJVR4sZuk9MFvSGoY_vQa4Y0pwCvxhBDT1VNsDnQio",
+        status=UserStatusEnum.NO_VERIFICADO,
+        expireAt=datetime.datetime.now(),
+        createdAt=datetime.datetime.now(),
+        updateAt=datetime.datetime.now()
+    )
+    session.add(mock_user)
+    session.commit()
+
+    second_profile = {
+        "status": UserStatusEnum.POR_VERIFICAR,
+        "phoneNumber": faker.phone_number(),
+        "dni": faker.password(),
+        "fullName": faker.name()
+    }
+
+    response = client.patch("/users/" + str(mock_user.id),
+                            json=second_profile)
+    session.flush()
+    session.commit()
+    assert response.status_code == 200
+
+    response_body = response.json()
+    assert "ha sido actualizado" in response_body['msg']
+
+    retrieved_user = session.execute(
+        select(User).where(User.id == str(mock_user.id))
+    ).scalar_one()
+
+    session.refresh(retrieved_user)
+
+    assert retrieved_user.phoneNumber == second_profile['phoneNumber']
+    assert retrieved_user.status == second_profile['status']
+    assert retrieved_user.fullName == second_profile['fullName']
+    assert retrieved_user.dni == second_profile['dni']
 
 
 def test_ping(client: TestClient):

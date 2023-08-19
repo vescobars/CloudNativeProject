@@ -4,16 +4,15 @@ import hashlib
 from secrets import token_urlsafe
 from typing import Tuple
 
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
 from sqlalchemy.orm import Session
 
 from src.constants import TOKEN_LENGTH_BYTES, DEFAULT_SALT_LENGTH_BYTES
-from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException, InvalidRequestException
+from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException
 from src.models import User
 from src.schemas import UserSchema, UserStatusEnum
-from src.users.schemas import CreateUserRequestSchema
+from src.users.schemas import CreateUserRequestSchema, UpdateUserRequestSchema
 
 
 class Users:
@@ -52,7 +51,7 @@ class Users:
         return new_user
 
     @staticmethod
-    def update_user(user_id:str, user_data: CreateUserRequestSchema, sess: Session) -> bool:
+    def update_user(user_id: str, user_data: UpdateUserRequestSchema, sess: Session) -> bool:
         try:
             retrieved_user = sess.execute(
                 select(User).where(User.id == user_id)
@@ -70,6 +69,7 @@ class Users:
             return updated
         except (NoResultFound, DataError, TypeError):
             raise UserNotFoundException()
+
 
 def generate_token(byte_length=DEFAULT_SALT_LENGTH_BYTES) -> str:
     """
