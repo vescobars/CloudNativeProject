@@ -15,3 +15,11 @@ class InvalidRequestException(Exception):
 
 class IncorrectUserPasswordException(Exception):
     """The username or password given was invalid"""
+
+
+class ExpiredTokenException(Exception):
+    """The token has already expired"""
+
+
+class InvalidTokenException(Exception):
+    """The token was not found, it might be expired or unauthentic"""
