@@ -19,7 +19,7 @@ class User(Base):
 
     passwordHash = Column("password", String, nullable=False)
     salt = Column(String, nullable=False)
-    token = Column(String, index=True)
+    token = Column(String, index=True, unique=True, nullable=False)
     status = Column(String, nullable=False)
 
     expireAt = Column(DateTime, nullable=False)
