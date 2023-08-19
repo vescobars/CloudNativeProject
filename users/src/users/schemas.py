@@ -59,3 +59,16 @@ class GenerateTokenResponseSchema(BaseModel):
     id: uuid.UUID
     token: str
     expireAt: datetime.datetime
+
+
+class GetUserResponseSchema(BaseModel):
+    """
+    Used when requesting a user
+    """
+    id: uuid.UUID
+    username: str
+    email: str
+    fullName: str = ""
+    dni: str = ""
+    phoneNumber: str = ""
+    status: str
