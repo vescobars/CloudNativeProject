@@ -155,6 +155,31 @@ def test_update_user(
     assert retrieved_user.dni == second_profile['dni']
 
 
+def test_update_user_no_user(
+        client: TestClient, session: Session, faker
+):
+    """
+    GIVEN I send a nonexistent UUID
+    I EXPECT a 404 response and no changes in DB
+    """
+    session.execute(
+        delete(User)
+    )
+    profile = faker.simple_profile()
+    session.commit()
+
+    second_profile = {
+        "status": UserStatusEnum.POR_VERIFICAR,
+        "phoneNumber": faker.phone_number(),
+        "dni": faker.password(),
+        "fullName": faker.name()
+    }
+
+    response = client.patch("/users/" + str(uuid.uuid4()),
+                            json=second_profile)
+    assert response.status_code == 404
+
+
 def test_gen_token(
         client: TestClient, session: Session, faker
 ):
