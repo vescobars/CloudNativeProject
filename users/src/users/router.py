@@ -107,9 +107,6 @@ async def reset(
             session.commit()
     except Exception as e:
         logging.error(e)
-        return JSONResponse(
-            status_code=500, content={
-                "msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)
-            })
-
+        return JSONResponse(status_code=500, content={
+            "msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)})
     return {"msg": "Todos los datos fueron eliminados"}

@@ -180,6 +180,41 @@ def test_update_user_no_user(
     assert response.status_code == 404
 
 
+def test_update_user_invalid_request(
+        client: TestClient, session: Session, faker
+):
+    """
+    GIVEN I send an empty body
+    I EXPECT a 400 response and no changes in DB
+    """
+    session.execute(
+        delete(User)
+    )
+    profile = faker.simple_profile()
+    mock_user = User(
+        username=profile['username'],
+        email=profile['mail'],
+        phoneNumber=faker.phone_number(),
+        dni=faker.password(),
+        fullName=profile['name'],
+        passwordHash="a68f7b00815178c7996ddc88208224198a584ce22faf75b19bfeb24ed6f90a59",
+        salt="ES25GfW7i4Pp1BqXtASUFXJFe9PMb_7o-2v73v3svWc",
+        token="eHBL1jbhBY6GfZ96DC03BlxM38SPF3npRBceefRgnkTpByFexOe7RPPDdLCh9gejD6Fe6Kdl_s5C3Gljqh3WM2xW1IGdlZQYg"
+              "V0_v55tw_NB19oMzH2t9AjKycEDdwmqPFJVR4sZuk9MFvSGoY_vQa4Y0pwCvxhBDT1VNsDnQio",
+        status=UserStatusEnum.NO_VERIFICADO,
+        expireAt=datetime.datetime.now(),
+        createdAt=datetime.datetime.now(),
+        updateAt=datetime.datetime.now()
+    )
+    session.add(mock_user)
+    session.commit()
+
+    second_profile = {}
+
+    response = client.patch("/users/" + str(mock_user.id),
+                            json=second_profile)
+    assert response.status_code == 400
+
 def test_gen_token(
         client: TestClient, session: Session, faker
 ):
@@ -246,7 +281,7 @@ def test_gen_token_wrong_pass(
         "password": faker.password(),
     }
     if username_suffix is not None:
-        credentials['username'] = create_user_payload.username if username_suffix else faker.name(),
+        credentials['username'] = create_user_payload.username if username_suffix else faker.email()
 
     response = client.post("/users/auth", json=credentials)
 
