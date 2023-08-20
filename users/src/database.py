@@ -3,12 +3,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:password@0.0.0.0:5432/db"
+from src.constants import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
+
+SQLALCHEMY_DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
 )
-read_uncommitted_engine = engine.execution_options(isolation_level="READ UNCOMMITTED")
 SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine, expire_on_commit=False)
 
 Base = declarative_base()
