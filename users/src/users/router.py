@@ -3,7 +3,7 @@ import json
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Depends, Response
+from fastapi import APIRouter, HTTPException, Depends, Response, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
@@ -11,10 +11,10 @@ from sqlalchemy.orm import Session
 from src.constants import datetime_to_str
 from src.database import get_session
 from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException, InvalidRequestException, \
-    IncorrectUserPasswordException
+    IncorrectUserPasswordException, InvalidTokenException, ExpiredTokenException
 from src.models import User
 from src.users.schemas import CreateUserRequestSchema, CreateUserResponseSchema, UpdateUserRequestSchema, \
-    GenerateTokenRequestSchema, GenerateTokenResponseSchema
+    GenerateTokenRequestSchema, GenerateTokenResponseSchema, GetUserResponseSchema
 from src.users.utils import Users
 
 router = APIRouter()
@@ -79,6 +79,25 @@ def generate_new_token(
 
     except (IncorrectUserPasswordException, UserNotFoundException):
         raise HTTPException(status_code=404, detail="El usuario y/o contraseña no fue encontrado")
+
+
+@router.get("/me")
+def get_user(
+        request: Request,
+        sess: Annotated[Session, Depends(get_session)],
+) -> GetUserResponseSchema:
+    """
+    Retrieves user if correctly authenticated
+    """
+    try:
+        if not request.headers.get('Authorization') or 'Bearer ' not in request.headers.get('Authorization'):
+            raise HTTPException(status_code=403, detail="El token no esta en el encabezado")
+        user_id = Users.authenticate(request.headers.get('Authorization').split(" ")[1], sess)
+        user_data = Users.get_user(user_id, sess)
+        return user_data
+
+    except (InvalidTokenException, ExpiredTokenException):
+        raise HTTPException(status_code=401, detail="El usuario y/o contraseña no fue encontrado")
 
 
 @router.get("/ping")
