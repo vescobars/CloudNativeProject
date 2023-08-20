@@ -68,7 +68,7 @@ class GetUserResponseSchema(BaseModel):
     id: uuid.UUID
     username: str
     email: str
-    fullName: str = ""
-    dni: str = ""
-    phoneNumber: str = ""
+    fullName: Optional[str] = ""
+    dni: Optional[str] = ""
+    phoneNumber: Optional[str] = ""
     status: str

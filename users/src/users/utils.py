@@ -39,7 +39,7 @@ class Users:
 
                     passwordHash=password_hash,
                     salt=salt,
-                    token=User.generate_token(TOKEN_LENGTH_BYTES),
+                    token=Users.generate_token(TOKEN_LENGTH_BYTES),
 
                     expireAt=current_time,
                     createdAt=current_time,
@@ -93,7 +93,7 @@ class Users:
             if retrieved_user.passwordHash != pass_attempt_hash:
                 raise IncorrectUserPasswordException()
 
-            retrieved_user.salt = User.generate_token(TOKEN_LENGTH_BYTES)
+            retrieved_user.salt = Users.generate_token(TOKEN_LENGTH_BYTES)
             retrieved_user.expireAt = datetime.now(timezone.utc) + timedelta(
                 days=3
             )
@@ -135,13 +135,13 @@ class Users:
         ).scalar_one()
 
         return GetUserResponseSchema(
-            id=retrieved_user['id'],
-            username=retrieved_user['username'],
-            email=retrieved_user['email'],
-            fullName=retrieved_user['fullName'],
-            dni=retrieved_user['dni'],
-            phoneNumber=retrieved_user['phoneNumber'],
-            status=retrieved_user['status'],
+            id=retrieved_user.id,
+            username=retrieved_user.username,
+            email=retrieved_user.email,
+            fullName=retrieved_user.fullName,
+            dni=retrieved_user.dni,
+            phoneNumber=retrieved_user.phoneNumber,
+            status=retrieved_user.status,
         )
 
     @staticmethod
@@ -168,7 +168,7 @@ class Users:
             raise InvalidTokenException()
 
 
-def create_salted_hash(data, salt=User.generate_token()) -> Tuple[str, str]:
+def create_salted_hash(data, salt=Users.generate_token()) -> Tuple[str, str]:
     """
     Generates a salted hash of 'data' and returns both the hash and salt.
     Salt is automatically generated if it is not provided

@@ -288,6 +288,51 @@ def test_gen_token_wrong_pass(
     assert response.status_code == 400 if username_suffix is None else 404
 
 
+def test_get_user(
+        client: TestClient, session: Session, faker
+):
+    """
+    GIVEN I send a valid token
+    I EXPECT a 200 response and all user fields
+    """
+    session.execute(
+        delete(User)
+    )
+    profile = faker.simple_profile()
+    create_user_payload = CreateUserRequestSchema(
+        username=profile['username'],
+        password=faker.password(),
+        email=profile['mail'],
+    )
+    mock_user = create_user(create_user_payload, requests.Response(), sess=session)
+
+    credentials = {
+        "username": create_user_payload.username,
+        "password": create_user_payload.password,
+    }
+
+    token_response = client.post("/users/auth", json=credentials)
+    assert token_response.status_code == 200, "Renewing token failed"
+    token_body = token_response.json()
+
+    user_response = client.get("/users/me", headers={'Authorization': f"Bearer {token_body['token']}"})
+    user = user_response.json()
+    assert token_response.status_code == 200, "Renewing token failed"
+    retrieved_user = session.execute(
+        select(User).where(User.id == str(token_body['id']))
+    ).scalar_one()
+
+    session.refresh(retrieved_user)
+
+    assert str(retrieved_user.id) == user['id']
+    assert retrieved_user.username == user['username']
+    assert retrieved_user.email == user['email']
+    assert retrieved_user.fullName == user['fullName']
+    assert retrieved_user.dni == user['dni']
+    assert retrieved_user.phoneNumber == user['phoneNumber']
+    assert retrieved_user.status == user['status']
+
+
 def test_ping(client: TestClient):
     response = client.get("/users/ping")
     assert response.status_code == 200
