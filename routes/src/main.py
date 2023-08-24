@@ -1,0 +1,1 @@
+""" Main class of FastAPI Routes Microservice """
