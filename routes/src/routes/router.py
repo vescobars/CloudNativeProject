@@ -10,4 +10,5 @@ async def say_hello(name: str):
 
 @router.get("/ping")
 async def ping():
-    return Response(content="pong", media_type="application/text")
+    return Response(content="pong", media_type="application/text", status_code=200)
+
