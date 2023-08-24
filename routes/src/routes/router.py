@@ -1,3 +1,4 @@
+""" Router for users microservice on /routes"""
 from fastapi import APIRouter, Response
 
 router = APIRouter()
