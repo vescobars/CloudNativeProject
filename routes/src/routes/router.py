@@ -18,13 +18,21 @@ router = APIRouter()
 
 @router.get("/ping")
 async def ping():
+    """
+    Returns a pong when the endpoint is contacted.
+    Essentially serves as a health check
+    :return: pong text object with 500 status code
+    """
     return Response(content="pong", media_type="application/text", status_code=200)
 
 
 @router.post("/reset")
-async def reset(
-        session: Session = Depends(get_session)
-):
+async def reset(session: Session = Depends(get_session)):
+    """
+    Clears route table in the db.
+    :param session: gets the current session
+    :return: json -> msg: Todos los datos fueron eliminados
+    """
     try:
         statement = delete(Route)
         with session:
