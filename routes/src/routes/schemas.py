@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel, Field, ValidationError
 from datetime import datetime
+
+
 class CreateRouteRequestSchema(BaseModel):
     """
     Request schema used when creating a new route
@@ -14,3 +16,8 @@ class CreateRouteRequestSchema(BaseModel):
     bagCost: int = Field(ge=0)
     plannedStartDate: datetime = Field()
     plannedEndDate: datetime = Field()
+
+
+def validate_date(date) -> datetime:
+    """Returns value error if the date is not in the future"""
+    return date < datetime.now()
