@@ -1,4 +1,7 @@
 """ Router for users microservice on /routes"""
+import datetime
+from typing import Annotated
+
 from fastapi import APIRouter, Response, Depends
 from fastapi.responses import JSONResponse
 
@@ -6,14 +9,43 @@ import json
 
 from requests import session
 
+from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
 from src.routes.utils import Route
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 from src.models import Route
-from src.routes.utils import Route
+from src.routes.utils import Routes
 from src.database import get_session
 
 router = APIRouter()
+
+
+@router.post("/")
+async def create_route(
+        route_data: CreateRouteRequestSchema,
+        response: Response,
+        sess: Annotated[Session, Depends(get_session)],
+) -> CreateRouteResponseSchema:
+    """
+    Creates a route with the given data.
+    Planned dates must be older than the current date.
+    Bag cost must be greater than zero, validated by pydantic
+    :param route_data: route data with all specified params
+    :param response: validated route request schema
+    :param sess: current session
+    :return: route response schema
+    """
+    try:
+        routes_util = Routes()
+        new_route = routes_util.create_routes(route_data, sess)
+        response_body: CreateRouteResponseSchema = CreateRouteResponseSchema(
+            id=str(new_route.id),
+            createdAt=datetime.to_str(new_route.createdAt)
+        )
+        response.status_code = 201
+        return response_body
+    except Exception as e:
+        pass
 
 
 @router.get("/ping")
@@ -27,17 +59,17 @@ async def ping():
 
 
 @router.post("/reset")
-async def reset(session: Session = Depends(get_session)):
+async def reset(sess: Session = Depends(get_session)):
     """
     Clears route table in the db.
-    :param session: gets the current session
+    :param sess: gets the current session
     :return: json -> msg: Todos los datos fueron eliminados
     """
     try:
         statement = delete(Route)
-        with session:
-            session.execute(statement)
-            session.commit()
+        with sess:
+            sess.execute(statement)
+            sess.commit()
     except Exception as e:
         err_msg = {"msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)}
         return JSONResponse(content=err_msg, status_code=500)
