@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, UUID4, Field
 
-class RouteBase(BaseModel):
+class RouteSchema(BaseModel):
     '''
     Defines the pydantic schema for a given Route
     '''
