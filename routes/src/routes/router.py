@@ -1,16 +1,16 @@
 """ Router for users microservice on /routes"""
-import datetime
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Response, Depends
 from fastapi.responses import JSONResponse
 
 import json
+import logging
 
 from requests import session
 
 from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
-from src.routes.utils import Route
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 from src.models import Route
@@ -45,7 +45,9 @@ async def create_route(
         response.status_code = 201
         return response_body
     except Exception as e:
-        pass
+        logging.error(e)
+        err_msg = {"msg": "Un error desconocido ha ocurrido", "error": str(e)}
+        return JSONResponse(content=err_msg, status_code=500)
 
 
 @router.get("/ping")
@@ -71,6 +73,7 @@ async def reset(sess: Session = Depends(get_session)):
             sess.execute(statement)
             sess.commit()
     except Exception as e:
-        err_msg = {"msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)}
+        logging.error(e)
+        err_msg = {"msg": "Un error desconocido ha ocurrido","error": str(e)}
         return JSONResponse(content=err_msg, status_code=500)
     return {"msg": "Todos los datos fueron eliminados"}
