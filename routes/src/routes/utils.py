@@ -5,6 +5,7 @@ from time import timezone
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
 from sqlalchemy.orm import Session
+from src.constants import now_utc
 
 from src.models import Route
 from src.schemas import RouteSchema
@@ -26,7 +27,7 @@ class Routes:
         """
         new_route = None
         with session:
-            current_time = datetime.now(timezone.utc)
+            current_time = now_utc()
             try:
                 new_route = Route(
                     flightId=data.flightId,

@@ -3,6 +3,7 @@
 import uuid
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, UUID4, Field
+from src.constants import now_utc
 
 
 class RouteSchema(BaseModel):
@@ -20,5 +21,5 @@ class RouteSchema(BaseModel):
     bagCost: int
     plannedStartDate: datetime
     plannedEndDate: datetime
-    createdAt: datetime = Field(default_factory=datetime.now)
-    updateAt: datetime = Field(default_factory=datetime.now)
+    createdAt: datetime = now_utc()
+    updateAt: datetime = now_utc()

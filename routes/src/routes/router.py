@@ -5,11 +5,8 @@ from typing import Annotated
 from fastapi import APIRouter, Response, Depends
 from fastapi.responses import JSONResponse
 
-import json
 import logging
-
-from requests import session
-
+from src.constants import datetime_to_str
 from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
@@ -40,7 +37,7 @@ async def create_route(
         new_route = routes_util.create_routes(route_data, sess)
         response_body: CreateRouteResponseSchema = CreateRouteResponseSchema(
             id=str(new_route.id),
-            createdAt=datetime.to_str(new_route.createdAt)
+            createdAt=datetime_to_str(new_route.createdAt),
         )
         response.status_code = 201
         return response_body

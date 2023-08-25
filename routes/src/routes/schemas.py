@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, AfterValidator
 
 def date_validation(d: datetime):
     """Returns value error if date is before the current date"""
-    current_date = datetime.now()
+    current_date = datetime.now(timezone.utc)
     if d < current_date:
         raise ValueError("Date cannot be before the current date")
     return d
