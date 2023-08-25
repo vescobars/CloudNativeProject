@@ -1,14 +1,12 @@
 """ Router for users microservice on /routes"""
 
-
 from fastapi import APIRouter, Response, Depends
-from fastapi.responses import JSONResponse
+from starlette.responses import JSONResponse
 
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 import logging
-from datetime import datetime
 from typing import Annotated, Union
 
 from src.constants import datetime_to_str
@@ -17,17 +15,15 @@ from src.models import Route
 from src.routes.utils import Routes
 from src.database import get_session
 
-
-
 router = APIRouter()
 
 
-@router.post("/", response_model=Union[CreateRouteResponseSchema, JSONResponse])
+@router.post("/")
 async def create_route(
         route_data: CreateRouteRequestSchema,
         response: Response,
         sess: Annotated[Session, Depends(get_session)],
-):
+) -> CreateRouteResponseSchema:
     """
     Creates a route with the given data.
     Planned dates must be older than the current date.
@@ -76,6 +72,6 @@ async def reset(sess: Session = Depends(get_session)):
             sess.commit()
     except Exception as e:
         logging.error(e)
-        err_msg = {"msg": "Un error desconocido ha ocurrido","error": str(e)}
+        err_msg = {"msg": "Un error desconocido ha ocurrido", "error": str(e)}
         return JSONResponse(content=err_msg, status_code=500)
     return {"msg": "Todos los datos fueron eliminados"}
