@@ -1,31 +1,33 @@
 """ Router for users microservice on /routes"""
-from datetime import datetime
-from typing import Annotated
+
 
 from fastapi import APIRouter, Response, Depends
 from fastapi.responses import JSONResponse
 
-import logging
+from sqlalchemy import delete
+from sqlalchemy.orm import Session
 
-from starlette.responses import JSONResponse
+import logging
+from datetime import datetime
+from typing import Annotated, Union
 
 from src.constants import datetime_to_str
 from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
-from sqlalchemy import delete
-from sqlalchemy.orm import Session
 from src.models import Route
 from src.routes.utils import Routes
 from src.database import get_session
 
+
+
 router = APIRouter()
 
 
-@router.post("/")
+@router.post("/", response_model=Union[CreateRouteResponseSchema, JSONResponse])
 async def create_route(
         route_data: CreateRouteRequestSchema,
         response: Response,
         sess: Annotated[Session, Depends(get_session)],
-) -> CreateRouteResponseSchema | JSONResponse:
+):
     """
     Creates a route with the given data.
     Planned dates must be older than the current date.
