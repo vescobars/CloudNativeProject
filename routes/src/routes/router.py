@@ -6,6 +6,9 @@ from fastapi import APIRouter, Response, Depends
 from fastapi.responses import JSONResponse
 
 import logging
+
+from starlette.responses import JSONResponse
+
 from src.constants import datetime_to_str
 from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
 from sqlalchemy import delete
@@ -22,7 +25,7 @@ async def create_route(
         route_data: CreateRouteRequestSchema,
         response: Response,
         sess: Annotated[Session, Depends(get_session)],
-) -> CreateRouteResponseSchema:
+) -> CreateRouteResponseSchema | JSONResponse:
     """
     Creates a route with the given data.
     Planned dates must be older than the current date.
