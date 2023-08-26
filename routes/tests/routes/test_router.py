@@ -17,6 +17,16 @@ from src.routes.schemas import CreateRouteRequestSchema
 from src.constants import now_utc
 
 
+def gen_flightId() -> str:
+    letters = string.ascii_uppercase
+    return ''.join(random.choice(letters) for _ in range(6))
+
+
+def gen_airportCode() -> str:
+    letters = string.ascii_uppercase
+    return ''.join(random.choice(letters) for _ in range(3))
+
+
 def test_create_route(
         client: TestClient,
         session: Session,
@@ -29,21 +39,23 @@ def test_create_route(
     session.commit()
 
     profile = faker.simple_profile()
+    planned_start_date = now_utc().isoformat()
+    planned_end_date = (now_utc() + timedelta(days=random.randint(1, 30))).isoformat()
+
     payload = CreateRouteRequestSchema(
-        flightId=lambda length=6: ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(length)),
-        sourceAirportCode=lambda: [''.join(combination) for combination in
-                                   itertools.product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=3)],
+        flightId=gen_flightId(),
+        sourceAirportCode=gen_airportCode(),
         sourceCountry=faker.country(),
-        destinyAirportCode=lambda: [''.join(combination) for combination in
-                                    itertools.product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=3)],
+        destinyAirportCode=gen_airportCode(),
         destinyCountry=faker.country(),
         bagCost=random.randint(1, 100),
-        plannedStartDate=now_utc(),
-        plannedEndDate=now_utc() + timedelta(days=random.randint(1, 30))
+        plannedStartDate=planned_start_date,
+        plannedEndDate=planned_end_date
     )
 
-    response_body = client.post("/routers", json=payload.model_dump())
-    assert response.status_code == 201
+    payload_json = payload.model_dump_json()
+    response_body = client.post("/routes", json=payload_json)
+    assert response_body.status_code == 201
 
     retrieved_route = session.execute(
         select(Route).where(Route.id == response_body['id'])
