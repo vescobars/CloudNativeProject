@@ -46,3 +46,35 @@ class Routes:
                 # Write specific exceptions
 
         return new_route
+
+    @staticmethod
+    def route_exists(flight_id: str, session: Session) -> bool:
+        """
+        Check if a route with the given flight_id exists in the database.
+        :param flight_id: Flight ID to check
+        :param session: SQLAlchemy database session
+        :return: True if the route exists, False otherwise
+        """
+        existing_route = session.execute(
+            select(Route).where(Route.flight_id == flight_id)
+        ).first()[0]
+
+        return existing_route is None
+
+    @staticmethod
+    def validate_dates() -> bool:
+        """
+        Validate the planned dates of the route.
+        :return: True if the dates are valid, False otherwise
+        """
+        # Assuming you have 'start_date' and 'end_date' attributes in your schema
+        if not Route.plannedStartDate or not Route.plannedEndDate:
+            return False  # Dates are missing, not valid
+
+        current_date = now_utc()
+
+        # Check if start_date and end_date are in the past or not consecutive
+        if Route.plannedStartDate < now_utc() or Route.plannedStartDate < now_utc() or Route.plannedEndDate > Route.plannedStartDate:
+            return False  # Dates are not valid
+
+        return True  # Dates are valid

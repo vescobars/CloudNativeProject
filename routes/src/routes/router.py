@@ -1,6 +1,6 @@
 """ Router for users microservice on /routes"""
 
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Response, Depends, HTTPException
 from starlette.responses import JSONResponse
 
 from sqlalchemy import delete
@@ -10,6 +10,7 @@ import logging
 from typing import Annotated, Union
 
 from src.constants import datetime_to_str
+from src.exception import UniqueConstraintViolatedException
 from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
 from src.models import Route
 from src.routes.utils import Routes
@@ -35,17 +36,35 @@ async def create_route(
     """
     try:
         routes_util = Routes()
+
+        # Validates all required fields are present
+        if not route_data.validate_required_fields():
+            raise HTTPException(status_code=400)
+
+        # Checks if the flightId already exists
+        if routes_util.route_exists(route_data.flightId, sess):
+            raise HTTPException(status_code=412)
+
+        # Check if the dates are valid (in the past or not consecutive)
+        if not routes_util.validate_dates():
+            err_msg = {"msg": "Las fechas del trayecto no son válidas"}
+            raise HTTPException(status_code=412, detail=err_msg)
+
         new_route = routes_util.create_routes(route_data, sess)
+
+        # Route created successfully
         response_body: CreateRouteResponseSchema = CreateRouteResponseSchema(
             id=str(new_route.id),
             createdAt=datetime_to_str(new_route.createdAt),
         )
+
         response.status_code = 201
         return response_body
-    except Exception as e:
+
+    except UniqueConstraintViolatedException as e:
         logging.error(e)
         err_msg = {"msg": "Un error desconocido ha ocurrido", "error": str(e)}
-        return JSONResponse(content=err_msg, status_code=500)
+        return HTTPException(content=err_msg, status_code=500)
 
 
 @router.get("/ping")
