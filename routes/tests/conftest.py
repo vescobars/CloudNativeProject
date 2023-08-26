@@ -19,8 +19,9 @@ def session(monkeypatch) -> Generator:
     :param monkeypatch: used to patch the SessionLocal variable in src.database
     :return: SQLAlchemy session to the test database
     """
-    test_db_url = SQLALCHEMY_DATABASE_URL + "_tests"
 
+    test_db_url = SQLALCHEMY_DATABASE_URL
+    print(test_db_url)
     engine = create_engine(
         test_db_url,
         isolation_level="READ UNCOMMITTED"
