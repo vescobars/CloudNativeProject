@@ -61,6 +61,8 @@ def create_dummy_route(client: TestClient, faker):
     payload_json = payload.model_dump()
     response = client.post("/routes", json=payload_json)
 
+    assert response.status_code == 201
+
 
 def test_ping(
         client: TestClient,
@@ -81,6 +83,46 @@ def test_ping(
 
     response = client.get("/routes/ping")
     assert response.status_code == 200
+
+    response_body = response.text
+
+    assert response_body == "pong"
+
+def test_reset(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+
+    :param client:
+    :param session:
+    :param faker:
+    :return:
+    """
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
+
+    #Create 3 dummy routes
+    for i in range(3):
+        create_dummy_route(client, faker)
+
+    session.commit()
+
+    #Check that 3 routes were created
+    row_count_full = session.query(Route).count()
+
+    assert row_count_full == 3
+
+    #Reset DB
+    response = client.post("/routes/reset")
+    assert response.status_code == 200
+
+    row_count_empty = session.query(Route).count()
+
+    assert row_count_empty == 0
 
 
 def test_create_route(
@@ -138,8 +180,8 @@ def test_create_route_duplicated_flightId(
         faker
 ):
     """
-    Tests create route where there is a missing fild in the sent schema.
-    Expected result is 400 request code and all field assertions stored in db
+    Tests create route trying to send payload with a duplicated flight id
+    Expected result is 412 request code
     """
     session.execute(
         delete(Route)
@@ -166,26 +208,19 @@ def test_create_route_duplicated_flightId(
 
     payload_json = payload.model_dump()
     response = client.post("/routes", json=payload_json)
+    response_body = response.json()
+
     assert response.status_code == 201
 
-    response_body = response.json()
     retrieved_route = session.execute(
         select(Route).where(Route.id == response_body['id'])
     ).first()[0]
 
-    duplicated_payload = CreateRouteRequestSchema(
-        flightId=originalFlightId,
-        sourceAirportCode=gen_airportCode(),
-        sourceCountry=faker.country(),
-        destinyAirportCode=gen_airportCode(),
-        destinyCountry=faker.country(),
-        bagCost=random.randint(1, 100),
-        plannedStartDate=planned_start_date,
-        plannedEndDate=planned_end_date
-    )
+    assert retrieved_route is not None
 
-    duplicated_payload_json = payload.model_dump()
-    response = client.post("/routes", json=payload_json)
+    #Try to send the same request (with the same flight id)
+    duplicated_payload = payload.model_dump()
+    response = client.post("/routes", json=duplicated_payload)
     assert response.status_code == 412
 
 
