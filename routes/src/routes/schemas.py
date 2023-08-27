@@ -2,7 +2,7 @@
 import uuid
 from typing import Annotated
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field, AfterValidator, field_serializer
+from pydantic import BaseModel, Field, AfterValidator, field_serializer, UUID4
 
 
 def date_validation(d: datetime):
@@ -43,3 +43,23 @@ class CreateRouteResponseSchema(BaseModel):
     """
     id: str = Annotated[str, AfterValidator(check_uuid4)]
     createdAt: str
+
+class GetRouteResponseSchema(BaseModel):
+    """
+    Response schema used when returning a route
+    """
+    id:  uuid.UUID
+    flightId: str
+    sourceAirportCode: str
+    sourceCountry: str
+    destinyAirportCode: str
+    destinyCountry: str
+    bagCost: int
+    plannedStartDate: datetime
+    plannedEndDate: datetime
+
+    @field_serializer('plannedStartDate', 'plannedEndDate')
+    def serialize_dt(self, dt: datetime, _info):
+        return dt.timestamp()
+
+

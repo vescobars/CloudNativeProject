@@ -131,6 +131,7 @@ def test_create_route_duplicated_flightId(
     response = client.post("/routes", json=payload_json)
     assert response.status_code == 412
 
+
 def test_create_route_valid_dates(
         client: TestClient,
         session: Session,
@@ -146,7 +147,7 @@ def test_create_route_valid_dates(
     session.commit()
 
     profile = faker.simple_profile()
-    wrong_planned_start_date = now_utc()  - timedelta(days=random.randint(1, 30))
+    wrong_planned_start_date = now_utc() - timedelta(days=random.randint(1, 30))
     wrong_planned_end_date = now_utc() - timedelta(days=random.randint(1, 30))
 
     payload = CreateRouteRequestSchema(

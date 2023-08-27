@@ -1,5 +1,6 @@
 """ Utils for routes"""
 import datetime
+import uuid
 from time import timezone
 
 from sqlalchemy import select
@@ -49,6 +50,20 @@ class Routes:
                 raise UniqueConstraintViolatedException()
 
         return new_route
+
+    @staticmethod
+    def id_is_uuid(id:str):
+        """
+        Confirms if a given id mathces the uuid 4 standard
+        :param id:
+        :return:
+        """
+        try:
+            uuid_obj = uuid.UUID(id, version=4)
+            return True
+        except ValueError:
+            return False
+
 
     @staticmethod
     def route_exists(flightid: str, session: Session):
