@@ -131,5 +131,35 @@ def test_create_route_duplicated_flightId(
     response = client.post("/routes", json=payload_json)
     assert response.status_code == 412
 
+def test_create_route_valid_dates(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+    Tests create route where there is a missing fild in the sent schema.
+    Expected result is 400 request code and all field assertions stored in db
+    """
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
 
+    profile = faker.simple_profile()
+    wrong_planned_start_date = now_utc()  - timedelta(days=random.randint(1, 30))
+    wrong_planned_end_date = now_utc() - timedelta(days=random.randint(1, 30))
 
+    payload = CreateRouteRequestSchema(
+        flightId=gen_flightId(),
+        sourceAirportCode=gen_airportCode(),
+        sourceCountry=faker.country(),
+        destinyAirportCode=gen_airportCode(),
+        destinyCountry=faker.country(),
+        bagCost=random.randint(1, 100),
+        plannedStartDate=wrong_planned_start_date,
+        plannedEndDate=wrong_planned_end_date
+    )
+
+    payload_json = payload.model_dump()
+    response = client.post("/routes", json=payload_json)
+    assert response.status_code == 412
