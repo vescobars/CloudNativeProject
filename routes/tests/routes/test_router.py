@@ -363,3 +363,66 @@ def test_get_route_nonexistent_id(
 
     # Check status code is 404 route not found request
     assert get_response.status_code == 404
+
+def test_delete_route(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+
+    :param client:
+    :param session:
+    :param faker:
+    :return:
+    """
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
+
+    # Create route to be deleted
+    planned_dates = gen_planned_start_and_end_date()
+    planned_start_date = planned_dates[0]
+    planned_end_date = planned_dates[1]
+
+    payload = CreateRouteRequestSchema(
+        flightId=gen_flightId(),
+        sourceAirportCode=gen_airportCode(),
+        sourceCountry=faker.country(),
+        destinyAirportCode=gen_airportCode(),
+        destinyCountry=faker.country(),
+        bagCost=random.randint(1, 100),
+        plannedStartDate=planned_start_date,
+        plannedEndDate=planned_end_date
+    )
+
+    payload_json = payload.model_dump()
+    response = client.post("/routes", json=payload_json)
+    response_body = response.json()
+    id_to_delete = response_body['id']
+
+    assert response.status_code == 201
+
+    row_count_full = session.query(Route).count()
+    assert row_count_full == 1
+
+    # Create 5 dummy routes
+    for i in range(5):
+        create_dummy_route(client, faker)
+
+    session.commit()
+
+    # Check that 5 routes were created
+    row_count_full = session.query(Route).count()
+
+    assert row_count_full == 6
+
+    # Delete route
+    response = client.delete(f"/routes/{id_to_delete}")
+    assert response.status_code == 200
+
+    row_count_empty = session.query(Route).count()
+
+    # Check that only 5 routes remain
+    assert row_count_empty == 5
