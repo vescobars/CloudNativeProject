@@ -32,6 +32,7 @@ class Routes:
             current_time = now_utc()
             try:
                 new_route = Route(
+                    id=uuid.uuid4(),
                     flightId=data.flightId,
                     sourceAirportCode=data.sourceAirportCode,
                     sourceCountry=data.sourceCountry,
