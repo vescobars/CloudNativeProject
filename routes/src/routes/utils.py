@@ -71,13 +71,15 @@ class Routes:
         Returns the route if it exists, else it returns none
         :param session: Current session
         :param route_id: the routes uuid
-        :return: Route object if it exists, else None
+        :return: Route object if it exists, else None if no result was found
         """
-        found_route = session.execute(
-            select(Route).where(Route.id == route_id)
-        ).scalar_one()
-
-        return found_route
+        try:
+            found_route = session.execute(
+                select(Route).where(Route.id == route_id)
+            ).scalar_one()
+            return found_route
+        except NoResultFound:
+            return None
 
     @staticmethod
     def route_exists_flightid(flightid: str, session: Session):
