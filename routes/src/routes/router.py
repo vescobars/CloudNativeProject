@@ -6,13 +6,13 @@ from starlette.responses import JSONResponse
 
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
-
+from fastapi.requests import Request
 import logging
 from typing import Annotated, Union
 
 from src.constants import datetime_to_str, now_utc
-from src.exception import UniqueConstraintViolatedException
-from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
+from src.exception import UniqueConstraintViolatedException, InvalidTokenException, ExpiredTokenException
+from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema, GetRouteResponseSchema
 from src.models import Route
 from src.routes.utils import Routes
 from src.database import get_session
@@ -26,7 +26,6 @@ async def create_route(
         response: Response,
         sess: Annotated[Session, Depends(get_session)],
 ) -> CreateRouteResponseSchema:
-
     try:
         # TODO: Pending Auth (Implemented after finishing service and testing, before integration)
         routes_util = Routes()
@@ -36,11 +35,11 @@ async def create_route(
             raise HTTPException(status_code=400)
 
         # Checks if the flightId already exists
-        if routes_util.route_exists(route_data.flightId, sess):
+        if routes_util.route_exists_flightid(route_data.flightId, sess):
             raise HTTPException(status_code=412)
 
         # Check if the dates are valid (in the past or not consecutive)
-        if routes_util.validate_dates(route_data.plannedStartDate,route_data.plannedEndDate):
+        if routes_util.validate_dates(route_data.plannedStartDate, route_data.plannedEndDate):
             err_msg = {"msg": "Las fechas del trayecto no son válidas"}
             raise HTTPException(status_code=412, detail=err_msg)
 
@@ -61,6 +60,43 @@ async def create_route(
         raise HTTPException(status_code=500, detail=err_msg)
 
 
+@router.get("/{route_id}")
+async def get_route(
+        route_id: str,
+        request: Request,
+        sess: Annotated[Session, Depends(get_session)],
+):
+    """
+    Retrieves the route with the specified id
+    :param route_id: the route id
+    :return:
+    """
+    # TODO: Pending Auth (Implemented after finishing service and testing, before integration)
+    routes_util = Routes()
+
+    # Validates route_id has an uuid4 format
+    if not routes_util.id_is_uuid(route_id):
+        raise HTTPException(status_code=400)
+
+    # Go search for the route
+    retrieved_route = Routes.get_route_id(route_id, sess)
+
+    # Validates a route was found matching the id
+    if retrieved_route is None:
+        raise HTTPException(status_code=404)
+
+    # Return the route in Route Schema
+    return GetRouteResponseSchema(
+        id=retrieved_route.id,
+        flightId=retrieved_route.flightId,
+        sourceAirportCode=retrieved_route.sourceAirportCode,
+        sourceCountry=retrieved_route.sourceCountry,
+        destinyAirportCode=retrieved_route.destinyAirportCode,
+        destinyCountry=retrieved_route.destinyCountry,
+        bagCost=retrieved_route.bagCost,
+        plannedStartDate=retrieved_route.plannedStartDate,
+        plannedEndDate=retrieved_route.plannedEndDate
+    )
 @router.get("/ping")
 async def ping():
     """
