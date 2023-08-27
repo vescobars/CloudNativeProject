@@ -21,6 +21,31 @@ from src.database import get_session
 router = APIRouter()
 
 
+@router.get("/")
+async def see_and_filter_routes(
+        sess: Annotated[Session, Depends(get_session)],
+        response: Response,
+        flight: Union[str, None] = None
+):
+    """
+    Returns filtered routes
+    :param response:
+    :param flight:
+    :param sess:
+    """
+    # TODO: Pending Auth (Implemented after finishing service and testing, before integration)
+    if flight:
+        filter_flightId = flight
+        filtered_list = Routes.filter_flight_id(filter_flightId, sess)
+        response.status_code = 200
+        return filtered_list
+    else:
+        all_routes = Routes.get_all_routes(sess)
+        response.status_code = 200
+        return all_routes
+
+
+
 @router.get("/ping")
 async def ping():
     """
@@ -169,3 +194,5 @@ async def delete_route(
 
     # Returns message confirming the route was successfully deleted
     return {"msg": "Todos los datos fueron eliminados"}
+
+

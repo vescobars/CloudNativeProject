@@ -10,7 +10,7 @@ from src.exception import UniqueConstraintViolatedException
 
 from src.models import Route
 from src.schemas import RouteSchema
-from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
+from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema, GetRouteResponseSchema
 
 
 class Routes:
@@ -108,6 +108,64 @@ class Routes:
             session.execute(delete_statement)
             session.commit()
         return True
+
+    @staticmethod
+    def filter_flight_id(filterId:str, session: Session):
+        """
+        Searches for the routes in the database that match a certain flight id
+        :param filterId:
+        :param session:
+        :return:
+        """
+        filtered_routes_list = session.query(Route).filter(Route.flightId == filterId).all()
+
+        filtered_route_list_schema = []
+
+        for route in filtered_routes_list:
+            # Create a GetRouteResponseSchema instance for each route and append it to the list
+            response = GetRouteResponseSchema(
+                id=route.id,
+                flightId=route.flightId,
+                sourceAirportCode=route.sourceAirportCode,
+                sourceCountry=route.sourceCountry,
+                destinyAirportCode=route.destinyAirportCode,
+                destinyCountry=route.destinyCountry,
+                bagCost=route.bagCost,
+                plannedStartDate=route.plannedStartDate,
+                plannedEndDate=route.plannedEndDate
+            )
+            filtered_route_list_schema.append(response)
+
+        return filtered_route_list_schema
+
+    @staticmethod
+    def get_all_routes(session: Session):
+        """
+        Searches for the routes in the database that match a certain flight id
+        :param filterId:
+        :param session:
+        :return:
+        """
+        routes_list = session.query(Route).all()
+
+        route_list_schema = []
+
+        for route in routes_list:
+            response = GetRouteResponseSchema(
+                id=route.id,
+                flightId=route.flightId,
+                sourceAirportCode=route.sourceAirportCode,
+                sourceCountry=route.sourceCountry,
+                destinyAirportCode=route.destinyAirportCode,
+                destinyCountry=route.destinyCountry,
+                bagCost=route.bagCost,
+                plannedStartDate=route.plannedStartDate,
+                plannedEndDate=route.plannedEndDate
+            )
+            route_list_schema.append(response)
+
+        return route_list_schema
+
     @staticmethod
     def validate_dates(planned_start_date: datetime, planned_end_date: datetime) -> bool:
         """
