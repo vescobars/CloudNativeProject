@@ -63,7 +63,7 @@ async def create_route(
 @router.get("/{route_id}")
 async def get_route(
         route_id: str,
-        request: Request,
+        response: Response,
         sess: Annotated[Session, Depends(get_session)],
 ):
     """
@@ -85,6 +85,9 @@ async def get_route(
     if retrieved_route is None:
         raise HTTPException(status_code=404)
 
+    # Change response status code to 200 OK
+    response.status_code = 200
+
     # Return the route in Route Schema
     return GetRouteResponseSchema(
         id=retrieved_route.id,
@@ -97,6 +100,8 @@ async def get_route(
         plannedStartDate=retrieved_route.plannedStartDate,
         plannedEndDate=retrieved_route.plannedEndDate
     )
+
+
 @router.get("/ping")
 async def ping():
     """
