@@ -88,6 +88,7 @@ def test_ping(
 
     assert response_body == "pong"
 
+
 def test_reset(
         client: TestClient,
         session: Session,
@@ -105,18 +106,18 @@ def test_reset(
     )
     session.commit()
 
-    #Create 3 dummy routes
+    # Create 3 dummy routes
     for i in range(3):
         create_dummy_route(client, faker)
 
     session.commit()
 
-    #Check that 3 routes were created
+    # Check that 3 routes were created
     row_count_full = session.query(Route).count()
 
     assert row_count_full == 3
 
-    #Reset DB
+    # Reset DB
     response = client.post("/routes/reset")
     assert response.status_code == 200
 
@@ -218,7 +219,7 @@ def test_create_route_duplicated_flightId(
 
     assert retrieved_route is not None
 
-    #Try to send the same request (with the same flight id)
+    # Try to send the same request (with the same flight id)
     duplicated_payload = payload.model_dump()
     response = client.post("/routes", json=duplicated_payload)
     assert response.status_code == 412
@@ -359,10 +360,10 @@ def test_get_route_nonexistent_id(
     # Searches for the id using get route
     nonexistent_uuid = str(uuid.uuid4())
     get_response = client.get(f"/routes/{nonexistent_uuid}")
-    get_response_body = get_response.json()
 
     # Check status code is 404 route not found request
     assert get_response.status_code == 404
+
 
 def test_delete_route(
         client: TestClient,
@@ -426,3 +427,26 @@ def test_delete_route(
 
     # Check that only 5 routes remain
     assert row_count_empty == 5
+
+
+def test_delete_route_invalid_id(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+    Tests delete route when the id is invalid
+    Expected result is 400 code
+    """
+    # Clear out information
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
+
+    # Searches for the id using get route
+    invalid_id = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(36))
+    delete_response = client.delete(f"/routes/{invalid_id}")
+
+    # Check status code is 400 bad request
+    assert delete_response.status_code == 400
