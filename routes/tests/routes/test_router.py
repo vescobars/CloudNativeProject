@@ -37,7 +37,7 @@ def gen_plannedEndDate(start_date: datetime) -> datetime:
     return start_date + timedelta(days=random.randint(1, 30))
 
 
-def create_dummy_route(client: TestClient, faker):
+def create_dummy_route(client: TestClient, faker, token):
     planned_dates = gen_planned_start_and_end_date()
     planned_start_date = planned_dates[0]
     planned_end_date = planned_dates[1]
@@ -54,7 +54,8 @@ def create_dummy_route(client: TestClient, faker):
     )
 
     payload_json = payload.model_dump()
-    response = client.post("/routes", json=payload_json)
+    response = client.post("/routes", json=payload_json,
+                           headers={'Authorization': f"Bearer {token[0]}"})
 
     assert response.status_code == 201
 
@@ -87,6 +88,7 @@ def test_ping(
 def test_reset(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -103,7 +105,7 @@ def test_reset(
 
     # Create 3 dummy routes
     for i in range(3):
-        create_dummy_route(client, faker)
+        create_dummy_route(client, faker, token)
 
     session.commit()
 
@@ -113,7 +115,8 @@ def test_reset(
     assert row_count_full == 3
 
     # Reset DB
-    response = client.post("/routes/reset")
+    response = client.post("/routes/reset",
+                           headers={'Authorization': f"Bearer {token[0]}"})
     assert response.status_code == 200
 
     row_count_empty = session.query(Route).count()
@@ -230,6 +233,7 @@ def test_create_route_duplicated_flightId(
 def test_create_route_valid_dates(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -257,13 +261,15 @@ def test_create_route_valid_dates(
     )
 
     payload_json = payload.model_dump()
-    response = client.post("/routes", json=payload_json)
+    response = client.post("/routes", json=payload_json,
+                           headers={'Authorization': f"Bearer {token[0]}"})
     assert response.status_code == 412
 
 
 def test_get_route(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -293,14 +299,16 @@ def test_get_route(
     )
 
     payload_json = payload.model_dump()
-    create_response = client.post("/routes", json=payload_json)
+    create_response = client.post("/routes", json=payload_json,
+                                  headers={'Authorization': f"Bearer {token[0]}"})
     assert create_response.status_code == 201
 
     create_response_body = create_response.json()
     retrieved_id = create_response_body['id']
 
     # Searches for the id using get route
-    get_response = client.get(f"/routes/{retrieved_id}")
+    get_response = client.get(f"/routes/{retrieved_id}",
+                              headers={'Authorization': f"Bearer {token[0]}"})
     get_response_body = get_response.json()
 
     # Check status code is correct
@@ -323,6 +331,7 @@ def test_get_route(
 def test_get_route_invalid_id(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -337,7 +346,8 @@ def test_get_route_invalid_id(
 
     # Searches for the id using get route
     invalid_id = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(36))
-    get_response = client.get(f"/routes/{invalid_id}")
+    get_response = client.get(f"/routes/{invalid_id}",
+                              headers={'Authorization': f"Bearer {token[0]}"})
     get_response_body = get_response.json()
 
     # Check status code is 400 bad request
@@ -347,6 +357,7 @@ def test_get_route_invalid_id(
 def test_get_route_nonexistent_id(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -361,7 +372,8 @@ def test_get_route_nonexistent_id(
 
     # Searches for the id using get route
     nonexistent_uuid = str(uuid.uuid4())
-    get_response = client.get(f"/routes/{nonexistent_uuid}")
+    get_response = client.get(f"/routes/{nonexistent_uuid}",
+                              headers={'Authorization': f"Bearer {token[0]}"})
 
     # Check status code is 404 route not found request
     assert get_response.status_code == 404
@@ -370,6 +382,7 @@ def test_get_route_nonexistent_id(
 def test_delete_route(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -401,7 +414,8 @@ def test_delete_route(
     )
 
     payload_json = payload.model_dump()
-    response = client.post("/routes", json=payload_json)
+    response = client.post("/routes", json=payload_json,
+                           headers={'Authorization': f"Bearer {token[0]}"})
     response_body = response.json()
     id_to_delete = response_body['id']
 
@@ -412,7 +426,7 @@ def test_delete_route(
 
     # Create 5 dummy routes
     for i in range(5):
-        create_dummy_route(client, faker)
+        create_dummy_route(client, faker, token)
 
     session.commit()
 
@@ -422,7 +436,8 @@ def test_delete_route(
     assert row_count_full == 6
 
     # Delete route
-    response = client.delete(f"/routes/{id_to_delete}")
+    response = client.delete(f"/routes/{id_to_delete}",
+                             headers={'Authorization': f"Bearer {token[0]}"})
     assert response.status_code == 200
 
     row_count_empty = session.query(Route).count()
@@ -434,6 +449,7 @@ def test_delete_route(
 def test_delete_route_invalid_id(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -448,7 +464,8 @@ def test_delete_route_invalid_id(
 
     # Searches for the id using get route
     invalid_id = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(36))
-    delete_response = client.delete(f"/routes/{invalid_id}")
+    delete_response = client.delete(f"/routes/{invalid_id}",
+                                    headers={'Authorization': f"Bearer {token[0]}"})
 
     # Check status code is 400 bad request
     assert delete_response.status_code == 400
@@ -457,6 +474,7 @@ def test_delete_route_invalid_id(
 def test_delete_route_nonexistent_id(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -471,14 +489,17 @@ def test_delete_route_nonexistent_id(
 
     # Tries to delete to delete the id using delete route
     nonexistent_uuid = str(uuid.uuid4())
-    delete_response = client.delete(f"/routes/{nonexistent_uuid}")
+    delete_response = client.delete(f"/routes/{nonexistent_uuid}",
+                                    headers={'Authorization': f"Bearer {token[0]}"})
 
     # Check status code is 404 route not found request
     assert delete_response.status_code == 404
 
+
 def test_filter_flightid(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -490,10 +511,9 @@ def test_filter_flightid(
     )
     session.commit()
 
-
     # Create 3 dummy routes
     for i in range(3):
-        create_dummy_route(client, faker)
+        create_dummy_route(client, faker, token)
 
     session.commit()
 
@@ -515,10 +535,10 @@ def test_filter_flightid(
     )
 
     payload_json = payload.model_dump()
-    response = client.post("/routes", json=payload_json)
+    response = client.post("/routes", json=payload_json,
+                           headers={'Authorization': f"Bearer {token[0]}"})
 
     assert response.status_code == 201
-
 
     # Check that 4 routes were created
     row_count_full = session.query(Route).count()
@@ -526,9 +546,9 @@ def test_filter_flightid(
     assert row_count_full == 4
 
     # Reset DB
-    response = client.get(f"/routes/?flight={filter_flightId}")
+    response = client.get(f"/routes/?flight={filter_flightId}",
+                          headers={'Authorization': f"Bearer {token[0]}"})
     response_body = response.json()
-
 
     assert response.status_code == 200
     assert isinstance(response_body, list)
@@ -537,9 +557,11 @@ def test_filter_flightid(
 
     assert response_route['flightId'] == filter_flightId
 
+
 def test_get_all_route(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -554,11 +576,12 @@ def test_get_all_route(
 
     # Create 6 dummy routes
     for i in range(6):
-        create_dummy_route(client, faker)
+        create_dummy_route(client, faker, token)
 
     session.commit()
 
-    response = client.get(f"/routes/")
+    response = client.get(f"/routes/",
+                          headers={'Authorization': f"Bearer {token[0]}"})
     response_body = response.json()
 
     assert response.status_code == 200
