@@ -1,7 +1,7 @@
 """ Router for routes microservice on /routes"""
 
 import logging
-from typing import Annotated
+from typing import Annotated, Union
 
 from fastapi import APIRouter, Response, Depends, HTTPException
 from fastapi.requests import Request
