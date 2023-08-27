@@ -52,21 +52,35 @@ class Routes:
         return new_route
 
     @staticmethod
-    def id_is_uuid(id:str):
+    def id_is_uuid(id: str):
         """
         Confirms if a given id mathces the uuid 4 standard
         :param id:
-        :return:
+        :return:True if the
         """
         try:
-            uuid_obj = uuid.UUID(id, version=4)
+            uuid.UUID(id, version=4)  # Tries to cast the current id to uuid to see if its allowed
             return True
         except ValueError:
             return False
 
+    @staticmethod
+    def get_route_id(route_id: str, session: Session):
+        """
+        Searches for a route corresponding to the given id.
+        Returns the route if it exists, else it returns none
+        :param session: Current session
+        :param route_id: the routes uuid
+        :return: Route object if it exists, else None
+        """
+        found_route = session.execute(
+            select(Route).where(Route.id == route_id)
+        ).first()
+
+        return found_route
 
     @staticmethod
-    def route_exists(flightid: str, session: Session):
+    def route_exists_flightid(flightid: str, session: Session):
         """
         Check if a route with the given flight_id exists in the database.
         :param flightid: Flight ID to check
