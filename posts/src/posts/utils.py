@@ -1,26 +1,25 @@
 from sqlite3 import IntegrityError
 
 from fastapi import HTTPException
-from posts.src.posts.schemas import CreatePostRequestSchema, GetPostRequestSchema, GetPostsResponseSchema, GetSchema, PostSchema
+from src.constants import USER_MICROSERVICE_HOST
+from src.posts.schemas import CreatePostRequestSchema, GetPostRequestSchema, GetPostsResponseSchema, GetSchema, PostSchema
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 from src.models import Post
-from users.src.exceptions import UniqueConstraintViolatedException
-import requests
+from src.exceptions import UniqueConstraintViolatedException
 import os
 import requests
 from sqlalchemy import select
 from src.constants import datetime_to_str
 from sqlalchemy import delete
 
-USER_MICROSERVICE_HOST = os.getenv("USER_MICROSERVICE_HOST", "users-micro")
-USER_MICROSERVICE_PORT = os.getenv("USER_MICROSERVICE_PORT", "8000")
     
 class Posts:
-
+    
+    @staticmethod
     def authenticate_User(bearer_token: str) -> str:
-        headers = {"Authorization": bearer_token}
-        url = f"http://{USER_MICROSERVICE_HOST}:{USER_MICROSERVICE_PORT}/users/me"
+        headers = {"Authorization" : 'Bearer ' + bearer_token}
+        url = USER_MICROSERVICE_HOST
         
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
@@ -28,7 +27,7 @@ class Posts:
             user_id = user_data["id"]
             return user_id
         else:
-            raise HTTPException(status_code=response.status_code, detail="User authentication failed")
+            raise HTTPException(status_code=401, detail="El token no es válido o está vencido.")
 
 
     @staticmethod
@@ -92,7 +91,7 @@ class Posts:
             raise HTTPException(status_code=404, detail="Post not found")
         
         response_data = GetSchema(
-            id=str(post.id),
+            id=post.id,
             userId=post.userId,
             routeId=post.routeId,
             expireAt=post.expireAt,
@@ -106,6 +105,8 @@ class Posts:
         post = sess.execute( 
             select(Post).where(Post.id == post_id) 
         ).scalar()
+        if post is None:
+            raise HTTPException(status_code=404, detail="Post not found")
         sess.delete(post)
         sess.commit()
         return {"msg": "The post was successfully deleted"}

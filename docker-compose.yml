@@ -31,6 +31,39 @@ services:
       interval: 5s
       timeout: 3s
       retries: 4
+  posts-micro:
+    build: posts/
+    ports:
+      - "12002:8000"
+    networks:
+      - microservices-net
+      - users-net
+    environment:
+      DB_USER: posts-micro  
+      DB_PASSWORD: SecretPasswordForPosts 
+      DB_HOST: posts-postgres
+      DB_PORT: 5432
+      DB_NAME: posts_db
+      USERS_PATH: "http://users-micro:12001/users/me"
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      - posts-postgres
+  posts-postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: posts_db
+      POSTGRES_USER: posts-micro
+      POSTGRES_PASSWORD: SecretPasswordForPosts
+    ports:
+      - 5433:5432
+    networks:
+      - microservices-net
+      - users-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d posts_db -U posts-micro" ]
+      interval: 5s
+      timeout: 3s
+      retries: 4
 networks:
   microservices-net:
   users-net:

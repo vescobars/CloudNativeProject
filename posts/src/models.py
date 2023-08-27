@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, DateTime, UUID
+from sqlalchemy import Column, DateTime, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 
@@ -12,5 +12,5 @@ class Post(Base):
     id = Column(UUID, primary_key=True, index=True, nullable=False, default=uuid.uuid4())
     routeId = Column(UUID, primary_key=False, index=True, nullable=False, default=uuid.uuid4())
     userId = Column(UUID, primary_key=False, index=True, nullable=False, default=uuid.uuid4())
-    expireAt = Column(DateTime, index=True, nullable=False) 
+    expireAt = Column(DateTime) 
     createdAt = Column(DateTime, index=False, nullable=False, default=func.now())

@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from src.database import engine
+from src import models
 
-from src.posts.router import router as posts_router
+from .posts.router import router as posts_router
 
+models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 app.include_router(posts_router, prefix="/posts", tags=["Posts"])
