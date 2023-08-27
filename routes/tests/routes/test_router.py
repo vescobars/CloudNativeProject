@@ -475,3 +475,102 @@ def test_delete_route_nonexistent_id(
 
     # Check status code is 404 route not found request
     assert delete_response.status_code == 404
+
+def test_filter_flightid(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+    Tests filter route by flight id
+    Expected result is 200 code and returning the searched route
+    """
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
+
+
+    # Create 3 dummy routes
+    for i in range(3):
+        create_dummy_route(client, faker)
+
+    session.commit()
+
+    # Create route to be deleted
+    planned_dates = gen_planned_start_and_end_date()
+    planned_start_date = planned_dates[0]
+    planned_end_date = planned_dates[1]
+    filter_flightId = gen_flightId()
+
+    payload = CreateRouteRequestSchema(
+        flightId=filter_flightId,
+        sourceAirportCode=gen_airportCode(),
+        sourceCountry=faker.country(),
+        destinyAirportCode=gen_airportCode(),
+        destinyCountry=faker.country(),
+        bagCost=random.randint(1, 100),
+        plannedStartDate=planned_start_date,
+        plannedEndDate=planned_end_date
+    )
+
+    payload_json = payload.model_dump()
+    response = client.post("/routes", json=payload_json)
+
+    assert response.status_code == 201
+
+
+    # Check that 4 routes were created
+    row_count_full = session.query(Route).count()
+
+    assert row_count_full == 4
+
+    # Reset DB
+    response = client.get(f"/routes/?flight={filter_flightId}")
+    response_body = response.json()
+
+
+    assert response.status_code == 200
+    assert isinstance(response_body, list)
+
+    response_route = response_body[0]
+
+    assert response_route['flightId'] == filter_flightId
+
+def test_get_all_route(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+    Tests see and filter routes, gets all routes in a perfect scenario with all correct parameters
+    Expected result is 200 OK code and returning json with all the specified parameters
+    """
+    # Clear out information
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
+
+    # Create 6 dummy routes
+    for i in range(6):
+        create_dummy_route(client, faker)
+
+    session.commit()
+
+    response = client.get(f"/routes/")
+    response_body = response.json()
+
+    assert response.status_code == 200
+    assert isinstance(response_body, list)
+    assert len(response_body) == 6
+
+    sample_response = response_body[3]
+
+    assert sample_response['id'] is not None
+    assert sample_response['flightId'] is not None
+    assert sample_response['sourceAirportCode'] is not None
+    assert sample_response['destinyAirportCode'] is not None
+    assert sample_response['sourceCountry'] is not None
+    assert sample_response['destinyCountry'] is not None
+    assert sample_response['bagCost'] is not None
