@@ -20,6 +20,7 @@ from src.database import get_session
 
 router = APIRouter()
 
+
 @router.get("/ping")
 async def ping():
     """
@@ -28,6 +29,7 @@ async def ping():
     :return: pong text object with 200 status code
     """
     return Response(content="pong", media_type="application/text", status_code=200)
+
 
 @router.post("/reset")
 async def reset(sess: Session = Depends(get_session)):
@@ -46,6 +48,7 @@ async def reset(sess: Session = Depends(get_session)):
         err_msg = {"msg": "Un error desconocido ha ocurrido", "error": str(e)}
         return JSONResponse(content=err_msg, status_code=500)
     return {"msg": "Todos los datos fueron eliminados"}
+
 
 @router.post("/")
 async def create_route(
@@ -129,3 +132,40 @@ async def get_route(
         plannedStartDate=retrieved_route.plannedStartDate,
         plannedEndDate=retrieved_route.plannedEndDate
     )
+
+
+@router.delete("/{route_id}")
+async def delete_route(
+        route_id: str,
+        response: Response,
+        sess: Annotated[Session, Depends(get_session)],
+):
+    """
+    Deletes the route with the specified id
+    :param sess:
+    :param response:
+    :param route_id: the route id
+    :return:
+    """
+    # TODO: Pending Auth (Implemented after finishing service and testing, before integration)
+    routes_util = Routes()
+
+    # Validates route_id has an uuid4 format
+    if not routes_util.id_is_uuid(route_id):
+        raise HTTPException(status_code=400)
+
+    # Go search for the route
+    retrieved_route = Routes.get_route_id(route_id, sess)
+
+    # Validates a route was found matching the id
+    if retrieved_route is None:
+        raise HTTPException(status_code=404)
+
+    # Deletes user
+    Routes.delete_route_id(route_id, sess)
+
+    # Change response status code to 200 OK
+    response.status_code = 200
+
+    # Returns message confirming the route was successfully deleted
+    return {"msg": "Todos los datos fueron eliminados"}
