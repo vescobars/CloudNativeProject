@@ -118,6 +118,7 @@ async def create_route(
 @router.get("/{route_id}")
 async def get_route(
         route_id: str,
+        request: Request,
         response: Response,
         sess: Annotated[Session, Depends(get_session)],
 ):
@@ -128,7 +129,7 @@ async def get_route(
     :param route_id: the route id
     :return:
     """
-    # TODO: Pending Auth (Implemented after finishing service and testing, before integration)
+    Routes.validate_token(request)
     routes_util = Routes()
 
     # Validates route_id has an uuid4 format
@@ -162,6 +163,7 @@ async def get_route(
 @router.delete("/{route_id}")
 async def delete_route(
         route_id: str,
+        request: Request,
         response: Response,
         sess: Annotated[Session, Depends(get_session)],
 ):
@@ -172,7 +174,7 @@ async def delete_route(
     :param route_id: the route id
     :return:
     """
-    # TODO: Pending Auth (Implemented after finishing service and testing, before integration)
+    Routes.validate_token(request)
     routes_util = Routes()
 
     # Validates route_id has an uuid4 format
