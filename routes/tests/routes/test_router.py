@@ -1,21 +1,16 @@
 import datetime
-import json
-import uuid
-import itertools
 import random
 import string
-
-import pytest
-import requests
+import uuid
 from datetime import datetime, timedelta, timezone
+
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, select, func
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from src.models import Route
-from src.routes.router import create_route
-from src.routes.schemas import CreateRouteRequestSchema
 from src.constants import now_utc
+from src.models import Route
+from src.routes.schemas import CreateRouteRequestSchema
 
 
 def gen_flightId() -> str:
@@ -129,6 +124,7 @@ def test_reset(
 def test_create_route(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -157,7 +153,10 @@ def test_create_route(
     )
 
     payload_json = payload.model_dump()
-    response = client.post("/routes", json=payload_json)
+    response = client.post(
+        "/routes", json=payload_json,
+        headers={'Authorization': f"Bearer {token[0]}"}
+    )
     assert response.status_code == 201
 
     response_body = response.json()
@@ -178,6 +177,7 @@ def test_create_route(
 def test_create_route_duplicated_flightId(
         client: TestClient,
         session: Session,
+        token,
         faker
 ):
     """
@@ -208,7 +208,8 @@ def test_create_route_duplicated_flightId(
     originalFlightId = payload.flightId
 
     payload_json = payload.model_dump()
-    response = client.post("/routes", json=payload_json)
+    response = client.post("/routes", json=payload_json,
+                           headers={'Authorization': f"Bearer {token[0]}"})
     response_body = response.json()
 
     assert response.status_code == 201
@@ -221,7 +222,8 @@ def test_create_route_duplicated_flightId(
 
     # Try to send the same request (with the same flight id)
     duplicated_payload = payload.model_dump()
-    response = client.post("/routes", json=duplicated_payload)
+    response = client.post("/routes", json=duplicated_payload,
+                           headers={'Authorization': f"Bearer {token[0]}"})
     assert response.status_code == 412
 
 

@@ -1,13 +1,14 @@
-import pytest
 from typing import Generator
 
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-
+import pytest
+import requests
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-from src.database import Base, SQLALCHEMY_DATABASE_URL
 from src import database
+from src.constants import USERS_PATH
+from src.database import Base, SQLALCHEMY_DATABASE_URL
 from src.main import app
 
 
@@ -43,3 +44,37 @@ def session(monkeypatch) -> Generator:
 def client() -> Generator:
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture(scope="function")
+def token(generate_test_user):
+    user_id, user_profile = generate_test_user
+    login_res = requests.post(f'{USERS_PATH}/users/auth', json={
+        "username": user_profile["username"],
+        "password": user_profile["password"],
+    })
+    assert login_res.status_code == 200, "Couldn't authenticate for a new token"
+    print("Got new auth token")
+    return login_res.json()["token"], user_id, user_profile
+
+
+@pytest.fixture(scope="function")
+def generate_test_user(faker) -> Generator:
+    ping_res = requests.get(f'{USERS_PATH}/users/ping')
+    assert ping_res.status_code == 200, "Can't find the /users microservice"
+    faker.random.seed()
+    profile = faker.simple_profile()
+    payload = {
+        "username": profile['username'],
+        "password": faker.password(),
+        "email": profile['mail'],
+        "dni": faker.password(),
+        "phoneNumber": faker.phone_number(),
+        "fullName": profile['name']
+    }
+
+    create_res = requests.post(f'{USERS_PATH}/users/', json=payload)
+    assert create_res.status_code == 201, "Couldn't create mock user"
+    print("Created a new mock user")
+    create_body = create_res.json()
+    yield create_body['id'], payload

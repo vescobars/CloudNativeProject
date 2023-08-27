@@ -1,22 +1,20 @@
 """ Router for routes microservice on /routes"""
-import datetime
+
+import logging
+from typing import Annotated
 
 from fastapi import APIRouter, Response, Depends, HTTPException
-from starlette.responses import JSONResponse
-
-import uuid
+from fastapi.requests import Request
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
-from fastapi.requests import Request
-import logging
-from typing import Annotated, Union
+from starlette.responses import JSONResponse
 
-from src.constants import datetime_to_str, now_utc
-from src.exception import UniqueConstraintViolatedException, InvalidTokenException, ExpiredTokenException
-from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema, GetRouteResponseSchema
-from src.models import Route
-from src.routes.utils import Routes
+from src.constants import datetime_to_str
 from src.database import get_session
+from src.exception import UniqueConstraintViolatedException
+from src.models import Route
+from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema, GetRouteResponseSchema
+from src.routes.utils import Routes
 
 router = APIRouter()
 
@@ -53,11 +51,13 @@ async def reset(sess: Session = Depends(get_session)):
 @router.post("/")
 async def create_route(
         route_data: CreateRouteRequestSchema,
+        request: Request,
         response: Response,
         sess: Annotated[Session, Depends(get_session)],
 ) -> CreateRouteResponseSchema:
     try:
-        # TODO: Pending Auth (Implemented after finishing service and testing, before integration)
+        Routes.validate_token(request)
+
         routes_util = Routes()
 
         # Validates all required fields are present

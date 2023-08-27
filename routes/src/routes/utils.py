@@ -1,16 +1,18 @@
 """ Utils for routes"""
-from datetime import datetime
 import uuid
+from datetime import datetime
 
+import requests
+from fastapi import Request, HTTPException
 from sqlalchemy import select, delete
-from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
-from src.constants import now_utc
-from src.exception import UniqueConstraintViolatedException
 
+from src.constants import now_utc, USERS_PATH
+from src.exception import UniqueConstraintViolatedException
 from src.models import Route
+from src.routes.schemas import CreateRouteRequestSchema
 from src.schemas import RouteSchema
-from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
 
 
 class Routes:
@@ -151,3 +153,19 @@ class Routes:
                 return False  # A required field is missing or has a None value
 
         return True  # All required fields are present and not None
+
+    @staticmethod
+    def validate_token(request: Request) -> None:
+        """
+        Looks for the authentication token and does nothing if the token is present and valid
+        Throws HTTPException if it doesn't exist, or it is expired
+        :param request: incoming HTTP request
+        """
+        if not request.headers.get('Authorization') or not request.headers.get('Authorization').startswith("Bearer "):
+            raise HTTPException(status_code=403, detail="El token no fue encontrado o estaba mal estructurado")
+        res = requests.get(
+            f'{USERS_PATH}/users/me',
+            headers={'Authorization': request.headers.get('Authorization')}
+        )
+        if res.status_code != 200:
+            raise HTTPException(status_code=401, detail="El token no es valido, o ha expirado")
