@@ -62,6 +62,27 @@ def create_dummy_route(client: TestClient, faker):
     response = client.post("/routes", json=payload_json)
 
 
+def test_ping(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+
+    :param client:
+    :param session:
+    :param faker:
+    :return:
+    """
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
+
+    response = client.get("/routes/ping")
+    assert response.status_code == 200
+
+
 def test_create_route(
         client: TestClient,
         session: Session,
@@ -291,7 +312,7 @@ def test_get_route_nonexistent_id(
         faker
 ):
     """
-    Tests get route when the route searched doesnt exist (id valid, however nonexistent)
+    Tests get route when the route searched doesn't exist (id valid, however nonexistent)
     Expected result is 404 code
     """
     # Clear out information
