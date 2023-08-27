@@ -4,11 +4,12 @@ from typing import Annotated
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, AfterValidator, field_serializer, UUID4
 
+from src.constants import now_utc
+
 
 def date_validation(d: datetime):
     """Returns value error if date is before the current date"""
-    current_date = datetime.now(timezone.utc)
-    if d < current_date:
+    if d < now_utc():
         raise ValueError("Date cannot be before the current date")
     return d
 

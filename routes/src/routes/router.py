@@ -4,6 +4,7 @@ import datetime
 from fastapi import APIRouter, Response, Depends, HTTPException
 from starlette.responses import JSONResponse
 
+import uuid
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 from fastapi.requests import Request
@@ -39,7 +40,7 @@ async def create_route(
             raise HTTPException(status_code=412)
 
         # Check if the dates are valid (in the past or not consecutive)
-        if routes_util.validate_dates(route_data.plannedStartDate, route_data.plannedEndDate):
+        if not routes_util.validate_dates(route_data.plannedStartDate, route_data.plannedEndDate):
             err_msg = {"msg": "Las fechas del trayecto no son válidas"}
             raise HTTPException(status_code=412, detail=err_msg)
 
@@ -68,6 +69,8 @@ async def get_route(
 ):
     """
     Retrieves the route with the specified id
+    :param sess:
+    :param response:
     :param route_id: the route id
     :return:
     """

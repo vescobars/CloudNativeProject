@@ -75,7 +75,7 @@ class Routes:
         """
         found_route = session.execute(
             select(Route).where(Route.id == route_id)
-        ).first()
+        ).scalar_one()
 
         return found_route
 
@@ -104,8 +104,11 @@ class Routes:
             return False  # Dates are missing, not valid
 
         # Check if start_date and end_date are in the past or not consecutive
-        if planned_start_date > now_utc() or planned_end_date > planned_start_date:
+        if planned_start_date < now_utc() or planned_end_date < now_utc():
             return False  # Date is not valid
+
+        if planned_end_date < planned_start_date:
+            return False
 
         return True  # Dates are valid
 
