@@ -6,7 +6,7 @@ import string
 
 import pytest
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select, func
 from sqlalchemy.orm import Session
@@ -39,8 +39,8 @@ def test_create_route(
     session.commit()
 
     profile = faker.simple_profile()
-    planned_start_date = now_utc().isoformat()
-    planned_end_date = (now_utc() + timedelta(days=random.randint(1, 30))).isoformat()
+    planned_start_date = now_utc()
+    planned_end_date = (now_utc() + timedelta(days=random.randint(1, 30)))
 
     payload = CreateRouteRequestSchema(
         flightId=gen_flightId(),
@@ -53,13 +53,15 @@ def test_create_route(
         plannedEndDate=planned_end_date
     )
 
-    payload_json = payload.model_dump_json()
-    response_body = client.post("/routes", json=payload_json)
-    assert response_body.status_code == 201
+    payload_json = payload.model_dump()
+    response = client.post("/routes", json=payload_json)
+    assert response.status_code == 201
 
+    response_body = response.json()
     retrieved_route = session.execute(
-        select(Route).where(Route.id == response_body['id'])
+        select(Route).where(Route.id == response_body['id'] )
     ).first()[0]
+
 
     assert retrieved_route.flightId == payload.flightId
     assert retrieved_route.sourceAirportCode == payload.sourceAirportCode
@@ -67,5 +69,5 @@ def test_create_route(
     assert retrieved_route.sourceCountry == payload.sourceCountry
     assert retrieved_route.destinyCountry == payload.destinyCountry
     assert retrieved_route.bagCost == payload.bagCost
-    assert retrieved_route.plannedStartDate == payload.plannedStartDate
-    assert retrieved_route.plannedEndDate == payload.plannedEndDate
+    assert retrieved_route.plannedStartDate.replace(tzinfo=timezone.utc) == payload.plannedStartDate
+    assert retrieved_route.plannedEndDate.replace(tzinfo=timezone.utc) == payload.plannedEndDate

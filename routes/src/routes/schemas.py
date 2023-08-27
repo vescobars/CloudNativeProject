@@ -2,7 +2,7 @@
 import uuid
 from typing import Annotated
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field, AfterValidator
+from pydantic import BaseModel, Field, AfterValidator, field_serializer
 
 
 def date_validation(d: datetime):
@@ -25,6 +25,10 @@ class CreateRouteRequestSchema(BaseModel):
     bagCost: int = Field(ge=0)
     plannedStartDate: datetime = Annotated[datetime, AfterValidator(date_validation)]
     plannedEndDate: datetime = Annotated[datetime, AfterValidator(date_validation)]
+
+    @field_serializer('plannedStartDate', 'plannedEndDate')
+    def serialize_dt(self, dt: datetime, _info):
+        return dt.timestamp()
 
 
 def check_uuid4(v: str) -> str:
