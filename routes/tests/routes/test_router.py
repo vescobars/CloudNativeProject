@@ -255,8 +255,11 @@ def test_get_route(
     assert get_response_body['sourceCountry'] == payload.sourceCountry
     assert get_response_body['destinyCountry'] == payload.destinyCountry
     assert get_response_body['bagCost'] == payload.bagCost
-    assert datetime.fromtimestamp(get_response_body['plannedStartDate']).replace(tzinfo=timezone.utc) == payload.plannedStartDate
-    assert datetime.fromtimestamp(get_response_body['plannedEndDate']).replace(tzinfo=timezone.utc) == payload.plannedEndDate
+    assert datetime.fromtimestamp(get_response_body['plannedStartDate']).replace(
+        tzinfo=timezone.utc) == payload.plannedStartDate
+    assert datetime.fromtimestamp(get_response_body['plannedEndDate']).replace(
+        tzinfo=timezone.utc) == payload.plannedEndDate
+
 
 def test_get_route_invalid_id(
         client: TestClient,
@@ -280,3 +283,27 @@ def test_get_route_invalid_id(
 
     # Check status code is 400 bad request
     assert get_response.status_code == 400
+
+
+def test_get_route_nonexistent_id(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+    Tests get route when the route searched doesnt exist (id valid, however nonexistent)
+    Expected result is 404 code
+    """
+    # Clear out information
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
+
+    # Searches for the id using get route
+    nonexistent_uuid = str(uuid.uuid4())
+    get_response = client.get(f"/routes/{nonexistent_uuid}")
+    get_response_body = get_response.json()
+
+    # Check status code is 404 route not found request
+    assert get_response.status_code == 404
