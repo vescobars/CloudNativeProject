@@ -20,6 +20,32 @@ from src.database import get_session
 
 router = APIRouter()
 
+@router.get("/ping")
+async def ping():
+    """
+    Returns a pong when the endpoint is contacted.
+    Essentially serves as a health check
+    :return: pong text object with 200 status code
+    """
+    return Response(content="pong", media_type="application/text", status_code=200)
+
+@router.post("/reset")
+async def reset(sess: Session = Depends(get_session)):
+    """
+    Clears route table in the db.
+    :param sess: gets the current session
+    :return: json -> msg: Todos los datos fueron eliminados
+    """
+    try:
+        statement = delete(Route)
+        with sess:
+            sess.execute(statement)
+            sess.commit()
+    except Exception as e:
+        logging.error(e)
+        err_msg = {"msg": "Un error desconocido ha ocurrido", "error": str(e)}
+        return JSONResponse(content=err_msg, status_code=500)
+    return {"msg": "Todos los datos fueron eliminados"}
 
 @router.post("/")
 async def create_route(
@@ -103,32 +129,3 @@ async def get_route(
         plannedStartDate=retrieved_route.plannedStartDate,
         plannedEndDate=retrieved_route.plannedEndDate
     )
-
-
-@router.get("/ping")
-async def ping():
-    """
-    Returns a pong when the endpoint is contacted.
-    Essentially serves as a health check
-    :return: pong text object with 500 status code
-    """
-    return Response(content="pong", media_type="application/text", status_code=200)
-
-
-@router.post("/reset")
-async def reset(sess: Session = Depends(get_session)):
-    """
-    Clears route table in the db.
-    :param sess: gets the current session
-    :return: json -> msg: Todos los datos fueron eliminados
-    """
-    try:
-        statement = delete(Route)
-        with sess:
-            sess.execute(statement)
-            sess.commit()
-    except Exception as e:
-        logging.error(e)
-        err_msg = {"msg": "Un error desconocido ha ocurrido", "error": str(e)}
-        return JSONResponse(content=err_msg, status_code=500)
-    return {"msg": "Todos los datos fueron eliminados"}
