@@ -241,8 +241,7 @@ def test_get_route(
     retrieved_id = create_response_body['id']
 
     # Searches for the id using get route
-    get_route = f"/routes/{retrieved_id}"
-    get_response = client.get(get_route)
+    get_response = client.get(f"/routes/{retrieved_id}")
     get_response_body = get_response.json()
 
     # Check status code is correct
@@ -258,3 +257,26 @@ def test_get_route(
     assert get_response_body['bagCost'] == payload.bagCost
     assert datetime.fromtimestamp(get_response_body['plannedStartDate']).replace(tzinfo=timezone.utc) == payload.plannedStartDate
     assert datetime.fromtimestamp(get_response_body['plannedEndDate']).replace(tzinfo=timezone.utc) == payload.plannedEndDate
+
+def test_get_route_invalid_id(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+    Tests get route when the id is invalid
+    Expected result is 400 code
+    """
+    # Clear out information
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
+
+    # Searches for the id using get route
+    invalid_id = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(36))
+    get_response = client.get(f"/routes/{invalid_id}")
+    get_response_body = get_response.json()
+
+    # Check status code is 400 bad request
+    assert get_response.status_code == 400
