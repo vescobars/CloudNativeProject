@@ -1,9 +1,8 @@
 """ Utils for routes"""
-import datetime
+from datetime import datetime
 import uuid
-from time import timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
 from sqlalchemy.orm import Session
 from src.constants import now_utc
@@ -96,6 +95,19 @@ class Routes:
 
         return existing_route is not None
 
+    @staticmethod
+    def delete_route_id(route_id: str, session: Session):
+        """
+        Deletes a route given its id
+        :param route_id: the id of the route that's going to be deleted
+        :param session: SQL Alchemy database session
+        :return: The response message confirming that the route was deleted
+        """
+        delete_statement = delete(Route).where(Route.id == route_id)
+        with session:
+            session.execute(delete_statement)
+            session.commit()
+        return True
     @staticmethod
     def validate_dates(planned_start_date: datetime, planned_end_date: datetime) -> bool:
         """
