@@ -1,4 +1,5 @@
-""" Router for users microservice on /routes"""
+""" Router for routes microservice on /routes"""
+import datetime
 
 from fastapi import APIRouter, Response, Depends, HTTPException
 from starlette.responses import JSONResponse
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Session
 import logging
 from typing import Annotated, Union
 
-from src.constants import datetime_to_str
+from src.constants import datetime_to_str, now_utc
 from src.exception import UniqueConstraintViolatedException
 from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema
 from src.models import Route
@@ -25,20 +26,13 @@ async def create_route(
         response: Response,
         sess: Annotated[Session, Depends(get_session)],
 ) -> CreateRouteResponseSchema:
-    """
-    Creates a route with the given data.
-    Planned dates must be older than the current date.
-    Bag cost must be greater than zero, validated by pydantic
-    :param route_data: route data with all specified params
-    :param response: validated route request schema
-    :param sess: current session
-    :return: route response schema
-    """
+
     try:
+        # TODO: Pending Auth (Implemented after finishing service and testing, before integration)
         routes_util = Routes()
 
         # Validates all required fields are present
-        if not route_data.validate_required_fields():
+        if not routes_util.validate_required_fields_create(route_data, sess):
             raise HTTPException(status_code=400)
 
         # Checks if the flightId already exists
@@ -46,7 +40,7 @@ async def create_route(
             raise HTTPException(status_code=412)
 
         # Check if the dates are valid (in the past or not consecutive)
-        if not routes_util.validate_dates():
+        if routes_util.validate_dates(route_data.plannedStartDate,route_data.plannedEndDate):
             err_msg = {"msg": "Las fechas del trayecto no son válidas"}
             raise HTTPException(status_code=412, detail=err_msg)
 
@@ -64,7 +58,7 @@ async def create_route(
     except UniqueConstraintViolatedException as e:
         logging.error(e)
         err_msg = {"msg": "Un error desconocido ha ocurrido", "error": str(e)}
-        return HTTPException(content=err_msg, status_code=500)
+        raise HTTPException(status_code=500, detail=err_msg)
 
 
 @router.get("/ping")
