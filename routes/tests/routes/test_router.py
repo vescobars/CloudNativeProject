@@ -450,3 +450,26 @@ def test_delete_route_invalid_id(
 
     # Check status code is 400 bad request
     assert delete_response.status_code == 400
+
+
+def test_delete_route_nonexistent_id(
+        client: TestClient,
+        session: Session,
+        faker
+):
+    """
+    Tests delete route when the route doesn't exist (id valid, however nonexistent)
+    Expected result is 404 code
+    """
+    # Clear out information
+    session.execute(
+        delete(Route)
+    )
+    session.commit()
+
+    # Tries to delete to delete the id using delete route
+    nonexistent_uuid = str(uuid.uuid4())
+    delete_response = client.delete(f"/routes/{nonexistent_uuid}")
+
+    # Check status code is 404 route not found request
+    assert delete_response.status_code == 404
