@@ -1,4 +1,5 @@
-# proyecto-202314  
+# Entrega 1
+Team: Cloudians 
 
 ## Tabla de contenido
 
@@ -18,158 +19,190 @@
 - [Ejecutar evaluador github action workflow](#ejecutar-evaluador-github-action-workflow)
 
 ## Pre-requisitos para cada microservicio
-- Python ~3.10
-- pipenv
-    - Ejecuta `pip install pipenv` para instalarlo
+- Python ~3.9
+- pip
 - Docker
 - Docker-compose
 - Postman
 - PostgreSQL
     - Las instrucciones pueden variar según el sistema operativo. Consulta [la documentación](https://www.postgresql.org/download/). Si estás utilizando un sistema operativo basado en Unix, recomendamos usar [Brew](https://wiki.postgresql.org/wiki/Homebrew).
 
+
 ## Estructura de cada microservicio
-Cada microservicio utiliza Python y Flask para ejecutar el servidor, y pytest para ejecutar las pruebas unitarias. En general, dentro de cada uno de ellos hay dos carpetas principales: `src` y `tests`, así como algunos archivos de soporte.
+Cada microservicio utiliza Python y FastAPI para ejecutar el servidor, y pytest para llevar a cabo las pruebas unitarias. Todos los microservicios comparten una estructura común. A continuación, se presenta un esqueleto que describe la estructura general de los microservicios implementados:
+
+- Microservicio
+  - README.md
+  - LICENSE.md
+  - src
+    - routes
+      - router.py
+      - schemas.py
+      - utils.py
+    - constants.py
+    - database.py
+    - exception.py
+    - main.py
+    - models.py
+    - schemas.py
+  - tests
+    - routes
+      - test_router.py
+    - conftest.py
+  - requirements.txt
+  - Dockerfile
+  - docker-compose.yml
+
+Las carpetas principales de cada microservicio son "src" y "tests". En la carpeta "src", se construye el proyecto utilizando el framework FastAPI. El archivo principal es "main.py"; sin embargo, todas las rutas se definen en el archivo "router.py", el cual se encuentra ubicado en la carpeta de nivel superior que comparte el nombre de su microservicio.
 
 ### Archivos de soporte
-- `Pipfile`: Este archivo declara todas las dependencias que serán utilizadas por el microservicio. Consulta la sección **Instalar dependencias**.
-- `.env.template`: Archivo de plantilla Env utilizado para definir variables de entorno. Consulte la sección  **Variables de entorno**.
-- `.env.test`: Archivo utilizado para definir variables de entorno para las pruebas unitarias. Consulta la sección **Variables de entorno**.
+- `requirements.txt`: Este archivo declara todas las dependencias que serán utilizadas por el microservicio. Consulta la sección **Instalar dependencias**.
+- `.env.example`: Archivo de plantilla Env utilizado para definir variables de entorno. Consulte la sección  **Variables de entorno**.
+- `.env`: Archivo utilizado para definir variables de entorno para las pruebas unitarias. Consulta la sección **Variables de entorno**.
 - Dockerfile: Definición para construir la imagen Docker del microservicio. Consulta la sección **Ejecutar desde Dockerfile**.
+- docker-compose.yml: Define una base de datos de prueba para el microservicio, un contendor de prueba para probar con el servicio user y su base de datos de prueba respectiva. Consultar la seccion **Ejecutar desde Docker**
 
 ### Carpeta src
-Esta carpeta contiene el código y la lógica necesarios para declarar y ejecutar la API del microservicio, así como para la comunicación con la base de datos. Hay 4 carpetas principales:
-- `/models`: Esta carpeta contiene la capa de persistencia, donde se declaran los modelos que se van a persistir en la base de datos en forma de tablas, así como la definición de cada columna. Incluimos un archivo `model.py` que contiene un modelo base llamado `Model`, que realiza la configuración básica de una tabla e incluye las columnas `createdAt` y `updatedAt` por defecto para que puedas utilizarlo. Para crear un nuevo modelo en un archivo separado, solo necesitas extender esta clase `Model`. Por ejemplo:
-```python
-# /models/car.py
-from marshmallow import Schema, fields
-from  sqlalchemy  import  Column, String, Integer
-from .model  import  Model, Base
+Esta carpeta contiene el código y la lógica necesarios para declarar y ejecutar la API del microservicio, así como para la comunicación con la base de datos. 
+Todos los microservicios fueron construidos en FastAPI.
 
-# Extender la clase Model proporcionada
-class Car(Model, Base):
-	__tablename__  =  'cars'
-	price  =  Column(Integer)
-	name  =  Column(String)
+Dentro de src hay 1 carpeta principal, la cual toma el nombre del microservicio que esta siendo desarollado:
+- `/<nombre_microservicio>`: Esta carpeta contiene tres archivos `router.py`, `schemas.py`, `utils.py`. 
+  -  `router.py` : En el archivo se encuentran las definiciones de todas las rutas del proyecto. 
+  ```python
+  """ Router for routes microservice on /routes"""
+    
+    router = APIRouter()
+    
+    
+    @router.post("/reset")
+    async def reset(sess: Session = Depends(get_session)):
+        """
+        Clears route table in the db.
+        :param sess: gets the current session
+        :return: json -> msg: Todos los datos fueron eliminados
+        """
+        try:
+            statement = delete(Route)
+            with sess:
+                sess.execute(statement)
+                sess.commit()
+        except Exception as e:
+            logging.error(e)
+            err_msg = {"msg": "Un error desconocido ha ocurrido", "error": str(e)}
+            return JSONResponse(content=err_msg, status_code=500)
+        return {"msg": "Todos los datos fueron eliminados"}
 
-# Constructor
-def  __init__(self, price, name):
-	Model.__init__(self)
-	self.price  =  price
-	self.name  =  name
+  ```
+  - `schemas.py`: En el archivo de schemas se tienen los esquemas de pydantic para respuestas y requests que provienen del microservico.
+  ```python
+  class CreateUserRequestSchema(BaseModel):
+    """
+    Used when creating a user
+    """
+    username: str = Field(min_length=1)
+    password: str = Field(min_length=1)
+    email: EmailStr = Field(min_length=1)
+    phoneNumber: Optional[str] = None
+    dni: Optional[str] = None
+    fullName: Optional[str] = None
 
-# Especificar los campos que estarán presentes al serializar el objeto como JSON.
-class  CarJsonSchema(Schema):
-	id  = fields.Number()
-	price  = fields.Number()
-	name  = fields.Str()
-	createdAt  = fields.DateTime()
-	updatedAt  = fields.DateTime()
-```
-- `/commands`: Esta carpeta contiene cada caso de uso que estamos implementando en nuestro microservicio, es decir, la lógica del negocio siguiendo un patrón de diseño de comandos. Para cada caso de uso (como crear un automóvil, modificar un automóvil, vender un automóvil, etc.) tendremos un archivo separado. Cada comando heredará una clase `BaseCommand` que ya está proporcionada en el archivo `/commands/base_command.py` e implementará el método `execute`. Este método es el que contendrá la lógica del negocio. Por ejemplo, si estamos implementando un comando para sumar dos números, declararíamos una clase de comando `SumTwoNumbers` con la siguiente implementación:
-```python
-# /commands/sum_two_numbers.py
-from .base_command  import  BaseCommand
+  ```
+  - `utils.py`: Este es un archivo adjacente a router.py puesto contiene todos los metodos utilitarios y de validaciones de este. Adicionalmente ecapsula la mayoria de interacciones con la base de datos.
+  ```python
+  @staticmethod
+    def get_route_id(route_id: str, session: Session):
+        """
+        Searches for a route corresponding to the given id.
+        Returns the route if it exists, else it returns none
+        :param session: Current session
+        :param route_id: the routes uuid
+        :return: Route object if it exists, else None if no result was found
+        """
+        try:
+            found_route = session.execute(
+                select(Route).where(Route.id == route_id)
+            ).scalar_one()
+            return found_route
+        except NoResultFound:
+            return None
 
-class  SumTwoNumbers(BaseCommannd):
-	def  __init__(self, first_numer, second_number):
-		self.first_number = first_number
-		self.second_number = second_number
+  ```
+- En la base de src adicionalmente se encuentran una variedad de archivos importantes para el funcioanmeinto del proyecto, estos son los mas importantes:
+  - `database.py`: Habilita la conexión con la base de datos de postgres por medio de SQLAlchemy
+  - `main.py` : El archivo principal del proyecto donde se inicializa la conexion con la base de datos y la API en si. No contiene nada de logica, ya que esta se le delega al router.
+  - `models.py` : Contiene los modelos de la tabla que corresponde en la base de datos con todas sus respectivas declaraciones de tipo.
+  - `schemas.py` : Contiene el esquema basico de un objeto que le corresponde a el servicio (User,Route,etc.)
 
-	def  execute(self):
-		return self.first_number + self.second_number
-```
-Después de declararlo, podemos utilizar el caso de uso importándolo y llamando al método execute.
-
-```python
-from ..commands.sum_two_numbers  import  SumTwoNumbers
-
-def example():
-	result = SumTwoNumbers(5, 2).execute()
-	print(result) # This prints 7
-```
-
-- `/blueprints`: Esta carpeta contiene la capa de aplicación de nuestro microservicio, responsable de declarar cada servicio API que estamos exponiendo, así como su implementación. Por ejemplo, para declarar un simple HTTP GET con la ruta `/calculator/sum` utilizando el comando declarado anteriormente, deberíamos seguir los siguientes pasos:
-1. Crear el archivo de blueprint `/blueprints/calculator.py`
-2. Implementar la ruta GET
-```python
-from flask import Flask, jsonify, request, Blueprint
-from ..commands.sum_two_numbers  import  SumTwoNumbers
-
-calculator_blueprint  = Blueprint('calculator', __name__)
-
-@calculator_blueprint.route('/sum', methods  = ['GET'])
-def sum():
-	params = request.args.to_dict()
-	result = SumTwoNumbers(params["first_number"], params["second_number"]).execute()
-	return jsonify({ 'result': result })
-```
-3. Por último, modifica `main.py` en la raíz de la carpeta del microservicio para utilizar este nuevo blueprint.
-```python
-...
-from .blueprints.calculator  import  calculator_blueprint
-
-app  = Flask(__name__)
-app.register_blueprint(calculator_blueprint)
-...
-```
-
-- `/errors`: Para devolver errores HTTP en los blueprints, utilizamos clases de excepción personalizadas que declaran qué mensaje y qué código HTTP retornar cuando ocurre esa excepción. Estas excepciones se declaran dentro del archivo `/errors/errors.py`, donde se proporciona una clase base `ApiError`. Para declarar una nueva excepción personalizada, declara una nueva clase que extienda `ApiError`, de la siguiente manera:
-```python
-class  InvalidParams(ApiError):
-	code  =  400
-	description  =  "Bad param"
-```
-Ahora, cada vez que el servidor Flask esté en ejecución y levantes la excepción `InvalidParams`, el usuario recibirá un código HTTP 400 con el mensaje "Bad param". Esta excepción puede ser lanzada a nivel del blueprint o del comando, y Flask traducirá esta excepción al resultado HTTP correspondiente.
-```python
-# /commands/sum_two_numbers.py
-from .base_command  import  BaseCommand
-from ..errors.errors  import  InvalidParams
-
-class  SumTwoNumbers(BaseCommannd):
-	def  __init__(self, first_numer, second_number):
-		self.first_number = first_number
-		self.second_number = second_number
-
-	def  execute(self):
-		if self.first_number == 0 or self.second_number == 0:
-			raise InvalidParams()
-		
-		return self.first_number + self.second_number
-```
-Si te preguntas cómo Flask es capaz de traducir una clase de excepción a JSON HTTP, es gracias a un middleware de manejo de errores proporcionado por la biblioteca de Flask y utilizado en el archivo `main.py`.
-```python
-@app.errorhandler(ApiError)
-def  handle_exception(err):
-	response  = {
-		"msg": err.description
-	}
-	return jsonify(response), err.code
-``` 
 
 ### Carpeta test
-Esta carpeta contiene las pruebas para los componentes principales del microservicio que han sido declarados en la carpeta `/src`
+Esta carpeta contiene las pruebas para los componentes principales del microservicio que han sido declarados en la carpeta `/src`. Los test se realizaron por medio de pytest.
+Dentro de la carpeta de test estan dos elementos muy importantes. Primero es el archivo de conftest.py el cual crea un fixture para establecer una conexion externa con la base de datos de prueba. Adicionalmente dentro de la carpeta de <nombre_microservicio> se encuentra el archivo de test_<nombre_microservicio>.py el cual contiene todas las pruebas sobre las rutas del microservicio en cuestion.
+
+```python
+   ##ejemplo test_router
+
+    def test_ping(
+            client: TestClient,
+            session: Session,
+            faker
+    ):
+        """
+    
+        :param client:
+        :param session:
+        :param faker:
+        :return:
+        """
+        session.execute(
+            delete(Route)
+        )
+        session.commit()
+    
+        response = client.get("/routes/ping")
+        assert response.status_code == 200
+    
+        response_body = response.text
+    
+        assert response_body == "pong"
+
+  ```
 
 ## Ejecutar un microservicio
 ### Instalar dependencias
-Utilizamos pipenv para gestionar las dependencias (verificar la sección de requisitos previos) y las declaramos todas dentro del archivo Pipfile del microservicio. Antes de instalar las dependencias, inicia el shell de pipenv para activar el entorno virtual con el siguiente comando:
+Para gestionar nuestras dependencias usamos virtual enviroments de python. Para declarar las dependencias del microservicio se uso un archivo de `requirements.txt` con el cual se puede genrar el ambiente virtual de tal manera que 
+se cree una carpeta con todo el ambiente virtual con el nombre de venv. Como pre requisito se tiene que tener pip instalado.
 
+Comando de instalacion de virtual enviroments
 ```bash
-$> pipenv shell
+$> pip install virtualenv
 ``` 
-Luego ejecuta el comando de instalación.
-```bash
-$> pipenv install
-```
-Esto instalará las dependencias solo dentro del entorno virtual, así que recuerda activarlo cuando estés trabajando con el microservicio. Para obtener más información sobre pipenv, consulta la documentación oficial en https://pipenv-es.readthedocs.io.
 
-Para salir del entorno virtual, utiliza el siguiente comando:
+Crear un nuevo virtual enviroment llamado venv
 ```bash
-$> deactivate
+$> virtualenv venv
+```
+Activa el ambiente virtual (Win,Linux,Mac)
+```bash
+windows >  venv\Scripts\activate
+linux/mac > source venv/bin/activate
+```
+
+Instalar requirements
+
+```bash
+$>  pip install -r requirements.txt 
 ```
 
 ### Variables de entorno
 
-El servidor Flask y las pruebas unitarias utilizan variables de entorno para configurar las credenciales de la base de datos y encontrar algunas configuraciones adicionales en tiempo de ejecución. A alto nivel, esas variables son:
+En nuestros servidores de FastAPI las pruebas unitarias utilizan de variables de entorno declaradas en un archivo `.env` para ser ejecutadas con el microservicio.
+En estos archivos se puede encontrar información principalmente relacionada a la conexion a la base de datos.
+
+Vale la pena mencionar que incluso si las variables de entorno declaran la conexion con la base de datos, lo que se uso principalmente para poder probar los srvicios fue el docker-compose.yml
+el cual permitia configurar y prender las bases de datos y microservicios adjacentes de una forma mas rapida y confiable.
+
+Contenido .env
 - DB_USER: Usuario de la base de datos Postgres
 - DB_PASSWORD: Contraseña de la base de datos Postgres
 - DB_HOST: Host de la base de datos Postgres
@@ -177,35 +210,29 @@ El servidor Flask y las pruebas unitarias utilizan variables de entorno para con
 - DB_NAME: Nombre de la base de datos Postgres
 - USERS_PATH: Para los microservicios que se comunican con el microservicio de Usuarios, necesitas especificar esta variable de entorno que contiene la URL utilizada para acceder a los endpoints de usuarios. (Ejemplo: http://localhost:3000, http://users-service)
 
-Estas variables de entorno deben especificarse en `.env.development` y `.env.test`. El segundo archivo ya está provisto para ti, pero el primero debe crearse basado en la plantilla `.env.template` en la raíz de la carpeta del microservicio.
-
-Como se mencionó anteriormente, tenemos dos archivos de entorno dentro de la carpeta del microservicio:
-- `.env.template`
-Este archivo contiene una plantilla de la estructura que el archivo `.env.development` utilizado por el servidor Flask requiere para funcionar.
-- `.env.test`
-Este es el archivo de entorno utilizado por pytest para ejecutar las pruebas unitarias.
+Estas variables de entorno deben especificarse en `.env` y `.env.examples`.
 
 ### Ejecutar el servidor
-Una vez que las variables de entorno estén configuradas correctamente, para ejecutar el servidor utiliza el siguiente comando:
+Una vez que las variables de entorno estén configuradas correctamente, tanto en .env como en el docker-compose.yml. 
+Para ejecutar el servidor se utiliza el siguiente comando:
+
 ```bash
-$> FLASK_APP=./src/main.py flask run -h 0.0.0.0 -p <PORT_TO_RUN_SERVER>
+$> uvicorn main:app --host 0.0.0.0 --port <PORT_TO_RUN_SERVER> --reload 
 
 # Ejemplos
 
 # Users
-$> FLASK_APP=./src/main.py flask run -h 0.0.0.0 -p 3000
-
-# Posts
-$> FLASK_APP=./src/main.py flask run -h 0.0.0.0 -p 3001
+$> uvicorn main:app --host 0.0.0.0 --port 12001 --reload 
 
 # Routes
-$> FLASK_APP=./src/main.py flask run -h 0.0.0.0 -p 3002
+$> uvicorn main:app --host 0.0.0.0 --port 12002 --reload 
 
 # Offers
-$> FLASK_APP=./src/main.py flask run -h 0.0.0.0 -p 3003
+$> uvicorn main:app --host 0.0.0.0 --port 12003 --reload 
 
-# Scores
-$> FLASK_APP=./src/main.py flask run -h 0.0.0.0 -p 3004
+# Posts
+$> uvicorn main:app --host 0.0.0.0 --port 12004 --reload 
+
 ```
 ### Ejecutar pruebas
 Para ejecutar las pruebas unitarias de los microservicios y establecer el porcentaje mínimo de cobertura del conjunto de pruebas en 70%, ejecuta el siguiente comando:
