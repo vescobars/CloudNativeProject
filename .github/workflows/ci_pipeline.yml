@@ -3,6 +3,7 @@ on:
   push:
     branches: 
       - main
+      - develop
 jobs:
   test_calculator:
     runs-on: ubuntu-latest
@@ -19,4 +20,41 @@ jobs:
         run: pipenv install --dev
       - name: Run unit tests
         working-directory: ./calculator
+        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
+
+
+  test_users:
+    runs-on: ubuntu-latest
+    services:
+      # Label used to access the service container
+      postgres-users:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_DB: db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    strategy:
+      matrix:
+        python-version: [ 3.9 ]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        working-directory: ./users
+        run: pip install -r requirements.txt
+      - name: Run unit tests
+        working-directory: ./users
+        env:
+          DB_USER: postgres
+          DB_PASSWORD: password
+          DB_HOST: postgres-users
+          DB_PORT: 13001
+          DB_NAME: db
         run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
