@@ -53,7 +53,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Create database
         run: |
-          PGPASSWORD=password psql -U postgres -tc "CREATE DATABASE db_tests;"
+          createdb
+          PGPASSWORD=password createdb -h localhost -p 5432 -U postgres db_tests"
 
       - name: Run unit tests
         working-directory: ./users
