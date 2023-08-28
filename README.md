@@ -20,7 +20,7 @@ Team: Cloudians
 
 ## Pre-requisitos para cada microservicio
 - Python ~3.9
-- pip\
+- pip
 - Docker
 - Docker-compose
 - Postman
