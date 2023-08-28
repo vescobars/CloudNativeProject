@@ -1,0 +1,32 @@
+team:
+   name: Cloudians
+   members:
+      - user: af.ariasr@uniandes.edu.co
+        percentage: 0
+      - user: j.charryg@uniandes.edu.co
+        percentage: 33
+      - user: d.granadam@uniandes.edu.co
+        percentage: 34
+      - user: v.escobar1@uniandes.edu.co
+        percentage: 33
+board: https://github.com/orgs/MISW-4301-Desarrollo-Apps-en-la-Nube/projects/108
+user-management:
+  folder: users
+  port: 12001
+  authors:
+    - d.granadam@uniandes.edu.co
+post-management:
+  folder: <nombre de la carpeta>
+  port: 12003
+  authors:
+    - j.charryg@uniandes.edu.co
+offer-management:
+  folder: offer
+  port: 12004
+  authors:
+    - af.ariasr@uniandes.edu.co
+route-management:
+  folder: routes
+  port: 12002
+  authors:
+    - v.escobar1@uniandes.edu.co

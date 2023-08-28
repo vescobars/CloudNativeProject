@@ -55,6 +55,8 @@ jobs:
         uses: mikefarah/yq@v4.30.8
       - name: Save folder name to env variable
         run: echo "CONFIG_PATH=$(yq '.route-management.folder' config.yaml)" >> $GITHUB_ENV
+      - name: Save port to env variable
+        run: echo "CONFIG_PORT=$(yq '.route-management.port' config.yaml)" >> $GITHUB_ENV
       - name: Install newman
         run: npm install -g newman
       - name: Create evaluator folder
@@ -93,6 +95,8 @@ jobs:
         uses: mikefarah/yq@v4.30.8
       - name: Save folder name to env variable
         run: echo "CONFIG_PATH=$(yq '.post-management.folder' config.yaml)" >> $GITHUB_ENV
+      - name: Save port to env variable
+        run: echo "CONFIG_PORT=$(yq '.post-management.port' config.yaml)" >> $GITHUB_ENV
       - name: Install newman
         run: npm install -g newman
       - name: Create evaluator folder
@@ -131,6 +135,8 @@ jobs:
         uses: mikefarah/yq@v4.30.8
       - name: Save folder name to env variable
         run: echo "CONFIG_PATH=$(yq '.offer-management.folder' config.yaml)" >> $GITHUB_ENV
+      - name: Save port to env variable
+        run: echo "CONFIG_PORT=$(yq '.offer-management.port' config.yaml)" >> $GITHUB_ENV
       - name: Install newman
         run: npm install -g newman
       - name: Create evaluator folder
