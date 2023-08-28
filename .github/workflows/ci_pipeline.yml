@@ -55,6 +55,6 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: password
           DB_HOST: postgres-users
-          DB_PORT: 13001
+          DB_PORT: 5432
           DB_NAME: db
         run: pytest --cov=src -v -s --cov-fail-under=70
