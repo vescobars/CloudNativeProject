@@ -1,0 +1,60 @@
+# Testing environment docker compose for the routes microservice
+# creates a database and microservice for 'Users', and creates a database for 'Routes'
+version: '3.8'
+services:
+  testing-routes-postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "13002:5432"
+    networks:
+      - test-routes-net
+    volumes:
+      - ./dataset:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d db -U postgres" ]
+      interval: 5s
+      timeout: 3s
+      retries: 4
+
+  testing-users-micro:
+    build: ../users/
+    ports:
+      - "12001:8000"
+    networks:
+      - test-microservices-net
+      - test-users-net
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_HOST: testing-users-postgres
+      DB_PORT: 5432
+      DB_NAME: db
+    depends_on:
+      testing-users-postgres:
+        condition: service_healthy
+  testing-users-postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "13001:5432"
+    volumes:
+      - ../users/dataset:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d db -U postgres" ]
+      interval: 5s
+      timeout: 3s
+      retries: 4
+    networks:
+      - test-users-net
+
+networks:
+  test-routes-net:
+  test-users-net:
+  test-microservices-net:
