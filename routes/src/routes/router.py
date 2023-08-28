@@ -5,6 +5,7 @@ from typing import Annotated, Union
 
 from fastapi import APIRouter, Response, Depends
 from fastapi.requests import Request
+from pydantic import ValidationError
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
@@ -76,7 +77,7 @@ async def reset(sess: Session = Depends(get_session)):
 
 @router.post("/")
 async def create_route(
-        route_data: CreateRouteRequestSchema,
+        route_data_raw: dict,
         request: Request,
         response: Response,
         sess: Annotated[Session, Depends(get_session)],
@@ -85,6 +86,11 @@ async def create_route(
         Routes.validate_token(request)
 
         routes_util = Routes()
+
+        try:
+            route_data = CreateRouteRequestSchema(**route_data_raw)
+        except ValidationError:
+            raise ErrorResponseException(status_code=400)
 
         # Validates all required fields are present
         if not routes_util.validate_required_fields_create(route_data, sess):
