@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       # Label used to access the service container
-      postgres-users:
+      postgres:
         # Docker Hub image
         image: postgres
         # Provide the password for postgres
@@ -56,7 +56,7 @@ jobs:
         env:
           DB_USER: postgres
           DB_PASSWORD: password
-          DB_HOST: postgres-users
+          DB_HOST: postgres
           DB_PORT: 5432
           DB_NAME: db
         run: pytest --cov=src -v -s --cov-fail-under=70
