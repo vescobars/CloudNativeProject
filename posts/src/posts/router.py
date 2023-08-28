@@ -1,17 +1,37 @@
+import logging
 from src.posts.schemas import GetPostRequestSchema, GetPostsResponseSchema, GetSchema
 from src.posts.schemas import CreatePostRequestSchema, CreatePostResponseSchema
 from fastapi import APIRouter, HTTPException, Response, Request, Depends, Header
 from sqlalchemy.orm import Session
-from typing import Annotated, Union
+from sqlalchemy import delete
+from typing import Annotated
 from src.database import get_session
 from src.posts.utils import Posts
 from src.constants import datetime_to_str
 from src.exceptions import UniqueConstraintViolatedException
 import uuid
-from datetime import datetime, timezone, date
-
+from datetime import datetime, timezone
+from starlette.responses import JSONResponse
+from src.models import Post
+import json
 
 router = APIRouter()
+
+@router.post("/reset")
+async def reset(
+        session: Session = Depends(get_session),
+):
+    try:
+        statement = delete(Post)
+        print(statement)
+        with session:
+            session.execute(statement)
+            session.commit()
+    except Exception as e:
+        logging.error(e)
+        return JSONResponse(status_code=500, content={
+            "msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)})
+    return {"msg": "Todos los datos fueron eliminados"}
 
 @router.post("/")
 def create_post(
@@ -93,14 +113,15 @@ def get_posts(
 def get_post_by_id(
     post_id: str,
     sess: Annotated[Session, Depends(get_session)],
-    request:Request, 
-    Authorization: str = Header(None)
+    request:Request
 ) -> GetSchema:
     
     if not request.headers.get('Authorization') or 'Bearer ' not in request.headers.get('Authorization'):
         raise HTTPException(status_code=403, detail="No hay token en la solicitud")
 
-    if not isinstance(post_id, str) or not uuid.UUID(post_id, version=4):
+    try:
+        uuid_obj = uuid.UUID(post_id, version=4)
+    except ValueError:
         raise HTTPException(status_code=400, detail="El id no es un valor string con formato uuid")
     
     bearer_token = request.headers.get('Authorization').split(" ")[1]
@@ -110,11 +131,12 @@ def get_post_by_id(
     response_data = posts_util.get_post(post_id, sess)
     return response_data
 
+
 @router.delete("/{post_id}")
 def delete_post(
     post_id: str,
-    request: Request,
-    sess: Annotated[Session, Depends(get_session)]
+    sess: Annotated[Session, Depends(get_session)],
+    request: Request
 ):
     if not request.headers.get('Authorization') or 'Bearer ' not in request.headers.get('Authorization'):
             raise HTTPException(status_code=403, detail="No hay token en la solicitud")
@@ -122,19 +144,13 @@ def delete_post(
     if not isinstance(post_id, str) or not uuid.UUID(post_id, version=4):
         raise HTTPException(status_code=400, detail="El id no es un valor string con formato uuid")
     
+    bearer_token = request.headers.get('Authorization').split(" ")[1]
     posts_util = Posts()
-    user_id = posts_util.authenticate_User(request.headers.get('Authorization'))
+    user_id = posts_util.authenticate_User(bearer_token)
     response = posts_util.delete_post(post_id, user_id, sess)
     return response
 
 
-@router.post("/reset")
-def reset(sess: Session = Depends(get_session),
-    Authorization: str = Header(None)):
-    posts_util = Posts()
-    user_id = posts_util.authenticate_User(Authorization)
-    response = posts_util.hard_reset(sess)
-    return response
 
     
 

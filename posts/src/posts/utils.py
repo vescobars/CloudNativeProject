@@ -1,7 +1,7 @@
 from sqlite3 import IntegrityError
 
 from fastapi import HTTPException
-from src.constants import USER_MICROSERVICE_HOST
+from src.constants import USERS_PATH
 from src.posts.schemas import CreatePostRequestSchema, GetPostRequestSchema, GetPostsResponseSchema, GetSchema, PostSchema
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
@@ -19,8 +19,8 @@ class Posts:
     @staticmethod
     def authenticate_User(bearer_token: str) -> str:
         headers = {"Authorization" : 'Bearer ' + bearer_token}
-        url = USER_MICROSERVICE_HOST
-        
+        url = USERS_PATH.rstrip('/') + "/users/me"
+        print(url)
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             user_data = response.json()

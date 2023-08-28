@@ -1,9 +1,6 @@
 {
-    "python.analysis.extraPaths": [
-        "./users"
-    ],
     "python.testing.pytestArgs": [
-        "posts"
+        "tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true

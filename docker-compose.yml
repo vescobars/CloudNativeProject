@@ -46,7 +46,7 @@ services:
       DB_HOST: posts-postgres
       DB_PORT: 5432
       DB_NAME: posts_db
-      USERS_PATH: "http://users-micro:12001/users/me"
+      USERS_PATH: "http://users-micro:8000"
       PYTHONUNBUFFERED: "1"
     depends_on:
       - posts-postgres
