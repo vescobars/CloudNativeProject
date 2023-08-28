@@ -57,4 +57,4 @@ jobs:
           DB_HOST: postgres-users
           DB_PORT: 13001
           DB_NAME: db
-        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
+        run: pytest --cov=src -v -s --cov-fail-under=70
