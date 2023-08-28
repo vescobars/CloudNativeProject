@@ -51,6 +51,10 @@ jobs:
       - name: Install dependencies
         working-directory: ./users
         run: pip install -r requirements.txt
+      - name: Create database
+        run: |
+          PGPASSWORD=password psql -U postgres -tc "CREATE DATABASE db_tests;"
+
       - name: Run unit tests
         working-directory: ./users
         env:
