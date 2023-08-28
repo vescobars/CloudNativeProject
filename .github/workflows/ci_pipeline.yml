@@ -64,3 +64,26 @@ jobs:
           DB_PORT: 5432
           DB_NAME: db
         run: pytest --cov=src -v -s --cov-fail-under=70
+  test_routes:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.9 ]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build test stack
+        working-directory: ./routes
+        run: docker compose up -d
+      - name: Install dependencies
+        working-directory: ./routes
+        run: pip install -r requirements.txt
+      - name: Run unit tests
+        working-directory: ./routes
+        env:
+          DB_USER: postgres
+          DB_PASSWORD: password
+          DB_HOST: localhost
+          DB_PORT: 13002
+          DB_NAME: db
+          USERS_PATH: http://localhost:12001
+        run: pytest --cov=src -v -s --cov-fail-under=70
