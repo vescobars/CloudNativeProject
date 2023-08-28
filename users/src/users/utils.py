@@ -1,5 +1,6 @@
 """ Utils for users """
 import hashlib
+import uuid
 from datetime import datetime, timezone, timedelta
 from secrets import token_urlsafe
 from typing import Tuple
@@ -30,6 +31,7 @@ class Users:
             password_hash, salt = create_salted_hash(data.password)
             try:
                 new_user = User(
+                    id=uuid.uuid4(),
                     username=data.username,
                     email=data.email,
                     phoneNumber=data.phoneNumber,
