@@ -1,7 +1,7 @@
 name: Test coverage
 on:
   push:
-    branches: 
+    branches:
       - main
       - develop
 jobs:
@@ -32,9 +32,11 @@ jobs:
         image: postgres
         # Provide the password for postgres
         env:
-          POSTGRES_DB: db
+          POSTGRES_DB: db_tests
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
