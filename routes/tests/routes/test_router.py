@@ -4,11 +4,12 @@ import string
 import uuid
 from datetime import datetime, timedelta, timezone
 
+import requests
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from src.constants import now_utc
+from src.constants import now_utc, USERS_PATH
 from src.models import Route
 from src.routes.schemas import CreateRouteRequestSchema
 
@@ -597,3 +598,12 @@ def test_get_all_route(
     assert sample_response['sourceCountry'] is not None
     assert sample_response['destinyCountry'] is not None
     assert sample_response['bagCost'] is not None
+
+
+def test_users_connection():
+    """
+    tests to see if instance can connect to a /users microservice
+    :return:
+    """
+    ping_res = requests.get(f'{USERS_PATH}/users/ping')
+    assert ping_res.status_code == 200, "Can't find the /users microservice"

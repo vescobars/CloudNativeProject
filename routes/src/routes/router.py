@@ -3,7 +3,7 @@
 import logging
 from typing import Annotated, Union
 
-from fastapi import APIRouter, Response, Depends, HTTPException
+from fastapi import APIRouter, Response, Depends
 from fastapi.requests import Request
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
@@ -11,7 +11,7 @@ from starlette.responses import JSONResponse
 
 from src.constants import datetime_to_str
 from src.database import get_session
-from src.exception import UniqueConstraintViolatedException
+from src.exception import UniqueConstraintViolatedException, ErrorResponseException
 from src.models import Route
 from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema, GetRouteResponseSchema
 from src.routes.utils import Routes
@@ -22,6 +22,7 @@ router = APIRouter()
 @router.get("/")
 async def see_and_filter_routes(
         sess: Annotated[Session, Depends(get_session)],
+        request: Request,
         response: Response,
         flight: Union[str, None] = None
 ):
@@ -31,7 +32,7 @@ async def see_and_filter_routes(
     :param flight:
     :param sess:
     """
-    # TODO: Pending Auth (Implemented after finishing service and testing, before integration)
+    Routes.validate_token(request)
     if flight:
         filter_flightId = flight
         filtered_list = Routes.filter_flight_id(filter_flightId, sess)
@@ -87,16 +88,16 @@ async def create_route(
 
         # Validates all required fields are present
         if not routes_util.validate_required_fields_create(route_data, sess):
-            raise HTTPException(status_code=400)
+            raise ErrorResponseException(status_code=400)
 
         # Checks if the flightId already exists
         if routes_util.route_exists_flightid(route_data.flightId, sess):
-            raise HTTPException(status_code=412)
+            raise ErrorResponseException(status_code=412)
 
         # Check if the dates are valid (in the past or not consecutive)
         if not routes_util.validate_dates(route_data.plannedStartDate, route_data.plannedEndDate):
             err_msg = {"msg": "Las fechas del trayecto no son válidas"}
-            raise HTTPException(status_code=412, detail=err_msg)
+            raise ErrorResponseException(status_code=412, detail=err_msg)
 
         new_route = routes_util.create_routes(route_data, sess)
 
@@ -112,7 +113,7 @@ async def create_route(
     except UniqueConstraintViolatedException as e:
         logging.error(e)
         err_msg = {"msg": "Un error desconocido ha ocurrido", "error": str(e)}
-        raise HTTPException(status_code=500, detail=err_msg)
+        raise ErrorResponseException(status_code=500, detail=err_msg)
 
 
 @router.get("/{route_id}")
@@ -134,14 +135,14 @@ async def get_route(
 
     # Validates route_id has an uuid4 format
     if not routes_util.id_is_uuid(route_id):
-        raise HTTPException(status_code=400)
+        raise ErrorResponseException(status_code=400)
 
     # Go search for the route
     retrieved_route = Routes.get_route_id(route_id, sess)
 
     # Validates a route was found matching the id
     if retrieved_route is None:
-        raise HTTPException(status_code=404)
+        raise ErrorResponseException(status_code=404)
 
     # Change response status code to 200 OK
     response.status_code = 200
@@ -179,14 +180,14 @@ async def delete_route(
 
     # Validates route_id has an uuid4 format
     if not routes_util.id_is_uuid(route_id):
-        raise HTTPException(status_code=400)
+        raise ErrorResponseException(status_code=400)
 
     # Go search for the route
     retrieved_route = Routes.get_route_id(route_id, sess)
 
     # Validates a route was found matching the id
     if retrieved_route is None:
-        raise HTTPException(status_code=404)
+        raise ErrorResponseException(status_code=404)
 
     # Deletes user
     Routes.delete_route_id(route_id, sess)
@@ -195,6 +196,4 @@ async def delete_route(
     response.status_code = 200
 
     # Returns message confirming the route was successfully deleted
-    return {"msg": "Todos los datos fueron eliminados"}
-
-
+    return {"msg": "el trayecto fue eliminado"}
