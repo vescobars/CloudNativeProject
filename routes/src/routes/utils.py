@@ -11,9 +11,8 @@ from sqlalchemy.orm import Session
 from src.constants import now_utc, USERS_PATH
 from src.exception import UniqueConstraintViolatedException
 from src.models import Route
-from src.routes.schemas import CreateRouteRequestSchema
+from src.routes.schemas import CreateRouteRequestSchema, GetRouteResponseSchema
 from src.schemas import RouteSchema
-from src.routes.schemas import CreateRouteRequestSchema, CreateRouteResponseSchema, GetRouteResponseSchema
 
 
 class Routes:
@@ -113,7 +112,7 @@ class Routes:
         return True
 
     @staticmethod
-    def filter_flight_id(filterId:str, session: Session):
+    def filter_flight_id(filterId: str, session: Session):
         """
         Searches for the routes in the database that match a certain flight id
         :param filterId:
@@ -135,7 +134,8 @@ class Routes:
                 destinyCountry=route.destinyCountry,
                 bagCost=route.bagCost,
                 plannedStartDate=route.plannedStartDate,
-                plannedEndDate=route.plannedEndDate
+                plannedEndDate=route.plannedEndDate,
+                createdAt=route.createdAt
             )
             filtered_route_list_schema.append(response)
 
@@ -163,7 +163,8 @@ class Routes:
                 destinyCountry=route.destinyCountry,
                 bagCost=route.bagCost,
                 plannedStartDate=route.plannedStartDate,
-                plannedEndDate=route.plannedEndDate
+                plannedEndDate=route.plannedEndDate,
+                createdAt=route.createdAt
             )
             route_list_schema.append(response)
 

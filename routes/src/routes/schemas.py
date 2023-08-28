@@ -1,8 +1,9 @@
 """ Pydantic schemas for req and response bodies"""
 import uuid
+from datetime import datetime
 from typing import Annotated
-from datetime import datetime, timezone
-from pydantic import BaseModel, Field, AfterValidator, field_serializer, UUID4
+
+from pydantic import BaseModel, Field, AfterValidator, field_serializer
 
 from src.constants import now_utc
 
@@ -58,8 +59,9 @@ class GetRouteResponseSchema(BaseModel):
     bagCost: int
     plannedStartDate: datetime
     plannedEndDate: datetime
+    createdAt: datetime
 
-    @field_serializer('plannedStartDate', 'plannedEndDate')
+    @field_serializer('plannedStartDate', 'plannedEndDate', 'createdAt')
     def serialize_dt(self, dt: datetime, _info):
         return dt.timestamp()
 

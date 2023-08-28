@@ -157,7 +157,9 @@ async def get_route(
         destinyCountry=retrieved_route.destinyCountry,
         bagCost=retrieved_route.bagCost,
         plannedStartDate=retrieved_route.plannedStartDate,
-        plannedEndDate=retrieved_route.plannedEndDate
+        plannedEndDate=retrieved_route.plannedEndDate,
+        createdAt=retrieved_route.createdAt,
+
     )
 
 
