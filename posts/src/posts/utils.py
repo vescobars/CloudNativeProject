@@ -27,7 +27,7 @@ class Posts:
             user_id = user_data["id"]
             return user_id
         else:
-            raise HTTPException(status_code=401, detail="El token no es válido o está vencido.")
+            raise HTTPException(status_code=401)
 
 
     @staticmethod
@@ -54,32 +54,37 @@ class Posts:
     
     @staticmethod
     def get_posts(data: GetPostRequestSchema, user_id: str, sess: Session):
-        
         filters = []
+
         if data.expire is not None:
             filters.append(Post.expireAt.isnot(None) if data.expire else Post.expireAt.is_(None))
+
         if data.route:
             filters.append(Post.routeId == data.route)
+
         if data.owner:
-            filters.append(Post.userId == data.owner or Post.userId == user_id)
-            
+            filters.append(Post.userId == data.owner)
+        else:
+            filters.append(True)
+
         posts = sess.execute(
             select(Post).filter(*filters)
         ).scalars().all()
-        
+
         posts_list = [
-        {
-            "id": str(post.id),
-            "routeId": post.routeId,
-            "userId": post.userId,
-            "expireAt": post.expireAt,
-            "createdAt": datetime_to_str(post.createdAt)
-        }
-        for post in posts
+            {
+                "id": str(post.id),
+                "routeId": post.routeId,
+                "userId": post.userId,
+                "expireAt": post.expireAt,
+                "createdAt": datetime_to_str(post.createdAt)
+            }
+            for post in posts
         ]
         response_data = GetPostsResponseSchema(posts=posts_list)
-        
+
         return response_data
+
     
     @staticmethod
     def get_post(post_id: str, sess: Session):
@@ -88,7 +93,7 @@ class Posts:
         ).scalar()
         
         if post is None:
-            raise HTTPException(status_code=404, detail="Post not found")
+            raise HTTPException(status_code=404)
         
         response_data = GetSchema(
             id=post.id,
@@ -106,7 +111,7 @@ class Posts:
             select(Post).where(Post.id == post_id) 
         ).scalar()
         if post is None:
-            raise HTTPException(status_code=404, detail="Post not found")
+            raise HTTPException(status_code=404)
         sess.delete(post)
         sess.commit()
         return {"msg": "The post was successfully deleted"}

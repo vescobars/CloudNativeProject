@@ -42,20 +42,19 @@ def create_post(
 ) -> CreatePostResponseSchema:
     try:
         if not request.headers.get('Authorization') or 'Bearer ' not in request.headers.get('Authorization'):
-            raise HTTPException(status_code=403, detail=str(request.headers))
+            raise HTTPException(status_code=403, detail="")
         
         if not post_data.routeId or not isinstance(post_data.routeId, str) or not uuid.UUID(post_data.routeId, version=4):
-            raise HTTPException(status_code=400, detail="Alguno de los campos no esté presente en la solicitud, o no tengan el formato esperado.")
+            raise HTTPException(status_code=400)
         
         if not post_data.expireAt or not isinstance(post_data.expireAt, datetime):
-            raise HTTPException(status_code=400, detail="Alguno de los campos no esté presente en la solicitud, o no tengan el formato esperado.")
+            raise HTTPException(status_code=400)
         
-        if not isinstance(post_data.expireAt, datetime):
-            raise HTTPException(status_code=412, detail={"msg": "La fecha expiración no es válida"})
-
         current_time = datetime.now(timezone.utc)
-        if post_data.expireAt.replace(tzinfo=timezone.utc) <= current_time:
-            raise HTTPException(status_code=412, detail={"msg": "La fecha expiración no es válida"})
+        if not isinstance(post_data.expireAt, datetime) or post_data.expireAt.replace(tzinfo=timezone.utc) <= current_time:
+            return JSONResponse(status_code=412, content={"msg": "La fecha expiración no es válida"})
+
+
         
         posts_util = Posts()
         
@@ -73,9 +72,10 @@ def create_post(
         response.status_code = 201
         return response_body
     
-    except UniqueConstraintViolatedException as e:
-        print(e)
-        raise HTTPException(status_code=412, detail="La fecha expiración no es válida")
+    except UniqueConstraintViolatedException:
+        raise JSONResponse(status_code=412, content={
+            "msg": "La fecha expiración no es válida"})
+
 
 @router.get("/ping")
 def ping():
@@ -85,21 +85,20 @@ def ping():
 def get_posts(
     get_data: GetPostRequestSchema,
     request: Request,
-    sess: Annotated[Session, Depends(get_session)],
-    Authorization: str = Header(None)
+    sess: Annotated[Session, Depends(get_session)]
 ) -> GetPostsResponseSchema:
     
     if not request.headers.get('Authorization') or 'Bearer ' not in request.headers.get('Authorization'):
-            raise HTTPException(status_code=403, detail="No hay token en la solicitud")
+            raise HTTPException(status_code=403, detail="")
 
     if get_data.expire is not None and not isinstance(get_data.expire, bool):
-        raise HTTPException(status_code=400, detail="Alguno de los campos de búsqueda no tiene el formato esperado")
+        raise HTTPException(status_code=400)
 
     if get_data.route and (not isinstance(get_data.route, str) or not uuid.UUID(get_data.route, version=4)):
-        raise HTTPException(status_code=400, detail="Alguno de los campos de búsqueda no tiene el formato esperado")
+        raise HTTPException(status_code=400)
 
     if get_data.owner and (not isinstance(get_data.owner, str) or (get_data.owner != "me" and not uuid.UUID(get_data.owner, version=4))):
-        raise HTTPException(status_code=400, detail="Alguno de los campos de búsqueda no tiene el formato esperado")
+        raise HTTPException(status_code=400)
 
     posts_util = Posts()
     
@@ -117,7 +116,7 @@ def get_post_by_id(
 ) -> GetSchema:
     
     if not request.headers.get('Authorization') or 'Bearer ' not in request.headers.get('Authorization'):
-        raise HTTPException(status_code=403, detail="No hay token en la solicitud")
+        raise HTTPException(status_code=403, detail="")
 
     try:
         uuid_obj = uuid.UUID(post_id, version=4)
@@ -139,7 +138,7 @@ def delete_post(
     request: Request
 ):
     if not request.headers.get('Authorization') or 'Bearer ' not in request.headers.get('Authorization'):
-            raise HTTPException(status_code=403, detail="No hay token en la solicitud")
+            raise HTTPException(status_code=403, detail="")
         
     if not isinstance(post_id, str) or not uuid.UUID(post_id, version=4):
         raise HTTPException(status_code=400, detail="El id no es un valor string con formato uuid")

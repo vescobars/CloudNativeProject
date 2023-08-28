@@ -5,8 +5,8 @@ services:
     ports:
       - "12001:8000"
     networks:
-      - microservices-net
-      - users-net
+      - app_net
+      - user_net
     environment:
       DB_USER: users-micro
       DB_PASSWORD: Laborious4-Dilation-Pretender
@@ -23,9 +23,9 @@ services:
       POSTGRES_USER: users-micro
       POSTGRES_PASSWORD: Laborious4-Dilation-Pretender
     ports:
-      - 5432:5432
+      - "13001:5432"
     networks:
-      - users-net
+      - user_net
     volumes:
       - ./users/dataset:/docker-entrypoint-initdb.d
     healthcheck:
@@ -33,13 +33,48 @@ services:
       interval: 5s
       timeout: 3s
       retries: 4
+
+  routes-micro:
+    build: routes/
+    ports:
+      - "12002:8001"
+    networks:
+      - app_net
+      - route_net
+    environment:
+      DB_USER: route-micro
+      DB_PASSWORD: Laborious4-Dilation-Pretender
+      DB_HOST: routes-postgres
+      DB_PORT: 5432
+      DB_NAME: db
+      USERS_PATH: http://users-micro:8000
+    depends_on:
+      routes-postgres:
+        condition: service_healthy
+  routes-postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: route-micro
+      POSTGRES_PASSWORD: Laborious4-Dilation-Pretender
+    ports:
+      - "13002:5432"
+    networks:
+      - route_net
+    volumes:
+      - ./routes/dataset:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d db -U route-micro" ]
+      interval: 5s
+      timeout: 3s
+      retries: 4
   posts-micro:
     build: posts/
     ports:
-      - "12002:8000"
+      - "12003:8000"
     networks:
-      - microservices-net
-      - users-net
+      - app_net
+      - post_net  # Change the network name to post_net
     environment:
       DB_USER: posts-micro  
       DB_PASSWORD: SecretPasswordForPosts 
@@ -57,15 +92,16 @@ services:
       POSTGRES_USER: posts-micro
       POSTGRES_PASSWORD: SecretPasswordForPosts
     ports:
-      - 5433:5432
+      - "13003:8000"
     networks:
-      - microservices-net
-      - users-net
+      - post_net
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d posts_db -U posts-micro" ]
       interval: 5s
       timeout: 3s
       retries: 4
 networks:
-  microservices-net:
-  users-net:
+  app_net:
+  user_net:
+  route_net:
+  post_net:
