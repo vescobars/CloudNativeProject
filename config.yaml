@@ -16,7 +16,7 @@ user-management:
   authors:
     - d.granadam@uniandes.edu.co
 post-management:
-  folder: <nombre de la carpeta>
+  folder: posts
   port: 12003
   authors:
     - j.charryg@uniandes.edu.co
