@@ -1,19 +1,22 @@
-from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from src.database import engine
-from src import models
+from dotenv import load_dotenv, find_dotenv
+loaded = load_dotenv('.env.development')
 
-from .posts.router import router as posts_router
+from .errors.errors import ApiError
+from .blueprints.posts import posts_blueprint
+from .models.model import Base
+from .session import Session, engine
+from flask import Flask, jsonify
 
-models.Base.metadata.create_all(bind=engine)
-app = FastAPI()
 
-app.include_router(posts_router, prefix="/posts", tags=["Posts"])
+app = Flask(__name__)
+app.register_blueprint(posts_blueprint)
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(_, exc):
-    return JSONResponse(status_code=400, content={
-        "msg": "Request body is not properly structured",
-        "errors": exc.errors()
-    })
+Base.metadata.create_all(engine)
+
+
+@app.errorhandler(ApiError)
+def handle_exception(err):
+    response = {
+        "msg": err.description
+    }
+    return jsonify(response), err.code

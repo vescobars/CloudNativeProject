@@ -1,30 +1,22 @@
-""" Main class of FastAPI Routes Microservice """
+from dotenv import load_dotenv, find_dotenv
+loaded = load_dotenv('.env.development')
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-
-from src import models
-from src.database import engine
-from src.exception import ErrorResponseException
-from src.routes.router import router as routes_router
-
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI()
+from .errors.errors import ApiError
+from .blueprints.routes import routes_blueprint
+from .models.model import Base
+from .session import Session, engine
+from flask import Flask, jsonify
 
 
-@app.exception_handler(ErrorResponseException)
-async def error_response_exception_handler(request: Request, exc: ErrorResponseException):
-    """
-    Send custom error response
-    :param request:
-    :param exc: an object with a status code and a detail
-    :return:
-    """
-    return JSONResponse(
-        status_code=exc.status_code,
-        content=exc.detail,
-    )
+app = Flask(__name__)
+app.register_blueprint(routes_blueprint)
+
+Base.metadata.create_all(engine)
 
 
-app.include_router(routes_router, prefix="/routes", tags=["Routes"])
+@app.errorhandler(ApiError)
+def handle_exception(err):
+    response = {
+        "msg": err.description
+    }
+    return jsonify(response), err.code

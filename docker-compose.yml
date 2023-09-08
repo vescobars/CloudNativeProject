@@ -1,107 +1,136 @@
-version: '3.8'
+version: '3'
+networks:
+    app_net:
+      driver: bridge
+    user_net:
+      driver: bridge
+    route_net:
+      driver: bridge
+    post_net:
+      driver: bridge
+    offer_net:
+      driver: bridge
 services:
-  users-micro:
-    build: users/
+  users:
+    build: ./users
     ports:
-      - "12001:8000"
+      - "3000:3000"
+    environment:
+      DB_NAME: monitor_users
+      DB_HOST: users_db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      FLASK_APP: ./src/main.py
+    depends_on:
+      users_db:
+        condition: service_healthy
     networks:
       - app_net
       - user_net
-    environment:
-      DB_USER: users-micro
-      DB_PASSWORD: Laborious4-Dilation-Pretender
-      DB_HOST: users-postgres
-      DB_PORT: 5432
-      DB_NAME: db
-    depends_on:
-      users-postgres:
-        condition: service_healthy
-  users-postgres:
+  users_db:
     image: postgres
     environment:
-      POSTGRES_DB: db
-      POSTGRES_USER: users-micro
-      POSTGRES_PASSWORD: Laborious4-Dilation-Pretender
-    ports:
-      - "13001:5432"
+      POSTGRES_DB: monitor_users
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
     networks:
       - user_net
-    volumes:
-      - ./users/dataset:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d db -U users-micro" ]
-      interval: 5s
-      timeout: 3s
-      retries: 4
-
-  routes-micro:
-    build: routes/
+  routes:
+    build: ./routes
     ports:
-      - "12002:8001"
+      - "3002:3000"
+    environment:
+      DB_NAME: monitor_routes
+      DB_HOST: routes_db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      USERS_PATH: "http://users:3000"
+      FLASK_APP: ./src/main.py
+    depends_on:
+      routes_db:
+        condition: service_healthy
     networks:
       - app_net
       - route_net
-    environment:
-      DB_USER: route-micro
-      DB_PASSWORD: Laborious4-Dilation-Pretender
-      DB_HOST: routes-postgres
-      DB_PORT: 5432
-      DB_NAME: db
-      USERS_PATH: http://users-micro:8000
-    depends_on:
-      routes-postgres:
-        condition: service_healthy
-  routes-postgres:
+  routes_db:
     image: postgres
     environment:
-      POSTGRES_DB: db
-      POSTGRES_USER: route-micro
-      POSTGRES_PASSWORD: Laborious4-Dilation-Pretender
-    ports:
-      - "13002:5432"
+      POSTGRES_DB: monitor_routes
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
     networks:
       - route_net
-    volumes:
-      - ./routes/dataset:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d db -U route-micro" ]
-      interval: 5s
-      timeout: 3s
-      retries: 4
-  posts-postgres:
+  posts:
+    build: ./posts
+    ports:
+      - "3001:3000"
+    environment:
+      DB_NAME: monitor_posts
+      DB_HOST: posts_db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      USERS_PATH: "http://users:3000"
+      FLASK_APP: ./src/main.py
+    depends_on:
+      posts_db:
+        condition: service_healthy
+    networks:
+      - app_net
+      - post_net
+  posts_db:
     image: postgres
     environment:
-      POSTGRES_DB: posts_db
-      POSTGRES_USER: posts-micro
-      POSTGRES_PASSWORD: SecretPasswordForPosts
-    ports:
-      - "13003:8000"
+      POSTGRES_DB: monitor_posts
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
     networks:
       - post_net
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d posts_db -U posts-micro" ]
-      interval: 5s
-      timeout: 3s
-      retries: 4
-  posts-micro:
-    build: posts/
+  offers:
+    build: ./offers
     ports:
-      - "12003:8000"
+      - "3003:3000"
+    environment:
+      DB_NAME: monitor_offers
+      DB_HOST: offers_db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      USERS_PATH: "http://users:3000"
+      FLASK_APP: ./src/main.py
+    depends_on:
+      offers_db:
+        condition: service_healthy
     networks:
       - app_net
-      - post_net  # Change the network name to post_net
+      - offer_net
+  offers_db:
+    image: postgres
     environment:
-      DB_USER: posts-micro  
-      DB_PASSWORD: SecretPasswordForPosts 
-      DB_HOST: posts-postgres
-      DB_PORT: 5432
-      DB_NAME: posts_db
-      USERS_PATH: "http://users-micro:8000"
-      PYTHONUNBUFFERED: "1"
-    depends_on:
-      - posts-postgres
-networks:
-  app_net:
-  user_net:
-  route_net:
-  post_net:
+      POSTGRES_DB: monitor_offers
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+    networks:
+      - offer_net

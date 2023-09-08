@@ -1,89 +1,150 @@
 name: Test coverage
 on:
   push:
-    branches:
+    branches: 
       - main
-      - develop
+      - ENTREGA1
 jobs:
-  test_calculator:
+  test_users:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:12.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: users_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
         python-version: [ 3.10 ]
     steps:
       - uses: actions/checkout@v1
       - name: Install pipenv
-        working-directory: ./calculator
+        working-directory: ./users
         run: pip install pipenv
+      - name: Install psycopg2
+        working-directory: ./users
+        run: pip install psycopg2
       - name: Install dependencies
-        working-directory: ./calculator
+        working-directory: ./users
         run: pipenv install --dev
       - name: Run unit tests
-        working-directory: ./calculator
-        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
-
-
-  test_users:
-    runs-on: ubuntu-latest
-    services:
-      # Label used to access the service container
-      postgres:
-        # Docker Hub image
-        image: postgres
-        # Provide the password for postgres
-        env:
-          POSTGRES_DB: db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-        ports:
-          - 5432:5432
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    strategy:
-      matrix:
-        python-version: [ 3.9 ]
-    steps:
-      - uses: actions/checkout@v1
-      - name: Install dependencies
-        working-directory: ./users
-        run: pip install -r requirements.txt
-      - name: Create database
-        run: |
-          PGPASSWORD=password createdb -h localhost -p 5432 -U postgres db_tests
-
-      - name: Run unit tests
         working-directory: ./users
         env:
-          DB_USER: postgres
-          DB_PASSWORD: password
+          DB_NAME: users_test
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_NAME: db
-        run: pytest --cov=src -v -s --cov-fail-under=70
-  test_routes:
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
+  test_offers:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:12.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: offers_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        python-version: [ 3.9 ]
+        python-version: [ 3.10 ]
     steps:
       - uses: actions/checkout@v1
-      - name: Build test stack
+      - name: Install pipenv
+        working-directory: ./offers
+        run: pip install pipenv
+      - name: Install psycopg2
+        working-directory: ./offers
+        run: pip install psycopg2
+      - name: Install dependencies
+        working-directory: ./offers
+        run: pipenv install --dev
+      - name: Run unit tests
+        working-directory: ./offers
+        env:
+          DB_NAME: offers_test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          USERS_PATH: http://users
+        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
+  test_routes:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:12.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: routes_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    strategy:
+      matrix:
+        python-version: [ 3.10 ]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install pipenv
         working-directory: ./routes
-        run: docker compose up -d
+        run: pip install pipenv
+      - name: Install psycopg2
+        working-directory: ./routes
+        run: pip install psycopg2
       - name: Install dependencies
         working-directory: ./routes
-        run: pip install -r requirements.txt
+        run: pipenv install --dev
       - name: Run unit tests
         working-directory: ./routes
         env:
-          DB_USER: postgres
-          DB_PASSWORD: password
+          DB_NAME: routes_test
           DB_HOST: localhost
-          DB_PORT: 13002
-          DB_NAME: db
-          USERS_PATH: http://localhost:12001
-        run: pytest --cov=src -v -s --cov-fail-under=70
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          USERS_PATH: http://users
+        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
+  test_posts:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:12.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: posts_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    strategy:
+      matrix:
+        python-version: [ 3.10 ]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install pipenv
+        working-directory: ./posts
+        run: pip install pipenv
+      - name: Install psycopg2
+        working-directory: ./posts
+        run: pip install psycopg2
+      - name: Install dependencies
+        working-directory: ./posts
+        run: pipenv install --dev
+      - name: Run unit tests
+        working-directory: ./posts
+        env:
+          DB_NAME: posts_test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          USERS_PATH: http://users
+        run: pipenv run pytest --cov=src -v -s --cov-fail-under=70
