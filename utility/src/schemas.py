@@ -3,6 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, UUID4, Field
 
+
 class UtilitySchema(BaseModel):
     """
     Defines the pydantic model (schema) for Utility

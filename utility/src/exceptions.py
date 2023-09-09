@@ -5,8 +5,8 @@ class UniqueConstraintViolatedException(Exception):
     """A uniqueness constraint in the database was violated"""''
 
 
-class UserNotFoundException(Exception):
-    """The requested user was not found"""
+class UtilityNotFoundException(Exception):
+    """The requested utility was not found"""
 
 
 class InvalidRequestException(Exception):

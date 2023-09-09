@@ -12,10 +12,10 @@ from src.constants import datetime_to_str
 from src.database import get_session
 from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException, InvalidRequestException, \
     IncorrectUserPasswordException, InvalidTokenException, ExpiredTokenException
-from src.models import User
-from src.users.schemas import CreateUserRequestSchema, CreateUserResponseSchema, UpdateUserRequestSchema, \
+from src.models import Utility
+from src.utility.schemas import CreateUserRequestSchema, CreateUserResponseSchema, UpdateUserRequestSchema, \
     GenerateTokenRequestSchema, GenerateTokenResponseSchema, GetUserResponseSchema
-from src.users.utils import Users
+from src.utility.utils import Utilities
 
 router = APIRouter()
 
@@ -30,8 +30,8 @@ def create_user(
     Username and email must be unique, validated by DB model UNIQUE constraint
     """
     try:
-        users_util = Users()
-        new_user = users_util.create_user(user_data, sess)
+        utility_util = Utilities()
+        new_user = utility_util.create_utility(user_data, sess)
         response_body: CreateUserResponseSchema = CreateUserResponseSchema(
             id=str(new_user.id),
             createdAt=datetime_to_str(new_user.createdAt),
