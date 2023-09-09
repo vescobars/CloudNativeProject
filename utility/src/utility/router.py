@@ -1,103 +1,61 @@
 """ /users router """
 import json
 import logging
-from typing import Annotated
-
-from fastapi import APIRouter, HTTPException, Depends, Response, Request
+from fastapi import APIRouter, HTTPException, Depends, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
+from typing import Annotated
 
-from src.constants import datetime_to_str
 from src.database import get_session
-from src.exceptions import UniqueConstraintViolatedException, UserNotFoundException, InvalidRequestException, \
-    IncorrectUserPasswordException, InvalidTokenException, ExpiredTokenException
+from src.exceptions import UniqueConstraintViolatedException, InvalidRequestException, \
+    UtilityNotFoundException
 from src.models import Utility
-from src.utility.schemas import CreateUserRequestSchema, CreateUserResponseSchema, UpdateUserRequestSchema, \
-    GenerateTokenRequestSchema, GenerateTokenResponseSchema, GetUserResponseSchema
+from src.schemas import UtilitySchema
+from src.utility.schemas import CreateUtilityRequestSchema, UpdateUtilityRequestSchema
 from src.utility.utils import Utilities
 
 router = APIRouter()
 
 
 @router.post("/")
-def create_user(
-        user_data: CreateUserRequestSchema, response: Response,
+def create_utility(
+        util_data: CreateUtilityRequestSchema, response: Response,
         sess: Annotated[Session, Depends(get_session)],
-) -> CreateUserResponseSchema:
+) -> UtilitySchema:
     """
-    Creates a user with the given data.
-    Username and email must be unique, validated by DB model UNIQUE constraint
+    Creates a utility with the given data.
+    Offer_id must be unique
     """
     try:
-        utility_util = Utilities()
-        new_user = utility_util.create_utility(user_data, sess)
-        response_body: CreateUserResponseSchema = CreateUserResponseSchema(
-            id=str(new_user.id),
-            createdAt=datetime_to_str(new_user.createdAt),
-        )
+        new_user = Utilities().create_utility(str(util_data.offer_id), util_data.utility, sess)
         response.status_code = 201
-        return response_body
+        return new_user
     except UniqueConstraintViolatedException as e:
         print(e)
-        raise HTTPException(status_code=412, detail="That email or username already exists")
+        raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
 
 
-@router.patch("/{user_id}")
+@router.patch("/{offer_id}")
 def update_user(
-        user_id: str, user_data: UpdateUserRequestSchema,
+        offer_id: str, util_data: UpdateUtilityRequestSchema,
         sess: Annotated[Session, Depends(get_session)],
 ) -> dict:
     """
-    Updates a user with the given data.
+    Updates a utility with the given data.
 
     """
     try:
-        updated = Users.update_user(user_id, user_data, sess)
+        updated = Utilities.update_utility(offer_id, util_data.utility, sess)
         if updated:
-            return {"msg": "el usuario ha sido actualizado"}
+            return {"msg": "la utilidad ha sido actualizada"}
         else:
             raise InvalidRequestException()
 
     except InvalidRequestException:
-        raise HTTPException(status_code=400, detail="Solicitud vacía")
-    except UserNotFoundException:
-        raise HTTPException(status_code=404, detail="El usuario no fue encontrado")
-
-
-@router.post("/auth")
-def generate_new_token(
-        req_data: GenerateTokenRequestSchema,
-        sess: Annotated[Session, Depends(get_session)],
-) -> GenerateTokenResponseSchema:
-    """
-    Generates new security token if correctly authenticated
-    """
-    try:
-        token_info = Users.generate_new_token(req_data, sess)
-        return token_info
-
-    except (IncorrectUserPasswordException, UserNotFoundException):
-        raise HTTPException(status_code=404, detail="El usuario y/o contraseña no fue encontrado")
-
-
-@router.get("/me")
-def get_user(
-        request: Request,
-        sess: Annotated[Session, Depends(get_session)],
-) -> GetUserResponseSchema:
-    """
-    Retrieves user if correctly authenticated
-    """
-    try:
-        if not request.headers.get('Authorization') or 'Bearer ' not in request.headers.get('Authorization'):
-            raise HTTPException(status_code=403, detail="El token no esta en el encabezado")
-        user_id = Users.authenticate(request.headers.get('Authorization').split(" ")[1], sess)
-        user_data = Users.get_user(user_id, sess)
-        return user_data
-
-    except (InvalidTokenException, ExpiredTokenException):
-        raise HTTPException(status_code=401, detail="El usuario y/o contraseña no fue encontrado")
+        raise HTTPException(status_code=400, detail="Solicitud invalida")
+    except UtilityNotFoundException:
+        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
 
 
 @router.get("/ping")
@@ -114,12 +72,12 @@ async def reset(
         session: Session = Depends(get_session),
 ):
     """
-    Clears the users table
+    Clears the utilities table
     Returns:
         msg: Todos los datos fueron eliminados
     """
     try:
-        statement = delete(User)
+        statement = delete(Utility)
         print(statement)
         with session:
             session.execute(statement)
