@@ -1,13 +1,11 @@
 # Testing environment docker compose
 version: '3.8'
 services:
-  testing-postgres-users:
+  testing-postgres-utility:
     image: postgres
     environment:
-      POSTGRES_DB: db
+      POSTGRES_DB: monitor_utilities_test
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "13001:5432"
-    volumes:
-      - ./dataset:/docker-entrypoint-initdb.d
+      - "13005:5432"
