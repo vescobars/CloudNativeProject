@@ -1,15 +1,14 @@
 import datetime
-import uuid
-
 import pytest
 import requests
+import uuid
 from fastapi.testclient import TestClient
 from httmock import HTTMock
 from sqlalchemy import delete, select, func
 from sqlalchemy.orm import Session
 
 from src.models import Utility
-from tests.mocks import mock_success_auth, mock_failed_auth, mock_forbidden_auth
+from tests.mocks import mock_success_auth, mock_forbidden_auth
 
 
 def test_create_utility(
@@ -112,9 +111,7 @@ def test_create_utility_unique_violation(
         assert response2.status_code == 412
 
 
-
-
-def test_create_user_validation_error(
+def test_create_utility_validation_error(
         client: TestClient, session: Session, faker
 ):
     """
@@ -122,19 +119,20 @@ def test_create_user_validation_error(
     I EXPECT a 400 error
     """
     session.execute(
-        delete(User)
+        delete(Utility)
     )
     session.commit()
-    profile = faker.simple_profile()
     payload = {
-        "username": profile['username'],
-        "email": profile['mail'],
-        "phoneNumber": faker.phone_number(),
-        "fullName": profile['name']
+        "offer_id": "3d747856-5ddb-467e-b9f4-2c7e2ef19245",
+        "offer": 400.5,
+        "size": "500",
+        "bag_cost": 60
     }
-
-    response = client.post("/users", json=payload)
-    assert response.status_code == 400
+    with HTTMock(mock_success_auth):
+        response = client.post("/utility", json=payload, headers={
+            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        })
+        assert response.status_code == 400
 
 
 def test_update_user(
