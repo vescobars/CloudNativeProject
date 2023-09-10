@@ -14,7 +14,7 @@ class CreateUtilityRequestSchema(BaseModel):
     """
     Used when creating a utility
     """
-    offer_id: uuid.UUID = Field(min_length=1)
+    offer_id: uuid.UUID
     offer: float
     size: BagSize
     bag_cost: int

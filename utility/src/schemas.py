@@ -10,7 +10,7 @@ class UtilitySchema(BaseModel):
     """
     model_config = ConfigDict(from_attributes=True)
 
-    offer_id: UUID4 = Field()
+    offer_id: UUID4
     utility: float
 
     createdAt: datetime = Field(default_factory=datetime.now)
