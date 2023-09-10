@@ -80,7 +80,7 @@ def update_utility(
     authenticate(request)
 
     try:
-        updated = Utilities.update_utility(offer_id, util_data.utility, sess)
+        updated = Utilities.update_utility(offer_id, util_data, sess)
         if updated:
             return {"msg": "la utilidad ha sido actualizada"}
         else:

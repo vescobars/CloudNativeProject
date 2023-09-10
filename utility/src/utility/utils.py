@@ -53,7 +53,7 @@ class Utilities:
         """Updates utility value given a certain offer_id"""
         try:
             retrieved_utility = sess.execute(
-                select(Utility).where(Utility.id == offer_id)
+                select(Utility).where(Utility.offer_id == offer_id)
             ).scalar_one()
 
             updated = False
@@ -82,7 +82,7 @@ class Utilities:
         """
         try:
             retrieved_utility: Utility = sess.execute(
-                select(Utility).where(Utility.id == offer_id)
+                select(Utility).where(Utility.offer_id == offer_id)
             ).scalar_one()
         except NoResultFound:
             raise UtilityNotFoundException()
