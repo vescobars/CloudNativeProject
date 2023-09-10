@@ -11,14 +11,15 @@ email-validator = "~=2.0.0.post2"
 pydantic = "~=2.1.1"
 psycopg2-binary = "~=2.9.7"
 httpx = "~=0.24.1"
-pytest = "~=7.4.0"
-pytest-cov = "~=4.1.0"
-coverage = "~=7.3.0"
-faker = "~=19.3.0"
 requests = "~=2.31.0"
 python-dotenv = "~=1.0.0"
 
 [dev-packages]
+httmock = "*"
+pytest = "~=7.4.0"
+pytest-cov = "~=4.1.0"
+coverage = "~=7.3.0"
+faker = "~=19.3.0"
 
 [requires]
 python_version = "3.9"
