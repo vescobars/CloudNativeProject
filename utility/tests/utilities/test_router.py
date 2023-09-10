@@ -1,6 +1,4 @@
 import datetime
-import pytest
-import requests
 import uuid
 from fastapi.testclient import TestClient
 from httmock import HTTMock
@@ -9,6 +7,9 @@ from sqlalchemy.orm import Session
 
 from src.models import Utility
 from tests.mocks import mock_success_auth, mock_forbidden_auth
+
+BASE_ROUTE = "/utility/"
+BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
 
 
 def test_create_utility(
@@ -26,8 +27,8 @@ def test_create_utility(
         "bag_cost": 60
     }
     with HTTMock(mock_success_auth):
-        response = client.post("/utility", json=payload, headers={
-            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        response = client.post(BASE_ROUTE, json=payload, headers={
+            "Authorization": BASE_AUTH_TOKEN
         })
         assert response.status_code == 201
 
@@ -57,7 +58,7 @@ def test_create_utility_no_credentials(
         "size": "MEDIUM",
         "bag_cost": 60
     }
-    response = client.post("/utility", json=payload)
+    response = client.post(BASE_ROUTE, json=payload)
     assert response.status_code == 401
 
 
@@ -76,8 +77,8 @@ def test_create_utility_forbidden(
         "bag_cost": 60
     }
     with HTTMock(mock_forbidden_auth):
-        response = client.post("/utility", json=payload, headers={
-            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        response = client.post(BASE_ROUTE, json=payload, headers={
+            "Authorization": BASE_AUTH_TOKEN
         })
         assert response.status_code == 403
 
@@ -100,13 +101,13 @@ def test_create_utility_unique_violation(
         "bag_cost": 60
     }
     with HTTMock(mock_success_auth):
-        response = client.post("/utility", json=payload, headers={
-            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        response = client.post(BASE_ROUTE, json=payload, headers={
+            "Authorization": BASE_AUTH_TOKEN
         })
         assert response.status_code == 201
 
-        response2 = client.post("/utility", json=payload, headers={
-            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        response2 = client.post(BASE_ROUTE, json=payload, headers={
+            "Authorization": BASE_AUTH_TOKEN
         })
         assert response2.status_code == 412
 
@@ -129,95 +130,85 @@ def test_create_utility_validation_error(
         "bag_cost": 60
     }
     with HTTMock(mock_success_auth):
-        response = client.post("/utility", json=payload, headers={
-            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        response = client.post(BASE_ROUTE, json=payload, headers={
+            "Authorization": BASE_AUTH_TOKEN
         })
         assert response.status_code == 400
 
 
-def test_update_user(
+def test_update_utility(
         client: TestClient, session: Session, faker
 ):
     """
-    GIVEN I send a new status, fullName, phoneNumber and dni
-    I EXPECT a 200 response and the changes to be reflected in database
+    GIVEN I send new offer value, bagsize or bag_cost and a valid offer_id
+    I EXPECT a 200 response and the new utility to be reflected in database
     """
     session.execute(
-        delete(User)
+        delete(Utility)
     )
-    profile = faker.simple_profile()
-    mock_user = User(
-        username=profile['username'],
-        email=profile['mail'],
-        phoneNumber=faker.phone_number(),
-        dni=faker.password(),
-        fullName=profile['name'],
-        passwordHash="a68f7b00815178c7996ddc88208224198a584ce22faf75b19bfeb24ed6f90a59",
-        salt="ES25GfW7i4Pp1BqXtASUFXJFe9PMb_7o-2v73v3svWc",
-        token="eHBL1jbhBY6GfZ96DC03BlxM38SPF3npRBceefRgnkTpByFexOe7RPPDdLCh9gejD6Fe6Kdl_s5C3Gljqh3WM2xW1IGdlZQYg"
-              "V0_v55tw_NB19oMzH2t9AjKycEDdwmqPFJVR4sZuk9MFvSGoY_vQa4Y0pwCvxhBDT1VNsDnQio",
-        status=UserStatusEnum.NO_VERIFICADO,
-        expireAt=datetime.datetime.now(),
+    mock_utility = Utility(
+        offer_id=uuid.UUID("c62147cf-2e63-4508-b1ff-98f805577f2c"),
+        utility=400.2,
         createdAt=datetime.datetime.now(),
         updateAt=datetime.datetime.now()
     )
-    session.add(mock_user)
+    session.add(mock_utility)
     session.commit()
 
-    second_profile = {
-        "status": UserStatusEnum.POR_VERIFICAR,
-        "phoneNumber": faker.phone_number(),
-        "dni": faker.password(),
-        "fullName": faker.name()
+    second_utility = {
+        "offer_id": "c62147cf-2e63-4508-b1ff-98f805577f2c",
+        "offer": 400.5,
+        "size": "MEDIUM",
+        "bag_cost": 60
     }
+    with HTTMock(mock_success_auth):
+        response = client.patch(BASE_ROUTE + str(mock_utility.offer_id),
+                                json=second_utility, headers={
+                "Authorization": BASE_AUTH_TOKEN
+            })
+        session.flush()
+        session.commit()
+        assert response.status_code == 200
 
-    response = client.patch("/users/" + str(mock_user.id),
-                            json=second_profile)
-    session.flush()
-    session.commit()
-    assert response.status_code == 200
+        response_body = response.json()
+        assert "ha sido actualizada" in response_body['msg']
 
-    response_body = response.json()
-    assert "ha sido actualizado" in response_body['msg']
+        retrieved_utility = session.execute(
+            select(Utility).where(Utility.offer_id == str(mock_utility.offer_id))
+        ).scalar_one()
 
-    retrieved_user = session.execute(
-        select(User).where(User.id == str(mock_user.id))
-    ).scalar_one()
+        session.refresh(retrieved_utility)
 
-    session.refresh(retrieved_user)
-
-    assert retrieved_user.phoneNumber == second_profile['phoneNumber']
-    assert retrieved_user.status == second_profile['status']
-    assert retrieved_user.fullName == second_profile['fullName']
-    assert retrieved_user.dni == second_profile['dni']
+        assert str(retrieved_utility.offer_id) == second_utility['offer_id']
+        assert retrieved_utility.utility == second_utility["offer"] - (0.5 * second_utility["bag_cost"])
 
 
-def test_update_user_no_user(
-        client: TestClient, session: Session, faker
+def test_update_utility_no_utility(
+        client: TestClient, session: Session
 ):
     """
-    GIVEN I send a nonexistent UUID
+    GIVEN I send a nonexistent offer_id UUID
     I EXPECT a 404 response and no changes in DB
     """
     session.execute(
-        delete(User)
+        delete(Utility)
     )
-    profile = faker.simple_profile()
-    session.commit()
 
-    second_profile = {
-        "status": UserStatusEnum.POR_VERIFICAR,
-        "phoneNumber": faker.phone_number(),
-        "dni": faker.password(),
-        "fullName": faker.name()
+    second_utility = {
+        "offer_id": "c62147cf-2e63-4508-b1ff-98f805577f2c",
+        "offer": 400.5,
+        "size": "MEDIUM",
+        "bag_cost": 60
     }
+    with HTTMock(mock_success_auth):
+        response = client.patch(BASE_ROUTE + str(uuid.uuid4()),
+                                json=second_utility, headers={
+                "Authorization": BASE_AUTH_TOKEN
+            })
+        assert response.status_code == 404
 
-    response = client.patch("/users/" + str(uuid.uuid4()),
-                            json=second_profile)
-    assert response.status_code == 404
 
-
-def test_update_user_invalid_request(
+def test_update_utility_invalid_request(
         client: TestClient, session: Session, faker
 ):
     """
@@ -225,79 +216,69 @@ def test_update_user_invalid_request(
     I EXPECT a 400 response and no changes in DB
     """
     session.execute(
-        delete(User)
+        delete(Utility)
     )
-    profile = faker.simple_profile()
-    mock_user = User(
-        username=profile['username'],
-        email=profile['mail'],
-        phoneNumber=faker.phone_number(),
-        dni=faker.password(),
-        fullName=profile['name'],
-        passwordHash="a68f7b00815178c7996ddc88208224198a584ce22faf75b19bfeb24ed6f90a59",
-        salt="ES25GfW7i4Pp1BqXtASUFXJFe9PMb_7o-2v73v3svWc",
-        token="eHBL1jbhBY6GfZ96DC03BlxM38SPF3npRBceefRgnkTpByFexOe7RPPDdLCh9gejD6Fe6Kdl_s5C3Gljqh3WM2xW1IGdlZQYg"
-              "V0_v55tw_NB19oMzH2t9AjKycEDdwmqPFJVR4sZuk9MFvSGoY_vQa4Y0pwCvxhBDT1VNsDnQio",
-        status=UserStatusEnum.NO_VERIFICADO,
-        expireAt=datetime.datetime.now(),
-        createdAt=datetime.datetime.now(),
-        updateAt=datetime.datetime.now()
-    )
-    session.add(mock_user)
-    session.commit()
 
-    second_profile = {}
-
-    response = client.patch("/users/" + str(mock_user.id),
-                            json=second_profile)
+    second_utility = {}
+    with HTTMock(mock_success_auth):
+        response = client.patch(BASE_ROUTE + str(uuid.uuid4()),
+                                json=second_utility, headers={
+                "Authorization": BASE_AUTH_TOKEN
+            })
     assert response.status_code == 400
 
 
-
-
-def test_get_user(
+def test_get_utility(
         client: TestClient, session: Session, faker
 ):
     """
-    GIVEN I send a valid token
-    I EXPECT a 200 response and all user fields
+    GIVEN I send a valid token and offer_id
+    I EXPECT a 200 response and all utility fields
     """
     session.execute(
-        delete(User)
+        delete(Utility)
     )
-    profile = faker.simple_profile()
-    create_user_payload = CreateUserRequestSchema(
-        username=profile['username'],
-        password=faker.password(),
-        email=profile['mail'],
+    mock_utility = Utility(
+        offer_id=uuid.UUID("c62147cf-2e63-4508-b1ff-98f805577f2c"),
+        utility=400.2,
+        createdAt=datetime.datetime.now(),
+        updateAt=datetime.datetime.now()
     )
-    mock_user = create_user(create_user_payload, requests.Response(), sess=session)
+    session.add(mock_utility)
+    session.commit()
 
-    credentials = {
-        "username": create_user_payload.username,
-        "password": create_user_payload.password,
-    }
+    with HTTMock(mock_success_auth):
+        response = client.get(BASE_ROUTE + str(mock_utility.offer_id), headers={
+            "Authorization": BASE_AUTH_TOKEN
+        })
+        session.flush()
+        session.commit()
+        assert response.status_code == 200
 
-    token_response = client.post("/users/auth", json=credentials)
-    assert token_response.status_code == 200, "Renewing token failed"
-    token_body = token_response.json()
+        response_body = response.json()
 
-    user_response = client.get("/users/me", headers={'Authorization': f"Bearer {token_body['token']}"})
-    user = user_response.json()
-    assert token_response.status_code == 200, "Renewing token failed"
-    retrieved_user = session.execute(
-        select(User).where(User.id == str(token_body['id']))
-    ).scalar_one()
+        assert response_body["offer_id"] == str(mock_utility.offer_id)
+        assert response_body["utility"] == mock_utility.utility
 
-    session.refresh(retrieved_user)
 
-    assert str(retrieved_user.id) == user['id']
-    assert retrieved_user.username == user['username']
-    assert retrieved_user.email == user['email']
-    assert retrieved_user.fullName == user['fullName']
-    assert retrieved_user.dni == user['dni']
-    assert retrieved_user.phoneNumber == user['phoneNumber']
-    assert retrieved_user.status == user['status']
+def test_get_utility_not_found(
+        client: TestClient, session: Session, faker
+):
+    """
+    GIVEN I send a valid token and a nonexistent offer_id
+    I EXPECT a 404 response
+    """
+    session.execute(
+        delete(Utility)
+    )
+
+    with HTTMock(mock_success_auth):
+        response = client.get("/utility/cdab3f90-f8d8-458c-8447-ac8764f8e471", headers={
+            "Authorization": BASE_AUTH_TOKEN
+        })
+        session.flush()
+        session.commit()
+        assert response.status_code == 404
 
 
 def test_ping(client: TestClient):
