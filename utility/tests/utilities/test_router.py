@@ -4,48 +4,44 @@ import uuid
 import pytest
 import requests
 from fastapi.testclient import TestClient
+from httmock import HTTMock
 from sqlalchemy import delete, select, func
 from sqlalchemy.orm import Session
 
-from src.models import User
-from src.schemas import UserStatusEnum
-from src.users.router import create_user
-from src.users.schemas import CreateUserRequestSchema
+from src.models import Utility
+from tests.mocks import mock_success_auth
 
 
-def test_create_user(
-        client: TestClient, session: Session, faker
+def test_create_utility(
+        client: TestClient, session: Session
 ):
-    """Checks that POST /users functions correctly and creates the user"""
+    """Checks that POST /utility functions correctly and creates the utility"""
     session.execute(
-        delete(User)
+        delete(Utility)
     )
     session.commit()
-    profile = faker.simple_profile()
-    payload = CreateUserRequestSchema(
-        username=profile['username'],
-        password=faker.password(),
-        email=profile['mail'],
-        phoneNumber=faker.phone_number(),
-        fullName=profile['name']
-    )
+    payload = {
+        "offer_id": "3d747856-5ddb-467e-b9f4-2c7e2ef19245",
+        "offer": 400.5,
+        "size": "MEDIUM",
+        "bag_cost": 60
+    }
+    with HTTMock(mock_success_auth):
+        response = client.post("/utility", json=payload, headers={
+            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        })
+        assert response.status_code == 201
 
-    response = client.post("/users", json=payload.model_dump())
-    assert response.status_code == 201
+        response_body = response.json()
+        assert "offer_id" in response_body
+        assert "createdAt" in response_body
 
-    response_body = response.json()
-    assert "id" in response_body
-    assert "createdAt" in response_body
+        retrieved_utility = session.execute(
+            select(Utility).where(Utility.id == response_body['offer_id'])
+        ).scalar()
 
-    retrieved_user = session.execute(
-        select(User).where(User.id == response_body['id'])
-    ).first()[0]
-
-    assert retrieved_user.username == payload.username
-    assert retrieved_user.email == payload.email
-    assert retrieved_user.phoneNumber == payload.phoneNumber
-    assert retrieved_user.fullName == payload.fullName
-    assert retrieved_user.dni is None
+        assert retrieved_utility.offer_id == payload["offer_id"]
+        assert retrieved_utility.utility == 400.5 - (0.5 * 60)
 
 
 def test_create_user_unique_violation(
