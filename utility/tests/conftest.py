@@ -1,13 +1,18 @@
-from typing import Generator
-
+import os
 import pytest
+from dotenv import find_dotenv, load_dotenv
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from typing import Generator
 
-from src import database
-from src.database import Base, SQLALCHEMY_DATABASE_URL
-from src.main import app
+os.environ['ENV'] = 'test'
+
+
+def pytest_configure(config):
+    env_file = find_dotenv('../.env.test')
+    load_dotenv(env_file)
+    return config
 
 
 @pytest.fixture(scope="function")
@@ -21,18 +26,19 @@ def session(monkeypatch) -> Generator:
     Returns:
         SQLAlchemy session to the test database
     """
-    test_db_url = SQLALCHEMY_DATABASE_URL + "_tests"
+    from src import database
+    from src.database import Base, SQLALCHEMY_DATABASE_URL
 
     engine = create_engine(
-        test_db_url,
+        SQLALCHEMY_DATABASE_URL,
         isolation_level="READ UNCOMMITTED"
     )
-    SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine, expire_on_commit=False)
+    session_local = sessionmaker(autocommit=False, autoflush=True, bind=engine, expire_on_commit=False)
 
-    monkeypatch.setattr(database, "SessionLocal", SessionLocal)
+    monkeypatch.setattr(database, "SessionLocal", session_local)
 
     Base.metadata.create_all(bind=engine)
-    sess = SessionLocal(expire_on_commit=False)
+    sess = session_local(expire_on_commit=False)
     # begin a non-ORM transaction
     sess.begin()
 
@@ -42,12 +48,8 @@ def session(monkeypatch) -> Generator:
     sess.close()
 
 
-# @pytest.fixture(scope=any_non_session_scope, autouse=True)
-# def faker_seed():
-#     return 12345
-
-
 @pytest.fixture(scope="module")
 def client() -> Generator:
+    from src.main import app
     with TestClient(app) as c:
         yield c
