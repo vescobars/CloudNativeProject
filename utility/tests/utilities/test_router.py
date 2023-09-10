@@ -37,10 +37,10 @@ def test_create_utility(
         assert "createdAt" in response_body
 
         retrieved_utility = session.execute(
-            select(Utility).where(Utility.id == response_body['offer_id'])
+            select(Utility).where(Utility.offer_id == response_body['offer_id'])
         ).scalar()
 
-        assert retrieved_utility.offer_id == payload["offer_id"]
+        assert str(retrieved_utility.offer_id) == payload["offer_id"]
         assert retrieved_utility.utility == 400.5 - (0.5 * 60)
 
 
