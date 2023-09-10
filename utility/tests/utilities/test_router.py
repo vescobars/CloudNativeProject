@@ -83,31 +83,35 @@ def test_create_utility_forbidden(
         assert response.status_code == 403
 
 
-def test_create_user_unique_violation(
+def test_create_utility_unique_violation(
         client: TestClient, session: Session, faker
 ):
     """
-    Checks that POST /users functions gives a correct response when
-    a duplicated email/username is uploaded
+    Checks that POST /utility functions gives a correct response when
+    a duplicated offer_id is uploaded
     """
     session.execute(
-        delete(User)
+        delete(Utility)
     )
     session.commit()
-    profile = faker.simple_profile()
-    payload = CreateUserRequestSchema(
-        username=profile['username'],
-        password=faker.password(),
-        email=profile['mail'],
-        phoneNumber=faker.phone_number(),
-        dni=profile['name']
-    )
+    payload = {
+        "offer_id": "3d747856-5ddb-467e-b9f4-2c7e2ef19245",
+        "offer": 400.5,
+        "size": "MEDIUM",
+        "bag_cost": 60
+    }
+    with HTTMock(mock_success_auth):
+        response = client.post("/utility", json=payload, headers={
+            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        })
+        assert response.status_code == 201
 
-    response = client.post("/users", json=payload.model_dump())
-    assert response.status_code == 201
+        response2 = client.post("/utility", json=payload, headers={
+            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        })
+        assert response2.status_code == 412
 
-    response = client.post("/users", json=payload.model_dump())
-    assert response.status_code == 412
+
 
 
 def test_create_user_validation_error(
