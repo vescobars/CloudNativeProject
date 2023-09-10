@@ -14,6 +14,7 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD", "password")
 DB_HOST = os.environ.get("DB_HOST", "0.0.0.0")
 DB_PORT = os.environ.get("DB_PORT", "13001")
 DB_NAME = os.environ.get("DB_NAME", "db")
+USERS_PATH = os.environ.get("USERS_PATH", "http://localhost:3000")
 
 
 def datetime_to_str(date: datetime) -> str:
