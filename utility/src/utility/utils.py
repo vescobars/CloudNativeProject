@@ -1,28 +1,43 @@
 """ Utils for users """
+import requests
 from datetime import datetime, timezone
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
 from sqlalchemy.orm import Session
 
-from src.exceptions import UniqueConstraintViolatedException, UtilityNotFoundException
+from src.constants import USERS_PATH
+from src.exceptions import UniqueConstraintViolatedException, UtilityNotFoundException, UnauthorizedUserException
 from src.models import Utility
 from src.schemas import UtilitySchema
+from src.utility.schemas import CreateUtilityRequestSchema, BagSize, UpdateUtilityRequestSchema
+
+
+def get_utility(offer: float, size: BagSize, bag_cost: int) -> float:
+    """Calculates utility score"""
+    bag_occupation = 1.0
+    if size == BagSize.MEDIUM:
+        bag_occupation = 0.5
+    if size == BagSize.SMALL:
+        bag_occupation = 0.25
+    return offer - (bag_occupation * float(bag_cost))
 
 
 class Utilities:
 
     @staticmethod
-    def create_utility(offer_id: str, utility: float, session: Session) -> UtilitySchema:
+    def create_utility(data: CreateUtilityRequestSchema, session: Session) -> UtilitySchema:
         """
         Insert a new utility into the Utilities table
         """
         new_utility = None
+        utility_value = get_utility(data.offer, data.size, data.bag_cost)
         with session:
             current_time = datetime.now(timezone.utc)
             try:
                 new_utility = Utility(
-                    offer_id=offer_id,
-                    utility=utility,
+                    offer_id=data.offer_id,
+                    utility=utility_value,
                     createdAt=current_time,
                     updateAt=current_time
                 )
@@ -34,15 +49,16 @@ class Utilities:
         return new_utility
 
     @staticmethod
-    def update_utility(offer_id: str, utility: float, sess: Session) -> bool:
+    def update_utility(offer_id: str, data: UpdateUtilityRequestSchema, sess: Session) -> bool:
         try:
             retrieved_utility = sess.execute(
                 select(Utility).where(Utility.id == offer_id)
             ).scalar_one()
 
             updated = False
-            if retrieved_utility.utility != utility:
-                retrieved_utility.utility = utility
+            utility_value = get_utility(data.offer, data.size, data.bag_cost)
+            if retrieved_utility.utility != utility_value:
+                retrieved_utility.utility = utility_value
                 updated = True
 
             if updated:
@@ -73,3 +89,16 @@ class Utilities:
             createdAt=retrieved_utility.createdAt,
             updateAt=retrieved_utility.updateAt
         )
+
+    @staticmethod
+    def authenticate_user(bearer_token: str) -> str:
+        headers = {"Authorization": 'Bearer ' + bearer_token}
+        url = USERS_PATH.rstrip('/') + "/users/me"
+        print(url)
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            user_data = response.json()
+            user_id = user_data["id"]
+            return user_id
+        else:
+            raise UnauthorizedUserException()

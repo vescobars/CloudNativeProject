@@ -13,13 +13,5 @@ class InvalidRequestException(Exception):
     """The request body was empty or otherwise invalid"""
 
 
-class IncorrectUserPasswordException(Exception):
-    """The username or password given was invalid"""
-
-
-class ExpiredTokenException(Exception):
-    """The token has already expired"""
-
-
-class InvalidTokenException(Exception):
-    """The token was not found, it might be expired or unauthentic"""
+class UnauthorizedUserException(Exception):
+    """The provided credentials were valid, but were rejected due to lack of authorization or expiration"""
