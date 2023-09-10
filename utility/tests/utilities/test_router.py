@@ -253,77 +253,6 @@ def test_update_user_invalid_request(
     assert response.status_code == 400
 
 
-def test_gen_token(
-        client: TestClient, session: Session, faker
-):
-    """
-    GIVEN I send a valid username and password
-    I EXPECT a 200 response and new valid token, with attached ID and expireAt date
-    """
-    session.execute(
-        delete(User)
-    )
-    profile = faker.simple_profile()
-    create_user_payload = CreateUserRequestSchema(
-        username=profile['username'],
-        password=faker.password(),
-        email=profile['mail'],
-    )
-    mock_user = create_user(create_user_payload, requests.Response(), sess=session)
-
-    credentials = {
-        "username": create_user_payload.username,
-        "password": create_user_payload.password,
-    }
-
-    response = client.post("/users/auth", json=credentials)
-    assert response.status_code == 200
-
-    response_body = response.json()
-    expireAtTime = datetime.datetime.strptime(response_body['expireAt'], "%Y-%m-%dT%H:%M:%S.%fZ")
-    assert response_body['id'] == str(mock_user.id)
-    assert response_body['token'] is not None
-    assert expireAtTime > datetime.datetime.utcnow()
-
-    retrieved_user = session.execute(
-        select(User).where(User.id == str(mock_user.id))
-    ).scalar_one()
-
-    session.refresh(retrieved_user)
-
-    assert retrieved_user.token == response_body['token']
-    assert retrieved_user.expireAt == expireAtTime
-
-
-@pytest.mark.parametrize("username_suffix", [False, True, None])
-def test_gen_token_wrong_pass(
-        username_suffix: str, client: TestClient, session: Session, faker
-):
-    """
-    GIVEN I send an invalid username and password, or just an invalid password
-    I EXPECT a 404 response
-    GIVEN I don't send a username,
-    I EXPECT a 400 response
-    """
-    session.execute(
-        delete(User)
-    )
-    profile = faker.simple_profile()
-    create_user_payload = CreateUserRequestSchema(
-        username=profile['username'],
-        password=faker.password(),
-        email=profile['mail'],
-    )
-    create_user(create_user_payload, requests.Response(), sess=session)
-    credentials = {
-        "password": faker.password(),
-    }
-    if username_suffix is not None:
-        credentials['username'] = create_user_payload.username if username_suffix else faker.email()
-
-    response = client.post("/users/auth", json=credentials)
-
-    assert response.status_code == 400 if username_suffix is None else 404
 
 
 def test_get_user(
@@ -372,7 +301,7 @@ def test_get_user(
 
 
 def test_ping(client: TestClient):
-    response = client.get("/users/ping")
+    response = client.get("/utility/ping")
     assert response.status_code == 200
     assert response.text == 'pong'
 
@@ -381,31 +310,21 @@ def test_reset(
         client: TestClient, session: Session
 ):
     session.execute(
-        delete(User)
+        delete(Utility)
     )
-    mock_user = User(
-        id=uuid.UUID("c62147cf-2e63-4508-b1ff-98f805577f2c"),
-        username="user",
-        email="user@gmail.com",
-        phoneNumber="+57 300 500 2000",
-        dni="10100190",
-        fullName="Usuario Perez Gómez",
-        passwordHash="a68f7b00815178c7996ddc88208224198a584ce22faf75b19bfeb24ed6f90a59",
-        salt="ES25GfW7i4Pp1BqXtASUFXJFe9PMb_7o-2v73v3svWc",
-        token="eHBL1jbhBY6GfZ96DC03BlxM38SPF3npRBceefRgnkTpByFexOe7RPPDdLCh9gejD6Fe6Kdl_s5C3Gljqh3WM2xW1IGdlZQYg"
-              "V0_v55tw_NB19oMzH2t9AjKycEDdwmqPFJVR4sZuk9MFvSGoY_vQa4Y0pwCvxhBDT1VNsDnQio",
-        status=UserStatusEnum.NO_VERIFICADO,
-        expireAt=datetime.datetime.now(),
+    mock_utility = Utility(
+        offer_id=uuid.UUID("c62147cf-2e63-4508-b1ff-98f805577f2c"),
+        utility=400.2,
         createdAt=datetime.datetime.now(),
         updateAt=datetime.datetime.now()
     )
-    session.add(mock_user)
+    session.add(mock_utility)
     session.commit()
-    assert session.scalar(select(func.count()).select_from(User)) == 1, "Table couldn't be set up successfully"
-    response = client.post("/users/reset")
+    assert session.scalar(select(func.count()).select_from(Utility)) == 1, "Table couldn't be set up successfully"
+    response = client.post("/utility/reset")
     assert response.status_code == 200, "The request failed for an unknown reason"
     assert "los datos fueron eliminados" in str(response.json()['msg'])
-    assert session.scalar(select(func.count()).select_from(User)) == 0, "Table reset was unsuccessful"
+    assert session.scalar(select(func.count()).select_from(Utility)) == 0, "Table reset was unsuccessful"
 
 
 def test_reset_empty(
