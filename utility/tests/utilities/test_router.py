@@ -9,7 +9,7 @@ from sqlalchemy import delete, select, func
 from sqlalchemy.orm import Session
 
 from src.models import Utility
-from tests.mocks import mock_success_auth
+from tests.mocks import mock_success_auth, mock_failed_auth, mock_forbidden_auth
 
 
 def test_create_utility(
@@ -42,6 +42,45 @@ def test_create_utility(
 
         assert str(retrieved_utility.offer_id) == payload["offer_id"]
         assert retrieved_utility.utility == 400.5 - (0.5 * 60)
+
+
+def test_create_utility_no_credentials(
+        client: TestClient, session: Session
+):
+    """Checks that POST /utility rejects a request with invalid credentials"""
+    session.execute(
+        delete(Utility)
+    )
+    session.commit()
+    payload = {
+        "offer_id": "3d747856-5ddb-467e-b9f4-2c7e2ef19245",
+        "offer": 400.5,
+        "size": "MEDIUM",
+        "bag_cost": 60
+    }
+    response = client.post("/utility", json=payload)
+    assert response.status_code == 401
+
+
+def test_create_utility_forbidden(
+        client: TestClient, session: Session
+):
+    """Checks that POST /utility rejects a request with forbidden credentials"""
+    session.execute(
+        delete(Utility)
+    )
+    session.commit()
+    payload = {
+        "offer_id": "3d747856-5ddb-467e-b9f4-2c7e2ef19245",
+        "offer": 400.5,
+        "size": "MEDIUM",
+        "bag_cost": 60
+    }
+    with HTTMock(mock_forbidden_auth):
+        response = client.post("/utility", json=payload, headers={
+            "Authorization": "Bearer 3d91ee00503447c58e1787a90beaa265"
+        })
+        assert response.status_code == 403
 
 
 def test_create_user_unique_violation(
@@ -210,6 +249,7 @@ def test_update_user_invalid_request(
     response = client.patch("/users/" + str(mock_user.id),
                             json=second_profile)
     assert response.status_code == 400
+
 
 def test_gen_token(
         client: TestClient, session: Session, faker
