@@ -50,6 +50,7 @@ class Utilities:
 
     @staticmethod
     def update_utility(offer_id: str, data: UpdateUtilityRequestSchema, sess: Session) -> bool:
+        """Updates utility value given a certain offer_id"""
         try:
             retrieved_utility = sess.execute(
                 select(Utility).where(Utility.id == offer_id)
@@ -77,11 +78,14 @@ class Utilities:
             sess:
 
         Returns:
-
+            utility schema
         """
-        retrieved_utility: Utility = sess.execute(
-            select(Utility).where(Utility.id == offer_id)
-        ).scalar_one()
+        try:
+            retrieved_utility: Utility = sess.execute(
+                select(Utility).where(Utility.id == offer_id)
+            ).scalar_one()
+        except NoResultFound:
+            raise UtilityNotFoundException()
 
         return UtilitySchema(
             offer_id=retrieved_utility.offer_id,

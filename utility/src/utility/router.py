@@ -38,7 +38,7 @@ def create_utility(
 
 
 @router.patch("/{offer_id}")
-def update_user(
+def update_utility(
         offer_id: str, util_data: UpdateUtilityRequestSchema,
         sess: Annotated[Session, Depends(get_session)],
         request: Request) -> dict:
@@ -57,6 +57,23 @@ def update_user(
 
     except InvalidRequestException:
         raise HTTPException(status_code=400, detail="Solicitud invalida")
+    except UtilityNotFoundException:
+        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
+
+
+@router.get("/{offer_id}")
+def get_utility(
+        offer_id: str,
+        sess: Annotated[Session, Depends(get_session)],
+        request: Request) -> UtilitySchema:
+    """
+    Retrieves a utility with the given offer id.
+    """
+    authenticate(request)
+
+    try:
+        return Utilities.get_utility(offer_id, sess)
+
     except UtilityNotFoundException:
         raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
 
