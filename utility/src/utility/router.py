@@ -18,6 +18,37 @@ from src.utility.utils import Utilities
 router = APIRouter()
 
 
+@router.get("/ping")
+def ping():
+    """
+    Returns "pong" whenever the endpoint is contacted.
+    Functions as a health check
+    """
+    return Response(content="pong", media_type="application/text", status_code=200)
+
+
+@router.post("/reset")
+async def reset(
+        session: Session = Depends(get_session),
+):
+    """
+    Clears the utilities table
+    Returns:
+        msg: Todos los datos fueron eliminados
+    """
+    try:
+        statement = delete(Utility)
+        print(statement)
+        with session:
+            session.execute(statement)
+            session.commit()
+    except Exception as e:
+        logging.error(e)
+        return JSONResponse(status_code=500, content={
+            "msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)})
+    return {"msg": "Todos los datos fueron eliminados"}
+
+
 @router.post("/")
 def create_utility(
         util_data: CreateUtilityRequestSchema, request: Request, response: Response,
@@ -76,37 +107,6 @@ def get_utility(
 
     except UtilityNotFoundException:
         raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
-
-
-@router.get("/ping")
-def ping():
-    """
-    Returns "pong" whenever the endpoint is contacted.
-    Functions as a health check
-    """
-    return Response(content="pong", media_type="application/text", status_code=200)
-
-
-@router.post("/reset")
-async def reset(
-        session: Session = Depends(get_session),
-):
-    """
-    Clears the utilities table
-    Returns:
-        msg: Todos los datos fueron eliminados
-    """
-    try:
-        statement = delete(Utility)
-        print(statement)
-        with session:
-            session.execute(statement)
-            session.commit()
-    except Exception as e:
-        logging.error(e)
-        return JSONResponse(status_code=500, content={
-            "msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)})
-    return {"msg": "Todos los datos fueron eliminados"}
 
 
 def authenticate(request: Request) -> str:
