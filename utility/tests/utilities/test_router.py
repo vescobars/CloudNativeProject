@@ -331,11 +331,11 @@ def test_reset_empty(
         client: TestClient, session: Session
 ):
     session.execute(
-        delete(User)
+        delete(Utility)
     )
     session.commit()
-    assert session.scalar(select(func.count()).select_from(User)) == 0, "Table couldn't be set up successfully"
-    response = client.post("/users/reset")
+    assert session.scalar(select(func.count()).select_from(Utility)) == 0, "Table couldn't be set up successfully"
+    response = client.post("/utility/reset")
     assert response.status_code == 200, "The request failed for an unknown reason"
     assert "los datos fueron eliminados" in str(response.json()['msg'])
-    assert session.scalar(select(func.count()).select_from(User)) == 0, "Table reset was unsuccessful"
+    assert session.scalar(select(func.count()).select_from(Utility)) == 0, "Table reset was unsuccessful"
