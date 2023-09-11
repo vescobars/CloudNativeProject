@@ -20,6 +20,17 @@ spec:
       containers:
         - name: users
           image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/users:1.0
+          env:DB_USER
+DB_PASSWORD
+DB_HOST
+DB_PORT
+DB_NAME
+            - name: DB_HOST
+              value: URL
+            - name: DB_HOST
+              value: URL
+            - name: DB_HOST
+              value: URL
           ports:
             - containerPort: 3000
           # Realizar pull siempre a la imagen
