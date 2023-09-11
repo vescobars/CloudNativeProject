@@ -1,0 +1,56 @@
+###################################
+# users
+###################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users
+  labels:
+    app: users
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+        - name: users
+          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/users:1.0
+          ports:
+            - containerPort: 3000
+          # Realizar pull siempre a la imagen
+          imagePullPolicy: Always
+
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: grupo17-users-config
+spec:
+  healthCheck:
+    checkIntervalSec: 30
+    port: 3000
+    type: HTTP
+    requestPath: /users/ping
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: service-users
+  annotations:
+    cloud.google.com/backend-config: '{"default": "grupo17-users-config"}'
+spec:
+  type: NodePort
+  selector:
+    app: users
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+      nodePort: 31019
+
+---
