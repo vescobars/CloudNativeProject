@@ -10,6 +10,8 @@ networks:
       driver: bridge
     offer_net:
       driver: bridge
+    utility_net:
+      driver: bridge
 services:
   users:
     build: ./users
@@ -134,3 +136,33 @@ services:
       retries: 5
     networks:
       - offer_net
+  utilities:
+    build: ./utility
+    ports:
+      - "3011:8000"
+    environment:
+      DB_NAME: monitor_utilities
+      DB_HOST: utilities_db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      USERS_PATH: "http://users:3000"
+    depends_on:
+      utilities_db:
+        condition: service_healthy
+    networks:
+      - app_net
+      - utility_net
+  utilities_db:
+    image: postgres
+    environment:
+      POSTGRES_DB: monitor_utilities
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+    networks:
+      - utility_net
