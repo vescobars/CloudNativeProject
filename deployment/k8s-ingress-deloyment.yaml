@@ -22,3 +22,17 @@ spec:
             name: service-routes
             port:
               number: 80
+      - pathType: Prefix
+        path: /posts
+        backend:
+          service:
+            name: service-posts
+            port:
+              number: 80
+      - pathType: Prefix
+        path: /offers
+        backend:
+          service:
+            name: service-offers
+            port:
+              number: 80
