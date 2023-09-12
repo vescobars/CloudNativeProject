@@ -6,12 +6,13 @@ from fastapi.responses import JSONResponse
 
 
 from src import models
+from src.config import lifespan
 from src.database import engine
 from src.rf004.router import router as rf004_router
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(rf004_router, prefix="/rf004", tags=["RF004"])
 
