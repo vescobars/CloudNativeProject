@@ -1,7 +1,10 @@
 """ Pydantic schemas for request and response bodiess """
 import uuid
 from enum import Enum
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel
+
+from src.schemas import OfferSchema
 
 
 class BagSize(Enum):
@@ -10,14 +13,14 @@ class BagSize(Enum):
     SMALL = 'SMALL'
 
 
-class CreateUtilityRequestSchema(BaseModel):
+class CreateOfferRequestSchema(BaseModel):
     """
-    Used when creating a utility
+    Used when creating an Offer
     """
-    offer_id: uuid.UUID
-    offer: float
+    description: str
     size: BagSize
-    bag_cost: int
+    fragile: bool
+    offer: float
 
 
 def check_uuid4(v: str) -> str:
@@ -26,10 +29,9 @@ def check_uuid4(v: str) -> str:
     return v
 
 
-class UpdateUtilityRequestSchema(BaseModel):
+class CreateOfferResponseSchema(BaseModel):
     """
-    Used when updating a utility
+    Sent after creating an offer successfully
     """
-    offer: float
-    size: BagSize
-    bag_cost: int
+    data: OfferSchema
+    msg: str
