@@ -32,20 +32,19 @@ class Utilities:
         """
         new_utility = None
         utility_value = get_utility(data.offer, data.size, data.bag_cost)
-        with session:
-            current_time = datetime.now(timezone.utc)
-            try:
-                new_utility = Utility(
-                    offer_id=data.offer_id,
-                    utility=utility_value,
-                    createdAt=current_time,
-                    updateAt=current_time
-                )
+        current_time = datetime.now(timezone.utc)
+        try:
+            new_utility = Utility(
+                offer_id=data.offer_id,
+                utility=utility_value,
+                createdAt=current_time,
+                updateAt=current_time
+            )
 
-                session.add(new_utility)
-                session.commit()
-            except IntegrityError as e:
-                raise UniqueConstraintViolatedException(e)
+            session.add(new_utility)
+            session.commit()
+        except IntegrityError as e:
+            raise UniqueConstraintViolatedException(e)
         return new_utility
 
     @staticmethod
