@@ -1,0 +1,20 @@
+{
+  "POSTS_PATH": "localhost:3001",
+  "OFFERS_PATH": "localhost:3003",
+  "USERS_PATH": "localhost:3000",
+  "ROUTES_PATH": "localhost:3002",
+  "USER_EMAIL": "",
+  "USER_USERNAME": "",
+  "USER_PASSWORD": "",
+  "USER_DNI": "",
+  "USER_FULLNAME": "",
+  "USER_PHONENUMBER": "",
+  "USER_ID": "",
+  "USER_STATUS": "",
+  "USER_TOKEN": "",
+  "ROUTE_FLIGHTID": "",
+  "ROUTE_SOURCEAIRPORTCODE": "",
+  "ROUTE_SOURCECOUNTRY": "",
+  "ROUTE_DESTINYAIRPORTCODE": "",
+  "ROUTE_DESTINYCOUNTRY": ""
+}

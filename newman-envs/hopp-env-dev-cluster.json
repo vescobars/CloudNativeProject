@@ -1,0 +1,33 @@
+{
+	"id": "450b8d09-57f9-4624-b922-d005befac069",
+	"name": "nubes_cluster",
+	"values": [
+		{
+			"key": "POSTS_PATH",
+			"value": "34.117.41.0",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "OFFERS_PATH",
+			"value": "34.117.41.0",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "USERS_PATH",
+			"value": "34.117.41.0",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "ROUTES_PATH",
+			"value": "34.117.41.0",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2023-09-12T02:17:10.175Z",
+	"_postman_exported_using": "Postman/10.17.7"
+}
