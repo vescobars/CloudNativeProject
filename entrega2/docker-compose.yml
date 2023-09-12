@@ -1,0 +1,11 @@
+# Testing environment docker compose
+version: '3.8'
+services:
+  testing-postgres-utility:
+    image: postgres
+    environment:
+      POSTGRES_DB: monitor_utilities_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "13005:5432"
