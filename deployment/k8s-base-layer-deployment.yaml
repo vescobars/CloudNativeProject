@@ -99,7 +99,7 @@ spec:
             - name: DB_NAME
               value: routes
             - name: USERS_PATH
-              value: http://users
+              value: http://service-users
           ports:
             - containerPort: 3000
           # Realizar pull siempre a la imagen
