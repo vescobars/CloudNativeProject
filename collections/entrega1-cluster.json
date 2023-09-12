@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "a19ac5fb-2925-4584-b6ee-091dfd0aae05",
-		"name": "Entrega 1",
+		"_postman_id": "2790b933-af80-4f14-9705-ec853dad4acc",
+		"name": "Entrega 1 cluster",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "1524525"
+		"_exporter_id": "11797451",
+		"_collection_link": "https://warped-comet-501556.postman.co/workspace/Cloudians-groupo17-users~8ad62758-b3fa-4d74-878b-5d5e636f5926/collection/11797451-2790b933-af80-4f14-9705-ec853dad4acc?action=share&source=collection_link&creator=11797451"
 	},
 	"item": [
 		{
@@ -5009,6 +5010,768 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Utilities",
+			"item": [
+				{
+					"name": "Reset database",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body is JSON with a 'msg' key that contains 'Todos los datos'\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('msg').that.equals('Todos los datos fueron eliminados');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/reset",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								"reset"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Creación de usuarios",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = JSON.parse(responseBody);",
+									"",
+									"tests[\"Status should be 201\"] = responseCode.code == 201;",
+									"tests[\"Response has id\"] = jsonData.id !== undefined;",
+									"tests[\"Response has createdAt\"] = jsonData.createdAt !== undefined;",
+									"",
+									"if(jsonData.id) {",
+									"    pm.collectionVariables.set('USER_ID', jsonData.id);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const email = pm.variables.replaceIn(\"{{$randomEmail}}\").toLowerCase();",
+									"const username = pm.variables.replaceIn(\"{{$randomDomainWord}}\").toLowerCase();",
+									"const password = pm.variables.replaceIn(\"{{$randomPassword}}\").toLowerCase();",
+									"const dni = pm.variables.replaceIn(\"{{$randomInt}}\");",
+									"const fullname = pm.variables.replaceIn(\"{{$randomFullName}}\").toLowerCase();",
+									"const phonenumber = pm.variables.replaceIn(\"{{$randomPhoneNumber}}\").replaceAll('-', '');",
+									"",
+									"pm.collectionVariables.set('USER_EMAIL', email);",
+									"pm.collectionVariables.set('USER_USERNAME', username);",
+									"pm.collectionVariables.set('USER_PASSWORD', password);",
+									"pm.collectionVariables.set('USER_DNI', dni);",
+									"pm.collectionVariables.set('USER_FULLNAME', fullname);",
+									"pm.collectionVariables.set('USER_PHONENUMBER', phonenumber);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{USER_USERNAME}}\",\n    \"password\": \"{{USER_PASSWORD}}\",\n    \"email\": \"{{USER_EMAIL}}\",\n    \"dni\": \"{{USER_DNI}}\",\n    \"fullName\": \"{{USER_FULLNAME}}\",\n    \"phoneNumber\": \"{{USER_PHONENUMBER}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{USERS_PATH}}/users",
+							"protocol": "http",
+							"host": [
+								"{{USERS_PATH}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generación de token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = JSON.parse(responseBody);",
+									"",
+									"tests[\"Status should be 200\"] = responseCode.code == 200;",
+									"tests[\"Response has id\"] = jsonData.id !== undefined;",
+									"tests[\"Response has token\"] = jsonData.token !== undefined;",
+									"tests[\"Response has expireAt\"] = jsonData.expireAt !== undefined;",
+									"",
+									"if(jsonData.token) {",
+									"    pm.collectionVariables.set('USER_TOKEN', jsonData.token);",
+									"}",
+									"",
+									"if(jsonData.id) {",
+									"    pm.collectionVariables.set('USER_ID', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{USER_USERNAME}}\",\n    \"password\": \"{{USER_PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{USERS_PATH}}/users/auth",
+							"protocol": "http",
+							"host": [
+								"{{USERS_PATH}}"
+							],
+							"path": [
+								"users",
+								"auth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear utility",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"",
+									"pm.test(\"Response status code is 201\", function () {",
+									"    pm.expect(pm.response.code).to.equal(201);",
+									"});",
+									"",
+									"",
+									"pm.test(\"offer_id is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.offer_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Utility is a number\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.utility).to.exist.and.to.be.a('number');",
+									"",
+									"});",
+									"",
+									"",
+									"",
+									"// Save the offer_id value in an environment or global variable",
+									"var offerId = pm.response.json().offer_id;",
+									"pm.collectionVariables.set(\"offerId\", offerId);",
+									"",
+									"pm.test(\"utility is equal to 390\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.utility).to.equal(390);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"offer_id\": \"3d747856-5ddb-467e-b9f4-2c7e2ef19245\",\n    \"offer\": 400,\n    \"size\": \"SMALL\",\n    \"bag_cost\": 40\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create utility duplicate error",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 412\", function () {",
+									"    pm.response.to.have.status(412);",
+									"});",
+									"",
+									"pm.test(\"Response body contains 'offer_id already exists'\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody.detail).to.include('offer_id already exists');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"offer_id\": \"3d747856-5ddb-467e-b9f4-2c7e2ef19245\",\n    \"offer\": 400.5,\n    \"size\": \"MEDIUM\",\n    \"bag_cost\": 60\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create utility no credentials error",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"offer_id\": \"3d747856-5ddb-467e-b9f4-2c7e2ef19245\",\n    \"offer\": 400.5,\n    \"size\": \"MEDIUM\",\n    \"bag_cost\": 60\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create utility credentials forbidden",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response body is an object with a detail property\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an('object').that.has.property('detail');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "adwasdasdw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"offer_id\": \"3d747856-5ddb-467e-b9f4-2c7e2ef19245\",\n    \"offer\": 400.5,\n    \"size\": \"MEDIUM\",\n    \"bag_cost\": 60\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear utility validation error",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response is an object with msg property\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an('object').that.has.property('msg');",
+									"});",
+									"",
+									"pm.test(\"Response is an object with errors property\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an('object').that.has.property('errors');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"offer_id\": \"3d747856-5ddb-467e-b9f4-2c7e2ef19245\",\n    \"offer\": 400.5,\n    \"size\": 500,\n    \"bag_cost\": 60\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update utility",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Response has expected value\", function () {",
+									"    pm.expect(pm.response.json()).to.deep.include({",
+									"        \"msg\": \"la utilidad ha sido actualizada\"",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"offer_id\": \"{{offerId}}\",\n    \"offer\": 400.5,\n    \"size\": \"MEDIUM\",\n    \"bag_cost\": 60\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/{{offerId}}",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								"{{offerId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update utility not found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Validate the 'detail' field is present in the response\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.detail).to.exist;",
+									"});",
+									"",
+									"",
+									"",
+									"pm.test(\"Verify that the response body does not contain any additional fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.all.keys('detail');",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"offer_id\": \"{{offerId}}\",\n    \"offer\": 400.5,\n    \"size\": \"MEDIUM\",\n    \"bag_cost\": 60\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/cdab3f90-f8d8-458c-8447-ac8764f8e471",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								"cdab3f90-f8d8-458c-8447-ac8764f8e471"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get utility",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"offer_id is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.offer_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Utility is a number\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.utility).to.exist.and.to.be.a('number');",
+									"",
+									"",
+									"});",
+									"",
+									"",
+									"pm.test(\"Utility is 370.5\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.utility).to.equal(370.5);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/{{offerId}}",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								"{{offerId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get utility not found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 404\", function () {",
+									"    pm.expect(pm.response.code).to.equal(404);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the 'detail' field\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.detail).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Detail field is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.detail).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/cdab3f90-f8d8-458c-8447-ac8764f8e471",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								"cdab3f90-f8d8-458c-8447-ac8764f8e471"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consulta de salud del servicio",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response body is equal to 'pong'\", function () {",
+									"    pm.expect(pm.response.text()).to.equal(\"pong\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{UTILITIES_PATH}}/utility/ping",
+							"protocol": "http",
+							"host": [
+								"{{UTILITIES_PATH}}"
+							],
+							"path": [
+								"utility",
+								"ping"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"event": [
@@ -5031,5 +5794,82 @@
 			}
 		}
 	],
-	"variable": []
+	"variable": [
+		{
+			"key": "USER_EMAIL",
+			"value": ""
+		},
+		{
+			"key": "USER_USERNAME",
+			"value": ""
+		},
+		{
+			"key": "USER_PASSWORD",
+			"value": ""
+		},
+		{
+			"key": "USER_DNI",
+			"value": ""
+		},
+		{
+			"key": "USER_FULLNAME",
+			"value": ""
+		},
+		{
+			"key": "USER_PHONENUMBER",
+			"value": ""
+		},
+		{
+			"key": "USER_ID",
+			"value": ""
+		},
+		{
+			"key": "USER_STATUS",
+			"value": ""
+		},
+		{
+			"key": "USER_TOKEN",
+			"value": ""
+		},
+		{
+			"key": "ROUTE_FLIGHTID",
+			"value": ""
+		},
+		{
+			"key": "ROUTE_SOURCEAIRPORTCODE",
+			"value": ""
+		},
+		{
+			"key": "ROUTE_SOURCECOUNTRY",
+			"value": ""
+		},
+		{
+			"key": "ROUTE_DESTINYAIRPORTCODE",
+			"value": ""
+		},
+		{
+			"key": "ROUTE_DESTINYCOUNTRY",
+			"value": ""
+		},
+		{
+			"key": "ROUTE_BAGCOST",
+			"value": ""
+		},
+		{
+			"key": "ROUTE_PLANNEDSTARTDATE",
+			"value": ""
+		},
+		{
+			"key": "ROUTE_PLANNEDENDDATE",
+			"value": ""
+		},
+		{
+			"key": "ROUTE_ID",
+			"value": ""
+		},
+		{
+			"key": "offerId",
+			"value": ""
+		}
+	]
 }
