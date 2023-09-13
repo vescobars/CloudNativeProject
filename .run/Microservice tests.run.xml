@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Microservice tests" type="CompoundRunConfigurationType">
+    <toRun name="Offers test" type="tests" />
+    <toRun name="Posts test" type="tests" />
+    <toRun name="Routes test" type="tests" />
+    <toRun name="Users test" type="tests" />
+    <toRun name="Utility test" type="tests" />
+    <method v="2" />
+  </configuration>
+</component>
