@@ -1,19 +1,14 @@
 """ /users router """
-import json
-import logging
-from fastapi import APIRouter, HTTPException, Depends, Response, Request
-from fastapi.responses import JSONResponse
-from sqlalchemy import delete
-from sqlalchemy.orm import Session
 from typing import Annotated
 
+from fastapi import APIRouter, HTTPException, Depends, Response, Request
+from sqlalchemy.orm import Session
+
 from src.database import get_session
-from src.exceptions import UniqueConstraintViolatedException, InvalidRequestException, \
-    UtilityNotFoundException, UnauthorizedUserException
-from src.models import Utility
+from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException
 from src.rf004.schemas import CreateOfferRequestSchema, CreateOfferResponseSchema
 from src.rf004.utils import RF004
-from src.schemas import UtilitySchema
+from src.schemas import PostSchema, RouteSchema
 
 router = APIRouter()
 
@@ -43,7 +38,7 @@ Como usuario deseo ofertar sobre alguna publicación de otro usuario para poder 
 
 
 @router.post("/posts/{post_id}/offers")
-def create_offer(
+async def create_offer(
         offer_data: CreateOfferRequestSchema, post_id: str, request: Request, response: Response,
         sess: Annotated[Session, Depends(get_session)],
 ) -> CreateOfferResponseSchema:
@@ -61,6 +56,9 @@ def create_offer(
         
         """
         rf004 = RF004(request.app.requests_client)
+
+        post: PostSchema = await rf004.get_post(post_id, user_id, full_token)
+        route: RouteSchema = await rf004.get_route()
 
         new_user = Utilities().create_utility(util_data, sess)
         response.status_code = 201
