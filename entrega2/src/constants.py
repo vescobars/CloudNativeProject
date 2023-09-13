@@ -9,12 +9,11 @@ load_dotenv()
 TOKEN_LENGTH_BYTES = 128
 DEFAULT_SALT_LENGTH_BYTES = 32
 
-DB_USER = os.environ.get("DB_USER", "postgres")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "password")
-DB_HOST = os.environ.get("DB_HOST", "0.0.0.0")
-DB_PORT = os.environ.get("DB_PORT", "13001")
-DB_NAME = os.environ.get("DB_NAME", "db")
 USERS_PATH = os.environ.get("USERS_PATH", "http://localhost:3000")
+ROUTES_PATH = os.environ.get("ROUTES_PATH", "http://localhost:3001")
+POSTS_PATH = os.environ.get("POSTS_PATH", "http://localhost:3002")
+OFFERS_PATH = os.environ.get("OFFERS_PATH", "http://localhost:3003")
+UTILITY_PATH = os.environ.get("UTILITY_PATH", "http://localhost:8001")
 
 
 def datetime_to_str(date: datetime) -> str:
