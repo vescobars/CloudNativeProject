@@ -119,8 +119,8 @@ def authenticate(request: Request) -> str:
         try:
             user_id = Utilities.authenticate_user(bearer_token)
         except UnauthorizedUserException:
-            raise HTTPException(status_code=403, detail="Unauthorized. Valid credentials were rejected.")
+            raise HTTPException(status_code=401, detail="Unauthorized. Valid credentials were rejected.")
 
     else:
-        raise HTTPException(status_code=401, detail="No valid credentials were provided.")
+        raise HTTPException(status_code=403, detail="No valid credentials were provided.")
     return user_id

@@ -59,7 +59,7 @@ def test_create_utility_no_credentials(
         "bag_cost": 60
     }
     response = client.post(BASE_ROUTE, json=payload)
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 def test_create_utility_forbidden(
@@ -80,7 +80,7 @@ def test_create_utility_forbidden(
         response = client.post(BASE_ROUTE, json=payload, headers={
             "Authorization": BASE_AUTH_TOKEN
         })
-        assert response.status_code == 403
+        assert response.status_code == 401
 
 
 def test_create_utility_unique_violation(
