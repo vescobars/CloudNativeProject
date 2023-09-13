@@ -11,9 +11,9 @@ from src.database import get_session
 from src.exceptions import UniqueConstraintViolatedException, InvalidRequestException, \
     UtilityNotFoundException, UnauthorizedUserException
 from src.models import Utility
+from src.rf004.schemas import CreateOfferRequestSchema, CreateOfferResponseSchema
+from src.rf004.utils import RF004
 from src.schemas import UtilitySchema
-from src.utility.schemas import CreateUtilityRequestSchema, UpdateUtilityRequestSchema
-from src.utility.utils import Utilities
 
 router = APIRouter()
 
@@ -27,86 +27,47 @@ def ping():
     return Response(content="pong", media_type="application/text", status_code=200)
 
 
-@router.post("/reset")
-async def reset(
-        session: Session = Depends(get_session),
-):
-    """
-    Clears the utilities table
-    Returns:
-        msg: Todos los datos fueron eliminados
-    """
-    try:
-        statement = delete(Utility)
-        print(statement)
-        with session:
-            session.execute(statement)
-            session.commit()
-    except Exception as e:
-        logging.error(e)
-        return JSONResponse(status_code=500, content={
-            "msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)})
-    return {"msg": "Todos los datos fueron eliminados"}
+"""
+Como usuario deseo ofertar sobre alguna publicación de otro usuario para poder contratar un servicio.
+    [ ]    El usuario brinda la información de la oferta que desea hacer y el identificador de la publicación a la que 
+           se realiza.
+    [ ]    Se valida que la publicación existe, solo se puede crear una oferta en una publicación existente.
+    [ ]    Solo es posible crear la oferta si la publicación no ha expirado.
+    [ ]    La oferta queda asociada al usuario de la sesión.
+    [ ]    El usuario no debe poder ofertar en sus publicaciones.
+    [ ]    Se calcula la utilidad (score) de la oferta.
+    [X]    Solo un usuario autenticado puede realizar esta operación.
+    [ ]    En cualquier caso de error la información al finalizar debe ser consistente.
+
+"""
 
 
-@router.post("/")
-def create_utility(
-        util_data: CreateUtilityRequestSchema, request: Request, response: Response,
+@router.post("/posts/{post_id}/offers")
+def create_offer(
+        offer_data: CreateOfferRequestSchema, post_id: str, request: Request, response: Response,
         sess: Annotated[Session, Depends(get_session)],
-) -> UtilitySchema:
+) -> CreateOfferResponseSchema:
     """
-    Creates a utility with the given data.
-    Offer_id must be unique
+    Creates an offer with the given data.
+    post_id must be linked to a valid post
     """
     authenticate(request)
     try:
+        """
+        get post and route
+            in get post, validate expiration and check user id doesnt match
+        create utility
+        create offer (if it fails, delete utility)
+        
+        """
+        rf004 = RF004(request.app.requests_client)
+
         new_user = Utilities().create_utility(util_data, sess)
         response.status_code = 201
         return new_user
     except UniqueConstraintViolatedException as e:
         print(e)
         raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
-
-
-@router.patch("/{offer_id}")
-def update_utility(
-        offer_id: str, util_data: UpdateUtilityRequestSchema,
-        sess: Annotated[Session, Depends(get_session)],
-        request: Request) -> dict:
-    """
-    Updates a utility with the given data.
-
-    """
-    authenticate(request)
-
-    try:
-        updated = Utilities.update_utility(offer_id, util_data, sess)
-        if updated:
-            return {"msg": "la utilidad ha sido actualizada"}
-        else:
-            raise InvalidRequestException()
-
-    except InvalidRequestException:
-        raise HTTPException(status_code=400, detail="Solicitud invalida")
-    except UtilityNotFoundException:
-        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
-
-
-@router.get("/{offer_id}")
-def get_utility(
-        offer_id: str,
-        sess: Annotated[Session, Depends(get_session)],
-        request: Request) -> UtilitySchema:
-    """
-    Retrieves a utility with the given offer id.
-    """
-    authenticate(request)
-
-    try:
-        return Utilities.get_utility(offer_id, sess)
-
-    except UtilityNotFoundException:
-        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
 
 
 def authenticate(request: Request) -> str:
