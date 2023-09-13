@@ -1,4 +1,5 @@
 """ Pydantic schemas for request and response bodiess """
+import datetime
 import uuid
 from enum import Enum
 
@@ -35,3 +36,32 @@ class CreateOfferResponseSchema(BaseModel):
     """
     data: OfferSchema
     msg: str
+
+
+class PostOfferResponseSchema(BaseModel):
+    """
+    Response returned by POST /offer
+    """
+    id: uuid.UUID
+    userId: uuid.UUID
+    createdAt: datetime.datetime
+
+
+
+class CreateUtilityRequestSchema(BaseModel):
+    """
+    Used when creating a utility
+    """
+    offer_id: uuid.UUID
+    offer: float
+    size: BagSize
+    bag_cost: int
+
+
+class UpdateUtilityRequestSchema(BaseModel):
+    """
+    Used when updating a utility
+    """
+    offer: float
+    size: BagSize
+    bag_cost: int

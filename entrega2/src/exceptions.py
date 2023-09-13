@@ -1,18 +1,36 @@
 """ Global Exceptions """
+from typing import Optional
 
 
 class ResponseException(Exception):
     """Base exception that should be used to return an error response"""
     status_code: int
     msg: str = ""
+    detail: Optional[dict] = None
 
 
-class UniqueConstraintViolatedException(Exception):
-    """A uniqueness constraint in the database was violated"""''
+class UnexpectedResponseCodeException(ResponseException):
+    """The expected response status_code was not received."""
+
+    def __init__(self, original_response):
+        self.detail = {"received_status_code": original_response.status_code}
+
+    status_code = 500
+    msg = "The expected response status_code was not received."
 
 
 class InvalidRequestException(Exception):
     """The request body was empty or otherwise invalid"""
+
+
+class OfferInvalidValuesException(ResponseException):
+
+    def __init__(self, original_response):
+        self.detail = original_response
+
+    """The offer has received invalid values"""
+    status_code = 412
+    msg = "The offer has received invalid values"
 
 
 class PostIsFromSameUserException(ResponseException):

@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 
 from src.database import get_session
 from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException
-from src.rf004.schemas import CreateOfferRequestSchema, CreateOfferResponseSchema
+from src.rf004.schemas import CreateOfferRequestSchema, CreateOfferResponseSchema, CreateUtilityRequestSchema
 from src.rf004.utils import RF004
-from src.schemas import PostSchema, RouteSchema
+from src.schemas import PostSchema, RouteSchema, OfferSchema
 
 router = APIRouter()
 
@@ -24,12 +24,12 @@ def ping():
 
 """
 Como usuario deseo ofertar sobre alguna publicación de otro usuario para poder contratar un servicio.
-    [ ]    El usuario brinda la información de la oferta que desea hacer y el identificador de la publicación a la que 
+    [X]    El usuario brinda la información de la oferta que desea hacer y el identificador de la publicación a la que 
            se realiza.
-    [ ]    Se valida que la publicación existe, solo se puede crear una oferta en una publicación existente.
-    [ ]    Solo es posible crear la oferta si la publicación no ha expirado.
-    [ ]    La oferta queda asociada al usuario de la sesión.
-    [ ]    El usuario no debe poder ofertar en sus publicaciones.
+    [X]    Se valida que la publicación existe, solo se puede crear una oferta en una publicación existente.
+    [X]    Solo es posible crear la oferta si la publicación no ha expirado.
+    [X]    La oferta queda asociada al usuario de la sesión.
+    [X]    El usuario no debe poder ofertar en sus publicaciones.
     [ ]    Se calcula la utilidad (score) de la oferta.
     [X]    Solo un usuario autenticado puede realizar esta operación.
     [ ]    En cualquier caso de error la información al finalizar debe ser consistente.
@@ -51,19 +51,29 @@ async def create_offer(
         """
         get post and route
             in get post, validate expiration and check user id doesnt match
-        create utility
         create offer (if it fails, delete utility)
+        create utility
         
         """
         rf004 = RF004(request.app.requests_client)
 
         post: PostSchema = await rf004.get_post(post_id, user_id, full_token)
-        route: RouteSchema = await rf004.get_route()
+        route: RouteSchema = await rf004.get_route(post.routeId, full_token)
 
-        new_user = Utilities().create_utility(util_data, sess)
+        offer: OfferSchema = await rf004.create_offer()
+
+        rf004.create_utility(
+            CreateUtilityRequestSchema(
+                offer_id=,
+                offer=offer_data.offer,
+                size=offer_data.size,
+                bag_cost=route.bagCost
+            )
+        )
+
         response.status_code = 201
         return new_user
-    except UniqueConstraintViolatedException as e:
+    except  as e:
         print(e)
         raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
 
