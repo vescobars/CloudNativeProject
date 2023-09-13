@@ -23,21 +23,6 @@ def ping():
     return Response(content="pong", media_type="application/text", status_code=200)
 
 
-"""
-Como usuario deseo ofertar sobre alguna publicación de otro usuario para poder contratar un servicio.
-    [X]    El usuario brinda la información de la oferta que desea hacer y el identificador de la publicación a la que 
-           se realiza.
-    [X]    Se valida que la publicación existe, solo se puede crear una oferta en una publicación existente.
-    [X]    Solo es posible crear la oferta si la publicación no ha expirado.
-    [X]    La oferta queda asociada al usuario de la sesión.
-    [X]    El usuario no debe poder ofertar en sus publicaciones.
-    [ ]    Se calcula la utilidad (score) de la oferta.
-    [X]    Solo un usuario autenticado puede realizar esta operación.
-    [ ]    En cualquier caso de error la información al finalizar debe ser consistente.
-
-"""
-
-
 @router.post("/posts/{post_id}/offers")
 async def create_offer(
         offer_data: CreateOfferRequestSchema, post_id: str, request: Request, response: Response,
@@ -47,13 +32,7 @@ async def create_offer(
     post_id must be linked to a valid post
     """
     user_id, full_token = authenticate(request)
-    """
-    get post and route
-        in get post, validate expiration and check user id doesnt match
-    create offer (if it fails, delete utility)
-    create utility
-    
-    """
+
     rf004 = RF004(request.app.requests_client)
 
     post: PostSchema = await rf004.get_post(post_id, user_id, full_token)
@@ -85,7 +64,6 @@ async def create_offer(
 
     response.status_code = 201
     return final_response
-
 
 
 def authenticate(request: Request) -> tuple[str, str]:
