@@ -19,6 +19,16 @@ class UnexpectedResponseCodeException(ResponseException):
     msg = "The expected response status_code was not received."
 
 
+class FailedCreatedUtilityException(Exception):
+    """Creating utility did not succeed"""
+
+
+class FailedDeletingOfferException(ResponseException):
+    """Deleting an offer did not succeed"""
+    status_code = 500
+    msg = "Deleting an offer did not succeed"
+
+
 class InvalidRequestException(Exception):
     """The request body was empty or otherwise invalid"""
 
