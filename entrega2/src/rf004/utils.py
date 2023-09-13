@@ -1,32 +1,55 @@
-""" Utils for users """
-import requests
+""" Utils for RF004 """
 from datetime import datetime, timezone
-from fastapi import HTTPException
+
+import requests
+from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
 from sqlalchemy.orm import Session
 
-from src.constants import USERS_PATH
-from src.exceptions import UniqueConstraintViolatedException, UtilityNotFoundException, UnauthorizedUserException
+from src.constants import USERS_PATH, POSTS_PATH
+from src.exceptions import UniqueConstraintViolatedException, UtilityNotFoundException, UnauthorizedUserException, \
+    PostNotFoundException, InvalidCredentialsUserException, PostExpiredException, PostIsFromSameUserException
 from src.models import Utility
-from src.schemas import UtilitySchema
-from src.utility.schemas import CreateUtilityRequestSchema, BagSize, UpdateUtilityRequestSchema
+from src.rf004.schemas import check_uuid4
+from src.schemas import UtilitySchema, PostSchema
 
 
-def get_utility(offer: float, size: BagSize, bag_cost: int) -> float:
-    """Calculates utility score"""
-    bag_occupation = 1.0
-    if size == BagSize.MEDIUM:
-        bag_occupation = 0.5
-    if size == BagSize.SMALL:
-        bag_occupation = 0.25
-    return offer - (bag_occupation * float(bag_cost))
+class RF004:
+    client: AsyncClient
 
+    def __init__(self, client):
+        self.client = client
 
-class Utilities:
+    @classmethod
+    async def get_post(cls, post_id: str, user_id: str, bearer_token: str) -> PostSchema:
+        """
+        Retrieves a post from the POST endpoint
+        :param post_id: the post's UUID
+        :param user_id: the uuid of the user
+        :param bearer_token: the bearer token with which the request is authenticated
+        :return: a post object
+        """
+        posts_url = POSTS_PATH.rstrip("/") + f"/posts/{post_id}"
+        response = await cls.client.get(posts_url, headers={"Authorization": bearer_token})
+        if response.status_code == 404:
+            raise PostNotFoundException()
+        elif response.status_code == 401:
+            raise UnauthorizedUserException()
+        elif response.status_code == 403:
+            raise InvalidCredentialsUserException()
 
-    @staticmethod
-    def create_utility(data: CreateUtilityRequestSchema, session: Session) -> UtilitySchema:
+        post = PostSchema.model_validate(response.json())
+
+        if str(post.userId) == user_id:
+            raise PostIsFromSameUserException()
+        if datetime.utcnow() > post.expireAt:
+            raise PostExpiredException()
+
+        return post
+
+    @classmethod
+    def create_utility(cls, data: CreateUtilityRequestSchema, session: Session) -> UtilitySchema:
         """
         Insert a new utility into the Utilities table
         """
