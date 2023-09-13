@@ -51,7 +51,7 @@ def create_offer(
     Creates an offer with the given data.
     post_id must be linked to a valid post
     """
-    authenticate(request)
+    user_id, full_token = authenticate(request)
     try:
         """
         get post and route
@@ -70,18 +70,22 @@ def create_offer(
         raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
 
 
-def authenticate(request: Request) -> str:
+def authenticate(request: Request) -> tuple[str, str]:
     """
     Checks if authorization token is present and valid, then calls users endpoint to
     verify whether credentials are still authorized
+
+    Returns the user's id, and the full bearer token present in the
+        authentication header (including the "Bearer " prefix)
     """
     if 'Authorization' in request.headers and 'Bearer ' in request.headers.get('Authorization'):
-        bearer_token = request.headers.get('Authorization').split(" ")[1]
+        full_token = request.headers.get('Authorization')
+        bearer_token = full_token.split(" ")[1]
         try:
-            user_id = Utilities.authenticate_user(bearer_token)
+            user_id = RF004.authenticate_user(bearer_token)
         except UnauthorizedUserException:
             raise HTTPException(status_code=403, detail="Unauthorized. Valid credentials were rejected.")
 
     else:
         raise HTTPException(status_code=401, detail="No valid credentials were provided.")
-    return user_id
+    return user_id, full_token
