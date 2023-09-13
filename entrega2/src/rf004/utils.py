@@ -7,10 +7,11 @@ from httpx import AsyncClient
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH
+from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH, UTILITY_PATH
 from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException, \
     PostNotFoundException, InvalidCredentialsUserException, PostExpiredException, PostIsFromSameUserException, \
-    OfferInvalidValuesException, UnexpectedResponseCodeException
+    OfferInvalidValuesException, UnexpectedResponseCodeException, FailedCreatedUtilityException, \
+    FailedDeletingOfferException
 from src.models import Utility
 from src.rf004.schemas import CreateUtilityRequestSchema, BagSize, PostOfferResponseSchema
 from src.schemas import UtilitySchema, PostSchema, RouteSchema
@@ -70,7 +71,7 @@ class RF004:
 
     @classmethod
     async def create_offer(cls, post_id: UUID, description: str, size: BagSize, fragile: bool, offer: float,
-                           bearer_token: str, session: Session) -> PostOfferResponseSchema:
+                           bearer_token: str) -> PostOfferResponseSchema:
         """
         Asks offer endpoint to create new offer
         """
@@ -99,26 +100,29 @@ class RF004:
         return offer
 
     @classmethod
-    def create_utility(cls, data: CreateUtilityRequestSchema, session: Session) -> UtilitySchema:
+    async def delete_offer(cls, offer_id: UUID, bearer_token: str):
         """
-        Insert a new utility into the Utilities table
+        Asks offer endpoint to delete offer
         """
-        new_utility = None
-        utility_value = get_utility(data.offer, data.size, data.bag_cost)
-        current_time = datetime.now(timezone.utc)
-        try:
-            new_utility = Utility(
-                offer_id=data.offer_id,
-                utility=utility_value,
-                createdAt=current_time,
-                updateAt=current_time
-            )
+        offers_url = OFFERS_PATH.rstrip("/") + f"/offers/{str(offer_id)}"
 
-            session.add(new_utility)
-            session.commit()
-        except IntegrityError as e:
-            raise (e)
-        return new_utility
+        response = await cls.client.delete(offers_url, headers={"Authorization": bearer_token})
+
+        if response.status_code != 200:
+            raise FailedDeletingOfferException()
+
+
+    @classmethod
+    async def create_utility(cls, data: CreateUtilityRequestSchema, bearer_token: str):
+        """
+        Asks Utility endpoint to create new Utility
+        """
+        utility_url = UTILITY_PATH.rstrip("/") + "/utility"
+
+        response = await cls.client.post(utility_url, json=data.model_dump(mode='json'),
+                                         headers={"Authorization": bearer_token})
+        if response.status_code != 201:
+            raise FailedCreatedUtilityException()
 
     @staticmethod
     def authenticate_user(bearer_token: str) -> str:

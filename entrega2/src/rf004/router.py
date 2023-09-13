@@ -5,8 +5,9 @@ from fastapi import APIRouter, HTTPException, Depends, Response, Request
 from sqlalchemy.orm import Session
 
 from src.database import get_session
-from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException
-from src.rf004.schemas import CreateOfferRequestSchema, CreateOfferResponseSchema, CreateUtilityRequestSchema
+from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException, FailedCreatedUtilityException
+from src.rf004.schemas import CreateOfferRequestSchema, CreateOfferResponseSchema, CreateUtilityRequestSchema, \
+    PostOfferResponseSchema
 from src.rf004.utils import RF004
 from src.schemas import PostSchema, RouteSchema, OfferSchema
 
@@ -40,42 +41,51 @@ Como usuario deseo ofertar sobre alguna publicación de otro usuario para poder 
 @router.post("/posts/{post_id}/offers")
 async def create_offer(
         offer_data: CreateOfferRequestSchema, post_id: str, request: Request, response: Response,
-        sess: Annotated[Session, Depends(get_session)],
 ) -> CreateOfferResponseSchema:
     """
     Creates an offer with the given data.
     post_id must be linked to a valid post
     """
     user_id, full_token = authenticate(request)
+    """
+    get post and route
+        in get post, validate expiration and check user id doesnt match
+    create offer (if it fails, delete utility)
+    create utility
+    
+    """
+    rf004 = RF004(request.app.requests_client)
+
+    post: PostSchema = await rf004.get_post(post_id, user_id, full_token)
+    route: RouteSchema = await rf004.get_route(post.routeId, full_token)
+
+    offer: PostOfferResponseSchema = await rf004.create_offer(
+        post.id, offer_data.description, offer_data.size, offer_data.fragile, offer_data.offer, full_token
+    )
+
     try:
-        """
-        get post and route
-            in get post, validate expiration and check user id doesnt match
-        create offer (if it fails, delete utility)
-        create utility
-        
-        """
-        rf004 = RF004(request.app.requests_client)
+        await rf004.create_utility(CreateUtilityRequestSchema(
+            offer_id=offer.id,
+            offer=offer_data.offer,
+            size=offer_data.size,
+            bag_cost=route.bagCost
+        ), full_token)
+    except FailedCreatedUtilityException:
+        await rf004.delete_offer(offer.id, full_token)
 
-        post: PostSchema = await rf004.get_post(post_id, user_id, full_token)
-        route: RouteSchema = await rf004.get_route(post.routeId, full_token)
+    returned_offer = OfferSchema(
+        id=offer.id,
+        userId=offer.userId,
+        createdAt=offer.createdAt,
+        postId=post.id
+    )
+    final_response = CreateOfferResponseSchema(
+        data=returned_offer,
+        msg=f"Offer (id={str(offer.id)}) has been successfully created")
 
-        offer: OfferSchema = await rf004.create_offer()
+    response.status_code = 201
+    return final_response
 
-        rf004.create_utility(
-            CreateUtilityRequestSchema(
-                offer_id=,
-                offer=offer_data.offer,
-                size=offer_data.size,
-                bag_cost=route.bagCost
-            )
-        )
-
-        response.status_code = 201
-        return new_user
-    except  as e:
-        print(e)
-        raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
 
 
 def authenticate(request: Request) -> tuple[str, str]:
