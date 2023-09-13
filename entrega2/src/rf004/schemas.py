@@ -47,7 +47,6 @@ class PostOfferResponseSchema(BaseModel):
     createdAt: datetime.datetime
 
 
-
 class CreateUtilityRequestSchema(BaseModel):
     """
     Used when creating a utility

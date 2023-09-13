@@ -7,9 +7,9 @@ from pydantic import BaseModel, ConfigDict, UUID4, Field
 class OfferSchema(BaseModel):
     """Schema used to represent an offer"""
     id: UUID4
-    userId: str
+    userId: UUID4
     createdAt: datetime
-    postId: str
+    postId: UUID4
 
 
 class UtilitySchema(BaseModel):
