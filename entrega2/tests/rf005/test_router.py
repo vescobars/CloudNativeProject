@@ -37,15 +37,22 @@ def test_rf005(
         offers_list = response_body["data"]["offers"]
         assert len(offers_list) == 4
 
-        temp_utility = 9999999999999
+        # Verify descending order of utility
+        prev_utility_calculated = 9999999999999
+        prev_utility_observed = 9999999999999
         for i in range(0, len(offers_list)):
-            # Verify descending order of utility
-            assert offers_list[i] < temp_utility
-            temp_utility = get_utility(
+            current_utility_calculated = get_utility(
                 offers_list[i]["offer"],
                 offers_list[i]["size"],
                 40,
             )
+            assert current_utility_calculated == float(offers_list[i]["score"])
+
+            assert current_utility_calculated < prev_utility_calculated
+            assert float(offers_list[i]["score"]) < prev_utility_observed
+
+            prev_utility_calculated = current_utility_calculated
+            prev_utility_observed = float(offers_list[i]["score"])
 
 
 def test_ping(client: TestClient):
