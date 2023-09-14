@@ -4,7 +4,7 @@ from httmock import HTTMock
 from src.schemas import BagSize
 from tests.rf004.mocks import mock_success_auth
 from tests.rf005.mocks import mock_success_search_offers, mock_success_get_route, mock_success_get_post, \
-    mock_success_search_utilities, mock_success_get_post_different_owner
+    mock_success_search_utilities, mock_success_get_post_different_owner, mock_failed_get_post_not_found
 
 BASE_ROUTE = "/rf005"
 BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
@@ -54,6 +54,20 @@ def test_rf005(
 
             prev_utility_calculated = current_utility_calculated
             prev_utility_observed = float(offers_list[i]["score"])
+
+
+def test_rf005_post_not_found(
+        client: TestClient
+):
+    """Checks that GET /rf005 Fails correctly if the post doesn't actually exist"""
+
+    with HTTMock(
+            mock_success_auth, mock_failed_get_post_not_found
+    ):
+        response = client.get(
+            f"{BASE_ROUTE}/posts/3fa8eb34-5e79-4daf-aba7-84c007ff0445",
+            headers={"Authorization": BASE_AUTH_TOKEN})
+        assert response.status_code == 404
 
 
 def test_rf005_not_post_owner(
