@@ -1,9 +1,14 @@
 """ Pydantic models for all global entities """
 from datetime import datetime
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, UUID4, Field
 
-from src.rf004.schemas import BagSize
+
+class BagSize(Enum):
+    LARGE = 'LARGE'
+    MEDIUM = 'MEDIUM'
+    SMALL = 'SMALL'
 
 
 class OfferSchema(BaseModel):

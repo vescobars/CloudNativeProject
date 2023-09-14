@@ -1,17 +1,10 @@
 """ Pydantic schemas for request and response bodies """
 import datetime
 import uuid
-from enum import Enum
 
 from pydantic import BaseModel
 
-from src.schemas import CreatedOfferSchema
-
-
-class BagSize(Enum):
-    LARGE = 'LARGE'
-    MEDIUM = 'MEDIUM'
-    SMALL = 'SMALL'
+from src.schemas import CreatedOfferSchema, BagSize
 
 
 class CreateOfferRequestSchema(BaseModel):
