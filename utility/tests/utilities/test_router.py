@@ -318,6 +318,83 @@ def test_delete_utility(
         assert retrieved_utility is None
 
 
+def test_get_utilities(
+        client: TestClient, session: Session
+):
+    """
+    GIVEN I send a valid token and offer_ids
+    I EXPECT a 200 response and all utilities in descending order by utility score
+    """
+    session.execute(
+        delete(Utility)
+    )
+    mock_utility_1 = Utility(
+        offer_id=uuid.uuid4(),
+        utility=250,
+        createdAt=datetime.datetime.now(),
+        updateAt=datetime.datetime.now()
+    )
+    mock_utility_2 = Utility(
+        offer_id=uuid.uuid4(),
+        utility=126.90,
+        createdAt=datetime.datetime.now(),
+        updateAt=datetime.datetime.now()
+    )
+    mock_utility_3 = Utility(
+        offer_id=uuid.uuid4(),
+        utility=7200.5,
+        createdAt=datetime.datetime.now(),
+        updateAt=datetime.datetime.now()
+    )
+    mock_utility_4 = Utility(
+        offer_id=uuid.uuid4(),
+        utility=12.33,
+        createdAt=datetime.datetime.now(),
+        updateAt=datetime.datetime.now()
+    )
+    mock_utility_5 = Utility(
+        offer_id=uuid.uuid4(),
+        utility=12.33,
+        createdAt=datetime.datetime.now(),
+        updateAt=datetime.datetime.now()
+    )
+    session.add(mock_utility_1)
+    session.add(mock_utility_2)
+    session.add(mock_utility_3)
+    session.add(mock_utility_4)
+    session.add(mock_utility_5)
+    session.commit()
+
+    with HTTMock(mock_success_auth):
+        canary_uuid = uuid.uuid4()
+        response = client.post(
+            BASE_ROUTE + "list",
+            headers={
+                "Authorization": BASE_AUTH_TOKEN
+            },
+            json=[
+                str(mock_utility_2.offer_id),
+                str(mock_utility_1.offer_id),
+                str(canary_uuid),
+                str(mock_utility_4.offer_id),
+                str(mock_utility_3.offer_id),
+            ]
+        )
+
+        session.flush()
+        session.commit()
+        assert response.status_code == 200
+
+        response_body: list = response.json()
+        assert len(response_body) == 4
+        for elem in response_body:
+            assert elem["offer_id"] != str(canary_uuid)
+            assert elem["offer_id"] != str(mock_utility_5.offer_id)
+
+        assert response_body[0]["offer_id"] == str(mock_utility_3.offer_id)
+        assert response_body[3]["offer_id"] == str(mock_utility_4.offer_id)
+
+
 def test_ping(client: TestClient):
     response = client.get("/utility/ping")
     assert response.status_code == 200
