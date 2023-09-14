@@ -25,3 +25,4 @@ class RF005:
             raise UnauthorizedUserException()
         elif response.status_code == 403:
             raise InvalidCredentialsUserException()
+
