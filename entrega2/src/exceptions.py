@@ -23,6 +23,12 @@ class FailedCreatedUtilityException(Exception):
     """Creating utility did not succeed"""
 
 
+class SuccessfullyDeletedOfferException(ResponseException):
+    """Fired after a utility failed to be created, so a corrective offer deletion is successfulyl issued"""
+    status_code = 500
+    detail = "Utility failed to be stored, offer deleted"
+
+
 class FailedDeletingOfferException(ResponseException):
     """Deleting an offer did not succeed"""
     status_code = 500

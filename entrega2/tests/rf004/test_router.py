@@ -2,7 +2,8 @@ from fastapi.testclient import TestClient
 from httmock import HTTMock
 
 from tests.rf004.mocks import mock_success_auth, mock_success_get_post, \
-    mock_success_create_utility, mock_success_get_route, mock_success_post_offer, mock_forbidden_auth, mock_failed_auth
+    mock_success_create_utility, mock_success_get_route, mock_success_post_offer, mock_forbidden_auth, mock_failed_auth, \
+    mock_failed_create_utility, mock_success_delete_offer
 
 BASE_ROUTE = "/rf004"
 BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
@@ -63,6 +64,26 @@ def test_rf004_rejected_credential(
             f"{BASE_ROUTE}/posts/86864ea3-69ed-4fca-9158-44c15a1e61a9/offers", json=BASIC_PAYLOAD,
             headers={"Authorization": BASE_AUTH_TOKEN})
         assert response.status_code == 401
+
+
+def test_rf004_failed_utility(
+        client: TestClient
+):
+    """Checks that POST /rf004 functions correctly and creates the offer"""
+
+    with HTTMock(
+            mock_success_auth, mock_success_get_post, mock_success_get_route,
+            mock_success_post_offer, mock_failed_create_utility, mock_success_delete_offer
+    ):
+        response = client.post(
+            f"{BASE_ROUTE}/posts/86864ea3-69ed-4fca-9158-44c15a1e61a9/offers", json=BASIC_PAYLOAD,
+            headers={"Authorization": BASE_AUTH_TOKEN})
+        assert response.status_code == 500
+
+        response_body = response.json()
+        assert "detail" in response_body
+
+        assert response_body["detail"] == "Utility failed to be stored, offer deleted"
 
 
 def test_ping(client: TestClient):
