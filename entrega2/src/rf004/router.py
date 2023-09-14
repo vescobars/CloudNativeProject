@@ -21,7 +21,7 @@ def ping():
 
 
 @router.post("/posts/{post_id}/offers")
-async def create_offer(
+def create_offer(
         offer_data: CreateOfferRequestSchema, post_id: str, request: Request, response: Response,
 ) -> CreateOfferResponseSchema:
     """
@@ -32,22 +32,22 @@ async def create_offer(
 
     rf004 = RF004(request.app.requests_client)
 
-    post: PostSchema = await rf004.get_post(post_id, user_id, full_token)
-    route: RouteSchema = await rf004.get_route(post.routeId, full_token)
+    post: PostSchema = rf004.get_post(post_id, user_id, full_token)
+    route: RouteSchema = rf004.get_route(post.routeId, full_token)
 
-    offer: PostOfferResponseSchema = await rf004.create_offer(
+    offer: PostOfferResponseSchema = rf004.create_offer(
         post.id, offer_data.description, offer_data.size, offer_data.fragile, offer_data.offer, full_token
     )
 
     try:
-        await rf004.create_utility(CreateUtilityRequestSchema(
+        rf004.create_utility(CreateUtilityRequestSchema(
             offer_id=offer.id,
             offer=offer_data.offer,
             size=offer_data.size,
             bag_cost=route.bagCost
         ), full_token)
     except FailedCreatedUtilityException:
-        await rf004.delete_offer(offer.id, full_token)
+        rf004.delete_offer(offer.id, full_token)
 
     returned_offer = OfferSchema(
         id=offer.id,
