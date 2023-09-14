@@ -84,6 +84,16 @@ def mock_failed_create_utility(url, request):
     })
 
 
+@urlmatch(method='GET', path=r'/posts/.+')
+def mock_success_get_post_same_user_as_owner(url, request):
+    return response(200, content={
+        "createdAt": "2023-09-14T03:16:41.782282",
+        "expireAt": "2028-09-21T03:16:41.672000",
+        "id": "86864ea3-69ed-4fca-9158-44c15a1e61a9",
+        "routeId": "c915e59f-2ecf-4058-8728-257c23665467",
+        "userId": "cdab3f90-f8d8-458c-8447-ac8764f8e471"
+    })
+
 """
 POST /routes
 {

@@ -3,7 +3,7 @@ from httmock import HTTMock
 
 from tests.rf004.mocks import mock_success_auth, mock_success_get_post, \
     mock_success_create_utility, mock_success_get_route, mock_success_post_offer, mock_forbidden_auth, mock_failed_auth, \
-    mock_failed_create_utility, mock_success_delete_offer
+    mock_failed_create_utility, mock_success_delete_offer, mock_success_get_post_same_user_as_owner
 
 BASE_ROUTE = "/rf004"
 BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
@@ -69,7 +69,7 @@ def test_rf004_rejected_credential(
 def test_rf004_failed_utility(
         client: TestClient
 ):
-    """Checks that POST /rf004 functions correctly and creates the offer"""
+    """Checks that POST /rf004 issues corrective action if utility fails to create"""
 
     with HTTMock(
             mock_success_auth, mock_success_get_post, mock_success_get_route,
@@ -84,6 +84,49 @@ def test_rf004_failed_utility(
         assert "detail" in response_body
 
         assert response_body["detail"] == "Utility failed to be stored, offer deleted"
+
+
+def test_rf004_user_is_post_owner(
+        client: TestClient
+):
+    """Checks that POST /rf004 fails if the user is also the post's owner"""
+
+    with HTTMock(
+            mock_success_auth, mock_success_get_post_same_user_as_owner,
+    ):
+        response = client.post(
+            f"{BASE_ROUTE}/posts/86864ea3-69ed-4fca-9158-44c15a1e61a9/offers", json=BASIC_PAYLOAD,
+            headers={"Authorization": BASE_AUTH_TOKEN})
+        assert response.status_code == 412
+
+        response_body = response.json()
+        assert "msg" in response_body
+
+        assert response_body["msg"] == "The requested post is from the same user making an offer"
+
+
+def test_rf004_user_is_post_owner(
+        client: TestClient
+):
+    """Checks that POST /rf004 fails if certain fields are missing"""
+
+    with HTTMock(
+            mock_success_auth, mock_success_get_post_same_user_as_owner,
+    ):
+        payload = {
+            "description": "Example description",
+            "size": "SMALL",
+        }
+        response = client.post(
+            f"{BASE_ROUTE}/posts/86864ea3-69ed-4fca-9158-44c15a1e61a9/offers", json=payload,
+            headers={"Authorization": BASE_AUTH_TOKEN})
+        assert response.status_code == 400
+
+        response_body = response.json()
+        assert "msg" in response_body
+
+        assert response_body["msg"] == "Request body is not properly structured"
+
 
 
 def test_ping(client: TestClient):
