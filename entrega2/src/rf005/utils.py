@@ -67,5 +67,5 @@ class RF005:
     @staticmethod
     def validate_post(post: PostSchema, user_id: str):
         """Makes sure user is authorized to see this post"""
-        if user_id != str(post.id):
+        if user_id != str(post.userId):
             raise PostUserOwnerMismatchException()
