@@ -1,5 +1,6 @@
 import datetime
 import uuid
+
 from fastapi.testclient import TestClient
 from httmock import HTTMock
 from sqlalchemy import delete, select, func
@@ -8,23 +9,20 @@ from sqlalchemy.orm import Session
 from src.models import Utility
 from tests.mocks import mock_success_auth, mock_forbidden_auth
 
-BASE_ROUTE = "/utility/"
+BASE_ROUTE = "/rf004/"
 BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
 
 
-def test_create_utility(
+def test_rf004(
         client: TestClient, session: Session
 ):
-    """Checks that POST /utility functions correctly and creates the utility"""
-    session.execute(
-        delete(Utility)
-    )
-    session.commit()
+    """Checks that POST /rf004 functions correctly and creates the offer"""
+
     payload = {
-        "offer_id": "3d747856-5ddb-467e-b9f4-2c7e2ef19245",
-        "offer": 400.5,
-        "size": "MEDIUM",
-        "bag_cost": 60
+        "description": "Example description",
+        "size": "SMALL",
+        "fragile": True,
+        "offer": 400.0
     }
     with HTTMock(mock_success_auth):
         response = client.post(BASE_ROUTE, json=payload, headers={
