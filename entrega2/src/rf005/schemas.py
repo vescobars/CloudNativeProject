@@ -4,7 +4,7 @@ from typing import List
 
 from pydantic import BaseModel, UUID4, Field
 
-from src.schemas import OfferSchema
+from src.schemas import BagSize
 
 
 class Location(BaseModel):
@@ -22,6 +22,18 @@ class ImprovedRouteSchema(BaseModel):
     bagCost: int
 
 
+class ScoredOfferSchema(BaseModel):
+    """OfferSchema that also includes utility score"""
+    id: UUID4
+    userId: UUID4
+    description: str
+    size: BagSize
+    fragile: bool
+    offer: float
+    score: float
+    createdAt: datetime
+
+
 class RF005ResponseSchema(BaseModel):
     """The full response of RF005, a post's info, including its route and sorted list of offers"""
     id: UUID4
@@ -32,7 +44,7 @@ class RF005ResponseSchema(BaseModel):
     plannedEndDate: datetime
     createdAt: datetime
     expireAt: datetime
-    offers: List[OfferSchema]
+    offers: List[ScoredOfferSchema]
 
 
 class WrappedRF005ResponseSchema(BaseModel):
