@@ -1,0 +1,133 @@
+###################################
+# Utility
+###################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: utility
+  labels:
+    app: utility
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: utility
+  template:
+    metadata:
+      labels:
+        app: utility
+    spec:
+      containers:
+        - name: utility
+          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/utility:1.0
+          env:
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              value: Excavator-Opium-Resident2
+            - name: DB_HOST
+              value: 35.209.59.86
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: utility
+            - name: USERS_PATH
+              value: http://service-users
+          ports:
+            - containerPort: 8000
+          # Realizar pull siempre a la imagen
+          imagePullPolicy: Always
+
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: grupo17-utility-config
+spec:
+  healthCheck:
+    checkIntervalSec: 30
+    port: 3000
+    type: HTTP
+    requestPath: /utility/ping
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: service-utility
+  annotations:
+    cloud.google.com/backend-config: '{"default": "grupo17-utility-config"}'
+spec:
+  type: NodePort
+  selector:
+    app: utility
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+      nodePort: 31014
+---
+###################################
+# Entrega2 RF003, RF004, RF005
+###################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: entrega2
+  labels:
+    app: entrega2
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: entrega2
+  template:
+    metadata:
+      labels:
+        app: entrega2
+    spec:
+      containers:
+        - name: entrega2
+          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/entrega2:0.1
+          env:
+            - name: USERS_PATH
+              value: http://service-users
+            - name: ROUTES_PATH
+              value: http://service-routes
+            - name: POSTS_PATH
+              value: http://service-posts
+            - name: OFFERS_PATH
+              value: http://service-offers
+            - name: UTILITY_PATH
+              value: http://service-utility
+          ports:
+            - containerPort: 8000
+          # Realizar pull siempre a la imagen
+          imagePullPolicy: Always
+
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: grupo17-entrega2-config
+spec:
+  healthCheck:
+    checkIntervalSec: 30
+    port: 3000
+    type: HTTP
+    requestPath: /rf004/ping
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: service-entrega2
+  annotations:
+    cloud.google.com/backend-config: '{"default": "grupo17-entrega2-config"}'
+spec:
+  type: NodePort
+  selector:
+    app: entrega2
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+      nodePort: 31015
