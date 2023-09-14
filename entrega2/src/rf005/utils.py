@@ -5,9 +5,9 @@ from uuid import UUID
 import requests
 
 from src.constants import OFFERS_PATH, UTILITY_PATH
-from src.exceptions import UnauthorizedUserException, InvalidCredentialsUserException
+from src.exceptions import UnauthorizedUserException, InvalidCredentialsUserException, PostIsFromSameUserException
 from src.rf005.schemas import ImprovedRouteSchema, Location, ScoredOfferSchema
-from src.schemas import RouteSchema
+from src.schemas import RouteSchema, PostSchema
 
 
 class RF005:
@@ -63,3 +63,9 @@ class RF005:
             ),
             bagCost=route.bagCost
         )
+
+    @staticmethod
+    def validate_post(post: PostSchema, user_id: str):
+        """Makes sure user is authorized to see this post"""
+        if user_id != str(post.id):
+            raise PostIsFromSameUserException()

@@ -30,8 +30,9 @@ def find_post(
     user_id, full_token = authenticate(request)
 
     post: PostSchema = CommonUtils.get_post(post_id, user_id, full_token)
-    route: RouteSchema = CommonUtils.get_route(post.routeId, full_token)
+    RF005.validate_post(post, user_id)
 
+    route: RouteSchema = CommonUtils.get_route(post.routeId, full_token)
     detailed_route = RF005.get_detailed_route(route)
 
     offers: list[OfferSchema] = RF005.get_filtered_offers(post.id, full_token)
