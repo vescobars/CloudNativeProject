@@ -51,6 +51,13 @@ def mock_success_get_route(url, request):
     })
 
 
+@urlmatch(method='GET', path=r'/posts/.+')
+def mock_failed_get_post_not_found(url, request):
+    return response(404, content={
+        "msg": "Route does not exist"
+    })
+
+
 @urlmatch(method='POST', path=r'/offers/?')
 def mock_success_post_offer(url, request):
     return response(201, content={
@@ -93,6 +100,7 @@ def mock_success_get_post_same_user_as_owner(url, request):
         "routeId": "c915e59f-2ecf-4058-8728-257c23665467",
         "userId": "cdab3f90-f8d8-458c-8447-ac8764f8e471"
     })
+
 
 """
 POST /routes

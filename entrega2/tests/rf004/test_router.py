@@ -3,7 +3,8 @@ from httmock import HTTMock
 
 from tests.rf004.mocks import mock_success_auth, mock_success_get_post, \
     mock_success_create_utility, mock_success_get_route, mock_success_post_offer, mock_forbidden_auth, mock_failed_auth, \
-    mock_failed_create_utility, mock_success_delete_offer, mock_success_get_post_same_user_as_owner
+    mock_failed_create_utility, mock_success_delete_offer, mock_success_get_post_same_user_as_owner, \
+    mock_failed_get_post_not_found
 
 BASE_ROUTE = "/rf004"
 BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
@@ -126,6 +127,23 @@ def test_rf004_user_is_post_owner(
         assert "msg" in response_body
 
         assert response_body["msg"] == "Request body is not properly structured"
+
+
+def test_rf004_post_doesnt_exist(
+        client: TestClient
+):
+    """Checks that POST /rf004 fails if the requested post doesnt exist"""
+
+    with HTTMock(
+            mock_success_auth, mock_failed_get_post_not_found
+    ):
+        response = client.post(
+            f"{BASE_ROUTE}/posts/7c0d3940-d30d-4304-a155-77265071e0db/offers", json=BASIC_PAYLOAD,
+            headers={"Authorization": BASE_AUTH_TOKEN})
+        assert response.status_code == 404
+
+        response_body = response.json()
+        assert "msg" in response_body
 
 
 

@@ -64,13 +64,13 @@ class PostExpiredException(ResponseException):
 class PostNotFoundException(ResponseException):
     """The requested post was not found"""
     status_code = 404
-    msg = "Credentials ere not valid, or were missing"
+    msg = "The requested post doesnt exist"
 
 
 class InvalidCredentialsUserException(ResponseException):
     """The provided credentials were not valid or missing"""
     status_code = 403
-    msg = "Credentials ere not valid, or were missing"
+    msg = "Credentials were not valid, or were missing"
 
 
 class UnauthorizedUserException(ResponseException):
