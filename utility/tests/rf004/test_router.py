@@ -6,7 +6,7 @@ from sqlalchemy import delete, select, func
 from sqlalchemy.orm import Session
 
 from src.models import Utility
-from tests.mocks import mock_success_auth, mock_forbidden_auth
+from tests.rf004.mocks import mock_success_auth, mock_forbidden_auth
 
 BASE_ROUTE = "/utility/"
 BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
