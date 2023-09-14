@@ -7,8 +7,7 @@ import requests
 from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH, UTILITY_PATH
 from src.exceptions import UnauthorizedUserException, \
     PostNotFoundException, InvalidCredentialsUserException, PostExpiredException, PostIsFromSameUserException, \
-    OfferInvalidValuesException, UnexpectedResponseCodeException, FailedCreatedUtilityException, \
-    FailedDeletingOfferException
+    OfferInvalidValuesException, UnexpectedResponseCodeException, FailedCreatedUtilityException
 from src.rf004.schemas import CreateUtilityRequestSchema, BagSize, PostOfferResponseSchema
 from src.schemas import PostSchema, RouteSchema
 
@@ -61,7 +60,7 @@ class RF004:
         return route
 
     def create_offer(self, post_id: UUID, description: str, size: BagSize, fragile: bool, offer: float,
-                           bearer_token: str) -> PostOfferResponseSchema:
+                     bearer_token: str) -> PostOfferResponseSchema:
         """
         Asks offer endpoint to create new offer
         """
@@ -95,10 +94,7 @@ class RF004:
         """
         offers_url = OFFERS_PATH.rstrip("/") + f"/offers/{str(offer_id)}"
 
-        response = requests.delete(offers_url, headers={"Authorization": bearer_token})
-
-        if response.status_code != 200:
-            raise FailedDeletingOfferException()
+        requests.delete(offers_url, headers={"Authorization": bearer_token})
 
     def create_utility(self, data: CreateUtilityRequestSchema, bearer_token: str):
         """
@@ -107,7 +103,7 @@ class RF004:
         utility_url = UTILITY_PATH.rstrip("/") + "/utility"
 
         response = requests.post(utility_url, json=data.model_dump(mode='json'),
-                                         headers={"Authorization": bearer_token})
+                                 headers={"Authorization": bearer_token})
         if response.status_code != 201:
             raise FailedCreatedUtilityException()
 
