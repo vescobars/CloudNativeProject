@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-
 from src import models
 from src.database import engine
 from src.utility.router import router as utility_router

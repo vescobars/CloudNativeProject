@@ -1,7 +1,7 @@
 """ Pydantic schemas for request and response bodiess """
 import uuid
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class BagSize(Enum):
