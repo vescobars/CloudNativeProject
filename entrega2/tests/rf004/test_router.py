@@ -4,7 +4,7 @@ from httmock import HTTMock
 from tests.rf004.mocks import mock_success_auth, mock_success_get_post, \
     mock_success_create_utility, mock_success_get_route, mock_success_post_offer, mock_forbidden_auth, mock_failed_auth, \
     mock_failed_create_utility, mock_success_delete_offer, mock_success_get_post_same_user_as_owner, \
-    mock_failed_get_post_not_found
+    mock_failed_get_post_not_found, mock_success_get_post_expired
 
 BASE_ROUTE = "/rf004"
 BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
@@ -141,6 +141,23 @@ def test_rf004_post_doesnt_exist(
             f"{BASE_ROUTE}/posts/7c0d3940-d30d-4304-a155-77265071e0db/offers", json=BASIC_PAYLOAD,
             headers={"Authorization": BASE_AUTH_TOKEN})
         assert response.status_code == 404
+
+        response_body = response.json()
+        assert "msg" in response_body
+
+
+def test_rf004_post_expired(
+        client: TestClient
+):
+    """Checks that POST /rf004 fails if the requested post is already expired"""
+
+    with HTTMock(
+            mock_success_auth, mock_success_get_post_expired
+    ):
+        response = client.post(
+            f"{BASE_ROUTE}/posts/86864ea3-69ed-4fca-9158-44c15a1e61a9/offers", json=BASIC_PAYLOAD,
+            headers={"Authorization": BASE_AUTH_TOKEN})
+        assert response.status_code == 412
 
         response_body = response.json()
         assert "msg" in response_body
