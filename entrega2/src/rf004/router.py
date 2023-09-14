@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, Response, Request
 
-from src.exceptions import UnauthorizedUserException, FailedCreatedUtilityException
+from src.exceptions import UnauthorizedUserException, FailedCreatedUtilityException, ResponseException
 from src.rf004.schemas import CreateOfferRequestSchema, CreateOfferResponseSchema, CreateUtilityRequestSchema, \
     PostOfferResponseSchema
 from src.rf004.utils import RF004
@@ -48,6 +48,7 @@ def create_offer(
         ), full_token)
     except FailedCreatedUtilityException:
         rf004.delete_offer(offer.id, full_token)
+        raise ResponseException(500, "Utility failed to be stored, offer deleted")
 
     returned_offer = OfferSchema(
         id=offer.id,
