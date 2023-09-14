@@ -17,7 +17,8 @@ class RF004:
     def __init__(self, client):
         self.client = client
 
-    def get_post(self, post_id: str, user_id: str, bearer_token: str) -> PostSchema:
+    @staticmethod
+    def get_post(post_id: str, user_id: str, bearer_token: str) -> PostSchema:
         """
         Retrieves a post from the Posts endpoint
         :param post_id: the post's UUID
@@ -41,7 +42,8 @@ class RF004:
             raise PostExpiredException()
         return post
 
-    def get_route(self, route_id: UUID, bearer_token: str) -> RouteSchema:
+    @staticmethod
+    def get_route(route_id: UUID, bearer_token: str) -> RouteSchema:
         """
         Retrieves a route from the Routes endpoint
         :param route_id: the route's UUID
@@ -59,7 +61,8 @@ class RF004:
 
         return route
 
-    def create_offer(self, post_id: UUID, description: str, size: BagSize, fragile: bool, offer: float,
+    @staticmethod
+    def create_offer(post_id: UUID, description: str, size: BagSize, fragile: bool, offer: float,
                      bearer_token: str) -> PostOfferResponseSchema:
         """
         Asks offer endpoint to create new offer
@@ -88,7 +91,8 @@ class RF004:
 
         return offer
 
-    def delete_offer(self, offer_id: UUID, bearer_token: str):
+    @staticmethod
+    def delete_offer(offer_id: UUID, bearer_token: str):
         """
         Asks offer endpoint to delete offer
         """
@@ -96,7 +100,8 @@ class RF004:
 
         requests.delete(offers_url, headers={"Authorization": bearer_token})
 
-    def create_utility(self, data: CreateUtilityRequestSchema, bearer_token: str):
+    @staticmethod
+    def create_utility(data: CreateUtilityRequestSchema, bearer_token: str):
         """
         Asks Utility endpoint to create new Utility
         """

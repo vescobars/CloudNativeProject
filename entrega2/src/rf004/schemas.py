@@ -1,4 +1,4 @@
-""" Pydantic schemas for request and response bodiess """
+""" Pydantic schemas for request and response bodies """
 import datetime
 import uuid
 from enum import Enum

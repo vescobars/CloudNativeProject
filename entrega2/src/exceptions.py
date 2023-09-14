@@ -24,7 +24,7 @@ class FailedCreatedUtilityException(Exception):
 
 
 class SuccessfullyDeletedOfferException(ResponseException):
-    """Fired after a utility failed to be created, so a corrective offer deletion is successfulyl issued"""
+    """Fired after a utility failed to be created, so a corrective offer deletion is successfully issued"""
     status_code = 500
     detail = "Utility failed to be stored, offer deleted"
 

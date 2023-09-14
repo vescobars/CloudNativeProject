@@ -132,7 +132,7 @@ def test_rf004_user_is_post_owner(
 def test_rf004_post_doesnt_exist(
         client: TestClient
 ):
-    """Checks that POST /rf004 fails if the requested post doesnt exist"""
+    """Checks that POST /rf004 fails if the requested post doesn't exist"""
 
     with HTTMock(
             mock_success_auth, mock_failed_get_post_not_found
@@ -161,7 +161,6 @@ def test_rf004_post_expired(
 
         response_body = response.json()
         assert "msg" in response_body
-
 
 
 def test_ping(client: TestClient):
