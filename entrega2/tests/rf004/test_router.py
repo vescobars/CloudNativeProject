@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 from httmock import HTTMock
-from sqlalchemy.orm import Session
 
 from tests.rf004.mocks import mock_success_auth, mock_success_get_post, \
     mock_success_create_utility, mock_success_get_route, mock_success_post_offer
@@ -10,7 +9,7 @@ BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
 
 
 def test_rf004(
-        client: TestClient, session: Session
+        client: TestClient
 ):
     """Checks that POST /rf004 functions correctly and creates the offer"""
 
