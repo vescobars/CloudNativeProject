@@ -4,7 +4,7 @@ from httmock import HTTMock
 from tests.rf004.mocks import mock_success_auth, mock_success_get_post, \
     mock_success_create_utility, mock_success_get_route, mock_success_post_offer
 
-BASE_ROUTE = "/rf004/"
+BASE_ROUTE = "/rf004"
 BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
 
 
@@ -24,7 +24,8 @@ def test_rf004(
             mock_success_post_offer, mock_success_create_utility
     ):
         response = client.post(
-            BASE_ROUTE, json=payload, headers={"Authorization": BASE_AUTH_TOKEN})
+            f"{BASE_ROUTE}/posts/86864ea3-69ed-4fca-9158-44c15a1e61a9/offers", json=payload,
+            headers={"Authorization": BASE_AUTH_TOKEN})
         assert response.status_code == 201
 
         response_body = response.json()
@@ -37,6 +38,6 @@ def test_rf004(
 
 
 def test_ping(client: TestClient):
-    response = client.get("/rf004/ping")
+    response = client.get(f"{BASE_ROUTE}/ping")
     assert response.status_code == 200
     assert response.text == 'pong'
