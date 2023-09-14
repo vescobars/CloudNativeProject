@@ -14,11 +14,11 @@ BASIC_PAYLOAD = {
     "offer": 400.0
 }
 
+
 def test_rf004(
         client: TestClient
 ):
     """Checks that POST /rf004 functions correctly and creates the offer"""
-
 
     with HTTMock(
             mock_success_auth, mock_success_get_post, mock_success_get_route,

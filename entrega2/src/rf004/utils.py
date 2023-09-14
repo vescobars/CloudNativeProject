@@ -34,14 +34,12 @@ class RF004:
             raise UnauthorizedUserException()
         elif response.status_code == 403:
             raise InvalidCredentialsUserException()
-
         post = PostSchema.model_validate(response.json())
 
         if str(post.userId) == user_id:
             raise PostIsFromSameUserException()
         if datetime.utcnow() > post.expireAt:
             raise PostExpiredException()
-
         return post
 
     def get_route(self, route_id: UUID, bearer_token: str) -> RouteSchema:
