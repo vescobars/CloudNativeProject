@@ -25,8 +25,6 @@ class ImprovedRouteSchema(BaseModel):
 class RF005ResponseSchema(BaseModel):
     """The full response of RF005, a post's info, including its route and sorted list of offers"""
     id: UUID4
-    routeId: UUID4
-    userId: UUID4
 
     route: ImprovedRouteSchema
 
