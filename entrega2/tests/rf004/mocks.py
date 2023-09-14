@@ -60,6 +60,13 @@ def mock_success_post_offer(url, request):
     })
 
 
+@urlmatch(method='delete', path=r'/offers/.*')
+def mock_success_delete_offer(url, request):
+    return response(200, content={
+        "msg": "la oferta fue eliminada"
+    })
+
+
 @urlmatch(method='POST', path=r'/utility/?')
 def mock_success_create_utility(url, request):
     return response(201, content={
@@ -67,6 +74,13 @@ def mock_success_create_utility(url, request):
         "utility": 390.0,
         "createdAt": "2023-09-14T03:19:58.002748",
         "updateAt": "2023-09-14T03:19:58.002748"
+    })
+
+
+@urlmatch(method='POST', path=r'/utility/?')
+def mock_failed_create_utility(url, request):
+    return response(412, content={
+        "detail": "A utility for that offer_id already exists"
     })
 
 
