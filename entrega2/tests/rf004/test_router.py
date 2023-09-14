@@ -93,7 +93,7 @@ def test_rf004_user_is_post_owner(
     """Checks that POST /rf004 fails if the user is also the post's owner"""
 
     with HTTMock(
-            mock_success_auth, mock_success_get_post_same_user_as_owner,
+            mock_success_auth, mock_success_get_post_same_user_as_owner
     ):
         response = client.post(
             f"{BASE_ROUTE}/posts/86864ea3-69ed-4fca-9158-44c15a1e61a9/offers", json=BASIC_PAYLOAD,
@@ -106,7 +106,7 @@ def test_rf004_user_is_post_owner(
         assert response_body["msg"] == "The requested post is from the same user making an offer"
 
 
-def test_rf004_user_is_post_owner(
+def test_rf004_error_invalid_payload(
         client: TestClient
 ):
     """Checks that POST /rf004 fails if certain fields are missing"""
