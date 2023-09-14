@@ -69,6 +69,23 @@ def create_utility(
         raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
 
 
+@router.get("/{offer_id}")
+def get_utility(
+        offer_id: str,
+        sess: Annotated[Session, Depends(get_session)],
+        request: Request) -> UtilitySchema:
+    """
+    Retrieves a utility with the given offer id.
+    """
+    authenticate(request)
+
+    try:
+        return Utilities.get_utility(offer_id, sess)
+
+    except UtilityNotFoundException:
+        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
+
+
 @router.post("/list")
 def get_utilities(
         offer_ids: List[UUID4],
