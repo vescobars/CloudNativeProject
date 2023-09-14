@@ -6,14 +6,14 @@ import requests
 
 from src.constants import OFFERS_PATH, UTILITY_PATH
 from src.exceptions import UnauthorizedUserException, InvalidCredentialsUserException
-from src.rf005.schemas import ImprovedRouteSchema, Location
-from src.schemas import OfferSchema, RouteSchema
+from src.rf005.schemas import ImprovedRouteSchema, Location, ScoredOfferSchema
+from src.schemas import RouteSchema
 
 
 class RF005:
 
     @staticmethod
-    def get_filtered_offers(post_id: UUID, bearer_token: str) -> List[OfferSchema]:
+    def get_filtered_offers(post_id: UUID, bearer_token: str) -> List[ScoredOfferSchema]:
         offers_url = OFFERS_PATH.rstrip("/") + "/offers"
         response_filtered = requests.get(
             offers_url, headers={"Authorization": bearer_token},
@@ -36,9 +36,12 @@ class RF005:
             json=list(response_set.keys())
         )
 
-        filtered_sorted_offers: list[OfferSchema] = [
-            OfferSchema.model_validate(response_set[offer["offer_id"]]) for offer in response_sorted.json()
-        ]
+        filtered_sorted_offers = []
+        for offer in response_sorted.json():
+            scored_offer = response_set[offer["offer_id"]]
+            scored_offer["score"] = offer["utility"]
+            filtered_sorted_offers.append(ScoredOfferSchema.model_validate(scored_offer))
+
         return filtered_sorted_offers
 
     @staticmethod
