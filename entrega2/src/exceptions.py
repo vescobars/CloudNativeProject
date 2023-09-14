@@ -57,7 +57,7 @@ class PostUserOwnerMismatchException(ResponseException):
 
 class PostIsFromSameUserException(ResponseException):
     """The requested post is from the same user making an offer"""
-    status_code = 403
+    status_code = 412
     msg = "The requested post is from the same user making an offer"
 
 
