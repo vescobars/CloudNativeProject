@@ -6,7 +6,7 @@ from src.exceptions import UnauthorizedUserException, FailedCreatedUtilityExcept
 from src.rf004.schemas import CreateOfferRequestSchema, CreateOfferResponseSchema, CreateUtilityRequestSchema, \
     PostOfferResponseSchema
 from src.rf004.utils import RF004
-from src.schemas import PostSchema, RouteSchema, OfferSchema
+from src.schemas import PostSchema, RouteSchema, CreatedOfferSchema
 from src.utils import CommonUtils
 
 router = APIRouter()
@@ -49,7 +49,7 @@ def create_offer(
         RF004.delete_offer(offer.id, full_token)
         raise SuccessfullyDeletedOfferException()
 
-    returned_offer = OfferSchema(
+    returned_offer = CreatedOfferSchema(
         id=offer.id,
         userId=offer.userId,
         createdAt=offer.createdAt,

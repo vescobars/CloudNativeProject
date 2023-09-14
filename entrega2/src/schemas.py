@@ -3,9 +3,23 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, UUID4, Field
 
+from src.rf004.schemas import BagSize
+
 
 class OfferSchema(BaseModel):
     """Schema used to represent an offer"""
+    id: UUID4
+    userId: UUID4
+    description: str
+    size: BagSize
+    fragile: bool
+    offer: float
+    createdAt: datetime
+    postId: UUID4
+
+
+class CreatedOfferSchema(BaseModel):
+    """Schema used to represent a recently created offer"""
     id: UUID4
     userId: UUID4
     createdAt: datetime

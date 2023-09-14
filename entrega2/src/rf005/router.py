@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Response, Request
 
 from src.exceptions import UnauthorizedUserException
 from src.rf004.schemas import CreateOfferResponseSchema
-from src.schemas import PostSchema, RouteSchema, OfferSchema
+from src.schemas import PostSchema, RouteSchema, CreatedOfferSchema
 from src.utils import CommonUtils
 
 router = APIRouter()
@@ -33,7 +33,7 @@ def find_post(
 
     # TODO create methods to get list of offers
 
-    returned_offer = OfferSchema(
+    returned_offer = CreatedOfferSchema(
         id=offer.id,
         userId=offer.userId,
         createdAt=offer.createdAt,

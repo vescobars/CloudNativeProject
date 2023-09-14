@@ -5,7 +5,7 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-from src.schemas import OfferSchema
+from src.schemas import CreatedOfferSchema
 
 
 class BagSize(Enum):
@@ -34,7 +34,7 @@ class CreateOfferResponseSchema(BaseModel):
     """
     Sent after creating an offer successfully
     """
-    data: OfferSchema
+    data: CreatedOfferSchema
     msg: str
 
 
