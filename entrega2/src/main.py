@@ -4,13 +4,9 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from src import models
 from src.config import lifespan
-from src.database import engine
 from src.exceptions import ResponseException
 from src.rf004.router import router as rf004_router
-
-models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(lifespan=lifespan)
 

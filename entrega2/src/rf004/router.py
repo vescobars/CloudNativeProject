@@ -1,11 +1,8 @@
 """ /users router """
-from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Depends, Response, Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Response, Request
 
-from src.database import get_session
-from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException, FailedCreatedUtilityException
+from src.exceptions import UnauthorizedUserException, FailedCreatedUtilityException
 from src.rf004.schemas import CreateOfferRequestSchema, CreateOfferResponseSchema, CreateUtilityRequestSchema, \
     PostOfferResponseSchema
 from src.rf004.utils import RF004

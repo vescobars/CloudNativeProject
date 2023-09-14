@@ -1,20 +1,17 @@
 """ Utils for RF004 """
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 
 import requests
 from httpx import AsyncClient
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH, UTILITY_PATH
-from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException, \
+from src.exceptions import UnauthorizedUserException, \
     PostNotFoundException, InvalidCredentialsUserException, PostExpiredException, PostIsFromSameUserException, \
     OfferInvalidValuesException, UnexpectedResponseCodeException, FailedCreatedUtilityException, \
     FailedDeletingOfferException
-from src.models import Utility
 from src.rf004.schemas import CreateUtilityRequestSchema, BagSize, PostOfferResponseSchema
-from src.schemas import UtilitySchema, PostSchema, RouteSchema
+from src.schemas import PostSchema, RouteSchema
 
 
 class RF004:
