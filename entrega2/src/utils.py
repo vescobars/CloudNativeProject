@@ -8,8 +8,8 @@ from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH
 from src.exceptions import UnauthorizedUserException, \
     PostNotFoundException, InvalidCredentialsUserException, PostExpiredException, PostIsFromSameUserException, \
     OfferInvalidValuesException, UnexpectedResponseCodeException
-from src.rf004.schemas import BagSize, PostOfferResponseSchema
-from src.schemas import PostSchema, RouteSchema
+from src.rf004.schemas import PostOfferResponseSchema
+from src.schemas import PostSchema, RouteSchema, BagSize
 
 
 class CommonUtils:
