@@ -2,7 +2,8 @@ from fastapi.testclient import TestClient
 from httmock import HTTMock
 
 from tests.rf004.mocks import mock_success_auth
-from tests.rf005.mocks import mock_success_search_offers, mock_success_get_route, mock_success_get_post
+from tests.rf005.mocks import mock_success_search_offers, mock_success_get_route, mock_success_get_post, \
+    mock_success_search_utilities
 
 BASE_ROUTE = "/rf005"
 BASE_AUTH_TOKEN = "Bearer 3d91ee00503447c58e1787a90beaa265"
@@ -15,7 +16,7 @@ def test_rf005(
 
     with HTTMock(
             mock_success_auth, mock_success_search_offers, mock_success_get_post,
-            mock_success_get_route
+            mock_success_get_route, mock_success_search_utilities
     ):
         response = client.get(
             f"{BASE_ROUTE}/posts/68158796-9594-4b4f-a184-8df97379e912",

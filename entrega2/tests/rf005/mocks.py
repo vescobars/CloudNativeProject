@@ -104,7 +104,7 @@ def mock_failed_get_post_not_found(url, request):
 
 @urlmatch(method='POST', path=r'/utility/list/?')
 def mock_success_search_utilities(url, request):
-    return response(201, content=[
+    return response(200, content=[
         {
             "offer_id": "74670a89-9976-4562-813a-6ba48ae962da",
             "utility": 8980.0,

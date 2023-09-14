@@ -4,7 +4,7 @@ from uuid import UUID
 
 import requests
 
-from src.constants import OFFERS_PATH
+from src.constants import OFFERS_PATH, UTILITY_PATH
 from src.exceptions import UnauthorizedUserException, InvalidCredentialsUserException
 from src.schemas import OfferSchema
 
@@ -13,16 +13,29 @@ class RF005:
 
     @staticmethod
     def get_filtered_offers(post_id: UUID, bearer_token: str) -> List[OfferSchema]:
-        routes_url = OFFERS_PATH.rstrip("/") + "/offers"
-        response = requests.get(
-            routes_url, headers={"Authorization": bearer_token},
+        offers_url = OFFERS_PATH.rstrip("/") + "/offers"
+        response_filtered = requests.get(
+            offers_url, headers={"Authorization": bearer_token},
             params={
                 "post": str(post_id),
                 "owner": "me"
             }
         )
-        if response.status_code == 401:
+        if response_filtered.status_code == 401:
             raise UnauthorizedUserException()
-        elif response.status_code == 403:
+        elif response_filtered.status_code == 403:
             raise InvalidCredentialsUserException()
 
+        response_body = response_filtered.json()
+        response_set = {res['id']: res for res in response_body}
+
+        utilities_url = UTILITY_PATH.rstrip("/") + "/utility/list"
+        response_sorted = requests.post(
+            utilities_url, headers={"Authorization": bearer_token},
+            json=list(response_set.keys())
+        )
+
+        filtered_sorted_offers: list[OfferSchema] = [
+            OfferSchema.model_validate(response_set[offer["offer_id"]]) for offer in response_sorted.json()
+        ]
+        return filtered_sorted_offers
