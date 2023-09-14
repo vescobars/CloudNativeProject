@@ -79,6 +79,17 @@ def mock_success_get_post(url, request):
     })
 
 
+@urlmatch(method='GET', path=r'/posts/.+')
+def mock_success_get_post_different_owner(url, request):
+    return response(200, content={
+        "createdAt": "2023-09-14T03:16:41.782282",
+        "expireAt": "2028-09-21T03:16:41.672000",
+        "id": "68158796-9594-4b4f-a184-8df97379e912",
+        "routeId": "c915e59f-2ecf-4058-8728-257c23665467",
+        "userId": "89c3394d-3abe-431a-896e-c57fb90441a7"
+    })
+
+
 @urlmatch(method='GET', path=r'/routes/.+')
 def mock_success_get_route(url, request):
     return response(200, content={
