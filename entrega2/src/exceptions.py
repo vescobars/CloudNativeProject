@@ -49,6 +49,12 @@ class OfferInvalidValuesException(ResponseException):
     msg = "The offer has received invalid values"
 
 
+class PostUserOwnerMismatchException(ResponseException):
+    """The user is not the owner of the requested post"""
+    status_code = 403
+    msg = "The user is not the owner of the requested post"
+
+
 class PostIsFromSameUserException(ResponseException):
     """The requested post is from the same user making an offer"""
     status_code = 412
