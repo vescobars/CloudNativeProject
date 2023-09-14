@@ -15,13 +15,11 @@ from src.schemas import PostSchema, RouteSchema
 
 
 class RF004:
-    client: AsyncClient
 
     def __init__(self, client):
         self.client = client
 
-    @classmethod
-    async def get_post(cls, post_id: str, user_id: str, bearer_token: str) -> PostSchema:
+    async def get_post(self, post_id: str, user_id: str, bearer_token: str) -> PostSchema:
         """
         Retrieves a post from the Posts endpoint
         :param post_id: the post's UUID
@@ -30,7 +28,7 @@ class RF004:
         :return: a post object
         """
         posts_url = POSTS_PATH.rstrip("/") + f"/posts/{post_id}"
-        response = await cls.client.get(posts_url, headers={"Authorization": bearer_token})
+        response = await self.client.get(posts_url, headers={"Authorization": bearer_token})
         if response.status_code == 404:
             raise PostNotFoundException()
         elif response.status_code == 401:
@@ -47,8 +45,7 @@ class RF004:
 
         return post
 
-    @classmethod
-    async def get_route(cls, route_id: UUID, bearer_token: str) -> RouteSchema:
+    async def get_route(self, route_id: UUID, bearer_token: str) -> RouteSchema:
         """
         Retrieves a route from the Routes endpoint
         :param route_id: the route's UUID
@@ -56,7 +53,7 @@ class RF004:
         :return: a route object
         """
         routes_url = ROUTES_PATH.rstrip("/") + f"/routes/{str(route_id)}"
-        response = await cls.client.get(routes_url, headers={"Authorization": bearer_token})
+        response = await self.client.get(routes_url, headers={"Authorization": bearer_token})
         if response.status_code == 401:
             raise UnauthorizedUserException()
         elif response.status_code == 403:
@@ -66,8 +63,7 @@ class RF004:
 
         return route
 
-    @classmethod
-    async def create_offer(cls, post_id: UUID, description: str, size: BagSize, fragile: bool, offer: float,
+    async def create_offer(self, post_id: UUID, description: str, size: BagSize, fragile: bool, offer: float,
                            bearer_token: str) -> PostOfferResponseSchema:
         """
         Asks offer endpoint to create new offer
@@ -82,7 +78,7 @@ class RF004:
             "offer": offer
         }
 
-        response = await cls.client.post(offers_url, json=payload, headers={"Authorization": bearer_token})
+        response = await self.client.post(offers_url, json=payload, headers={"Authorization": bearer_token})
         if response.status_code == 401:
             raise UnauthorizedUserException()
         elif response.status_code == 403:
@@ -96,27 +92,25 @@ class RF004:
 
         return offer
 
-    @classmethod
-    async def delete_offer(cls, offer_id: UUID, bearer_token: str):
+    async def delete_offer(self, offer_id: UUID, bearer_token: str):
         """
         Asks offer endpoint to delete offer
         """
         offers_url = OFFERS_PATH.rstrip("/") + f"/offers/{str(offer_id)}"
 
-        response = await cls.client.delete(offers_url, headers={"Authorization": bearer_token})
+        response = await self.client.delete(offers_url, headers={"Authorization": bearer_token})
 
         if response.status_code != 200:
             raise FailedDeletingOfferException()
 
 
-    @classmethod
-    async def create_utility(cls, data: CreateUtilityRequestSchema, bearer_token: str):
+    async def create_utility(self, data: CreateUtilityRequestSchema, bearer_token: str):
         """
         Asks Utility endpoint to create new Utility
         """
         utility_url = UTILITY_PATH.rstrip("/") + "/utility"
 
-        response = await cls.client.post(utility_url, json=data.model_dump(mode='json'),
+        response = await self.client.post(utility_url, json=data.model_dump(mode='json'),
                                          headers={"Authorization": bearer_token})
         if response.status_code != 201:
             raise FailedCreatedUtilityException()
