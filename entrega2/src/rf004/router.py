@@ -78,8 +78,8 @@ def authenticate(request: Request) -> tuple[str, str]:
         try:
             user_id = RF004.authenticate_user(bearer_token)
         except UnauthorizedUserException:
-            raise HTTPException(status_code=403, detail="Unauthorized. Valid credentials were rejected.")
+            raise HTTPException(status_code=401, detail="Unauthorized. Valid credentials were rejected.")
 
     else:
-        raise HTTPException(status_code=401, detail="No valid credentials were provided.")
+        raise HTTPException(status_code=403, detail="No valid credentials were provided.")
     return user_id, full_token
