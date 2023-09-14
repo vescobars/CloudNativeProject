@@ -1,13 +1,11 @@
 """ Utils for RF004 """
-from datetime import datetime
 from uuid import UUID
 
 import requests
 
 from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH
 from src.exceptions import UnauthorizedUserException, \
-    PostNotFoundException, InvalidCredentialsUserException, PostExpiredException, PostIsFromSameUserException, \
-    OfferInvalidValuesException, UnexpectedResponseCodeException
+    PostNotFoundException, InvalidCredentialsUserException, OfferInvalidValuesException, UnexpectedResponseCodeException
 from src.rf004.schemas import PostOfferResponseSchema
 from src.schemas import PostSchema, RouteSchema, BagSize
 
@@ -33,10 +31,6 @@ class CommonUtils:
             raise InvalidCredentialsUserException()
         post = PostSchema.model_validate(response.json())
 
-        if str(post.userId) == user_id:
-            raise PostIsFromSameUserException()
-        if datetime.utcnow() > post.expireAt:
-            raise PostExpiredException()
         return post
 
     @staticmethod

@@ -1,10 +1,11 @@
 """ Utils for RF004 """
+from datetime import datetime
 from uuid import UUID
 
 import requests
 
 from src.constants import OFFERS_PATH, UTILITY_PATH
-from src.exceptions import FailedCreatedUtilityException
+from src.exceptions import FailedCreatedUtilityException, PostIsFromSameUserException, PostExpiredException
 from src.rf004.schemas import CreateUtilityRequestSchema
 
 
@@ -30,3 +31,10 @@ class RF004:
                                  headers={"Authorization": bearer_token})
         if response.status_code != 201:
             raise FailedCreatedUtilityException()
+
+    @staticmethod
+    def validate_same_user_or_expired(post, user_id):
+        if str(post.userId) == user_id:
+            raise PostIsFromSameUserException()
+        if datetime.utcnow() > post.expireAt:
+            raise PostExpiredException()

@@ -32,6 +32,7 @@ def create_offer(
     user_id, full_token = authenticate(request)
 
     post: PostSchema = CommonUtils.get_post(post_id, user_id, full_token)
+    RF004.validate_same_user_or_expired(post, user_id)
     route: RouteSchema = CommonUtils.get_route(post.routeId, full_token)
 
     offer: PostOfferResponseSchema = CommonUtils.create_offer(
