@@ -6,7 +6,8 @@ import requests
 
 from src.constants import OFFERS_PATH, UTILITY_PATH
 from src.exceptions import UnauthorizedUserException, InvalidCredentialsUserException
-from src.schemas import OfferSchema
+from src.rf005.schemas import ImprovedRouteSchema, Location
+from src.schemas import OfferSchema, RouteSchema
 
 
 class RF005:
@@ -39,3 +40,23 @@ class RF005:
             OfferSchema.model_validate(response_set[offer["offer_id"]]) for offer in response_sorted.json()
         ]
         return filtered_sorted_offers
+
+    @staticmethod
+    def get_detailed_route(route: RouteSchema):
+        """
+        Converts a simple route to the improved schema desired by RF005
+        """
+
+        return ImprovedRouteSchema(
+            id=route.id,
+            flightId=route.flightId,
+            origin=Location(
+                airportCode=route.sourceAirportCode,
+                country=route.sourceCountry
+            ),
+            destiny=Location(
+                airportCode=route.destinyAirportCode,
+                country=route.destinyCountry
+            ),
+            bagCost=route.bagCost
+        )
