@@ -36,3 +36,24 @@ spec:
             name: service-offers
             port:
               number: 80
+      - pathType: Prefix
+        path: /utility
+        backend:
+          service:
+            name: service-utility
+            port:
+              number: 80
+      - pathType: Prefix
+        path: /rf004
+        backend:
+          service:
+            name: service-entrega2
+            port:
+              number: 80
+      - pathType: Prefix
+        path: /rf005
+        backend:
+          service:
+            name: service-entrega2
+            port:
+              number: 80
