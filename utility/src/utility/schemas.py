@@ -33,3 +33,4 @@ class UpdateUtilityRequestSchema(BaseModel):
     offer: float
     size: BagSize
     bag_cost: int
+

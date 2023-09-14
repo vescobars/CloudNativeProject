@@ -1,9 +1,11 @@
 """ Utils for users """
 import requests
 from datetime import datetime, timezone
+from pydantic import UUID4
 from sqlalchemy import select, delete
 from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
 from sqlalchemy.orm import Session
+from typing import List
 
 from src.constants import USERS_PATH
 from src.exceptions import UniqueConstraintViolatedException, UtilityNotFoundException, UnauthorizedUserException
@@ -91,6 +93,32 @@ class Utilities:
             createdAt=retrieved_utility.createdAt,
             updateAt=retrieved_utility.updateAt
         )
+
+    @staticmethod
+    def get_utilities(offer_ids: List[UUID4], sess: Session) -> list[UtilitySchema]:
+        """
+        Retrieves utilities from the database with the given offer ids.
+
+        """
+        try:
+            retrieved_utilities_raw = list(sess.execute(
+                select(Utility)
+                .where(Utility.offer_id.in_(offer_ids))
+                .order_by(Utility.utility.desc())
+            ).scalars().all())
+
+            retrieved_utilities = [
+                UtilitySchema(
+                    offer_id=util.offer_id,
+                    utility=util.utility,
+                    createdAt=util.createdAt,
+                    updateAt=util.updateAt)
+                for util in retrieved_utilities_raw
+            ]
+        except NoResultFound:
+            return []
+
+        return retrieved_utilities if retrieved_utilities else []
 
     @staticmethod
     def delete_utility(offer_id: str, sess: Session) -> str:

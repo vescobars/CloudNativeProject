@@ -3,9 +3,10 @@ import json
 import logging
 from fastapi import APIRouter, HTTPException, Depends, Response, Request
 from fastapi.responses import JSONResponse
+from pydantic import UUID4
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
-from typing import Annotated
+from typing import Annotated, List
 
 from src.database import get_session
 from src.exceptions import UniqueConstraintViolatedException, InvalidRequestException, \
@@ -68,6 +69,19 @@ def create_utility(
         raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
 
 
+@router.post("/list")
+def get_utilities(
+        offer_ids: List[UUID4],
+        sess: Annotated[Session, Depends(get_session)],
+        request: Request) -> List[UtilitySchema]:
+    """
+    Retrieves a list of utilitie with the given offer ids.
+    """
+    authenticate(request)
+
+    return Utilities.get_utilities(offer_ids, sess)
+
+
 @router.patch("/{offer_id}")
 def update_utility(
         offer_id: str, util_data: UpdateUtilityRequestSchema,
@@ -88,23 +102,6 @@ def update_utility(
 
     except InvalidRequestException:
         raise HTTPException(status_code=400, detail="Solicitud invalida")
-    except UtilityNotFoundException:
-        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
-
-
-@router.get("/{offer_id}")
-def get_utility(
-        offer_id: str,
-        sess: Annotated[Session, Depends(get_session)],
-        request: Request) -> UtilitySchema:
-    """
-    Retrieves a utility with the given offer id.
-    """
-    authenticate(request)
-
-    try:
-        return Utilities.get_utility(offer_id, sess)
-
     except UtilityNotFoundException:
         raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
 
