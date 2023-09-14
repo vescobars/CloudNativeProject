@@ -1,8 +1,7 @@
 """ Utils for users """
 import requests
 from datetime import datetime, timezone
-from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
 from sqlalchemy.orm import Session
 
@@ -92,6 +91,22 @@ class Utilities:
             createdAt=retrieved_utility.createdAt,
             updateAt=retrieved_utility.updateAt
         )
+
+    @staticmethod
+    def delete_utility(offer_id: str, sess: Session) -> str:
+        """
+        Deletes utility from the database
+        Args:
+            offer_id:
+            sess:
+
+        Returns:
+            utility schema
+        """
+        delete_statement = delete(Utility).where(Utility.offer_id == offer_id)
+        sess.execute(delete_statement)
+        sess.commit()
+        return offer_id
 
     @staticmethod
     def authenticate_user(bearer_token: str) -> str:

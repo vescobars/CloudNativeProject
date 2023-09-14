@@ -109,6 +109,21 @@ def get_utility(
         raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
 
 
+@router.delete("/{offer_id}")
+def delete_utility(
+        offer_id: str,
+        sess: Annotated[Session, Depends(get_session)],
+        request: Request) -> dict:
+    """
+    Deletes a utility with the given offer id.
+    """
+    authenticate(request)
+
+    return {
+        "deleted_offer_id": Utilities.delete_utility(offer_id, sess)
+    }
+
+
 def authenticate(request: Request) -> str:
     """
     Checks if authorization token is present and valid, then calls users endpoint to

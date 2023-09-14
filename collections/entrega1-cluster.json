@@ -5770,6 +5770,128 @@
 						}
 					},
 					"response": []
+                },
+              {
+                "name": "Delete utility",
+                "event": [
+                  {
+                    "listen": "test",
+                    "script": {
+                      "exec": [
+                        "",
+                        "pm.test(\"Response status code is 200\", function () {",
+                        "    pm.expect(pm.response.code).to.equal(200);",
+                        "});",
+                        "",
+                        "",
+                        "pm.test(\"Validate that the 'deleted_offer_id' field is present in the response\", function () {",
+                        "    const responseData = pm.response.json();",
+                        "",
+                        "    pm.expect(responseData.deleted_offer_id).to.exist;",
+                        "});",
+                        "",
+                        "",
+                        "pm.test(\"The value of deleted_offer_id should not be empty\", function () {",
+                        "    const responseData = pm.response.json();",
+                        "",
+                        "    pm.expect(responseData.deleted_offer_id).to.exist.and.to.not.be.empty;",
+                        "});",
+                        "",
+                        ""
+                      ],
+                      "type": "text/javascript"
+                    }
+                  }
+                ],
+                "request": {
+                  "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                      {
+                        "key": "token",
+                        "value": "{{USER_TOKEN}}",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "method": "DELETE",
+                  "header": [],
+                  "url": {
+                    "raw": "http://{{UTILITIES_PATH}}/utility/{{offerId}}",
+                    "protocol": "http",
+                    "host": [
+                      "{{UTILITIES_PATH}}"
+                    ],
+                    "path": [
+                      "utility",
+                      "{{offerId}}"
+                    ]
+                  }
+                },
+                "response": []
+              },
+              {
+                "name": "Deleted utility no longer exists",
+                "event": [
+                  {
+                    "listen": "test",
+                    "script": {
+                      "exec": [
+                        "",
+                        "pm.test(\"Response status code is 404\", function () {",
+                        "    pm.expect(pm.response.code).to.equal(404);",
+                        "});",
+                        "",
+                        "",
+                        "pm.test(\"Response has the 'detail' field\", function () {",
+                        "    const responseData = pm.response.json();",
+                        "",
+                        "    pm.expect(responseData).to.be.an('object');",
+                        "    pm.expect(responseData.detail).to.exist;",
+                        "});",
+                        "",
+                        "",
+                        "pm.test(\"The 'detail' field is a non-empty string\", function () {",
+                        "    const responseData = pm.response.json();",
+                        "",
+                        "    pm.expect(responseData).to.be.an('object');",
+                        "    pm.expect(responseData.detail).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+                        "});",
+                        "",
+                        "",
+                        "",
+                        ""
+                      ],
+                      "type": "text/javascript"
+                    }
+                  }
+                ],
+                "request": {
+                  "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                      {
+                        "key": "token",
+                        "value": "{{USER_TOKEN}}",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                    "raw": "http://{{UTILITIES_PATH}}/utility/{{offerId}}",
+                    "protocol": "http",
+                    "host": [
+                      "{{UTILITIES_PATH}}"
+                    ],
+                    "path": [
+                      "utility",
+                      "{{offerId}}"
+                    ]
+                  }
+                },
+                "response": []
 				}
 			]
 		}
@@ -5870,6 +5992,42 @@
 		{
 			"key": "offerId",
 			"value": ""
+        },
+      {
+        "key": "POST_ROUTEID",
+        "value": ""
+      },
+      {
+        "key": "POST_EXPIREAT",
+        "value": ""
+      },
+      {
+        "key": "POST_ID",
+        "value": ""
+      },
+      {
+        "key": "OFFER_POSTID",
+        "value": ""
+      },
+      {
+        "key": "OFFER_DESCRIPTION",
+        "value": ""
+      },
+      {
+        "key": "OFFER_SIZE",
+        "value": ""
+      },
+      {
+        "key": "OFFER_FRAGILE",
+        "value": ""
+      },
+      {
+        "key": "OFFER_OFFER",
+        "value": ""
+      },
+      {
+        "key": "OFFER_ID",
+        "value": ""
 		}
 	]
 }

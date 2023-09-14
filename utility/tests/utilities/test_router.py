@@ -281,6 +281,43 @@ def test_get_utility_not_found(
         assert response.status_code == 404
 
 
+def test_delete_utility(
+        client: TestClient, session: Session, faker
+):
+    """
+    GIVEN I send a valid token and offer_id
+    I EXPECT a 200 response and the offer id
+    """
+    session.execute(
+        delete(Utility)
+    )
+    mock_utility = Utility(
+        offer_id=uuid.UUID("c62147cf-2e63-4508-b1ff-98f805577f2c"),
+        utility=400.2,
+        createdAt=datetime.datetime.now(),
+        updateAt=datetime.datetime.now()
+    )
+    session.add(mock_utility)
+    session.commit()
+
+    with HTTMock(mock_success_auth):
+        response = client.delete(BASE_ROUTE + str(mock_utility.offer_id), headers={
+            "Authorization": BASE_AUTH_TOKEN
+        })
+        session.flush()
+        session.commit()
+        assert response.status_code == 200
+
+        response_body = response.json()
+
+        assert response_body["deleted_offer_id"] == str(mock_utility.offer_id)
+
+        retrieved_utility = session.execute(
+            select(Utility).where(Utility.offer_id == str(mock_utility.offer_id))
+        ).scalar()
+        assert retrieved_utility is None
+
+
 def test_ping(client: TestClient):
     response = client.get("/utility/ping")
     assert response.status_code == 200
