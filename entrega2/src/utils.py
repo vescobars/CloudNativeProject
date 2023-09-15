@@ -7,7 +7,7 @@ import requests
 from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH
 from src.exceptions import UnauthorizedUserException, \
     PostNotFoundException, InvalidCredentialsUserException, OfferInvalidValuesException, \
-    UnexpectedResponseCodeException, RouteNotFoundException
+    UnexpectedResponseCodeException, RouteNotFoundException, InvalidParamsException
 from src.rf003.schemas import CreatedRouteSchema
 from src.rf004.schemas import PostOfferResponseSchema
 from src.schemas import PostSchema, RouteSchema, BagSize
@@ -127,6 +127,43 @@ class CommonUtils:
         route: CreatedRouteSchema = CreatedRouteSchema.model_validate(response.json())
 
         return route
+
+    @staticmethod
+    def get_post_filtered(expire: str, route_id: str, owner: str, bearer_token: str) -> PostSchema:
+        """
+        Retrieves a post from the Posts endpoint
+        :param expire: if the post expires
+        :param route_id: the route's UUID associated with the post
+        :param owner: the post's owner UUID
+        :param bearer_token: the bearer token with which the request is authenticated
+        :return: a post object
+        """
+
+        posts_url = POSTS_PATH.rstrip("/") + "/posts?"
+
+        if expire is not None:
+            posts_url += f"expire={expire}&"
+
+        if route_id is not None:
+            posts_url += f"route={route_id}&"
+
+        if owner is not None:
+            posts_url += f"owner={owner}&"
+
+        if posts_url.endswith('&'):
+            posts_url = posts_url[:-1]
+
+        response = requests.get(posts_url, headers={"Authorization": bearer_token})
+        if response.status_code == 404:
+            raise InvalidParamsException()
+        elif response.status_code == 401:
+            raise UnauthorizedUserException()
+        elif response.status_code == 403:
+            raise InvalidCredentialsUserException()
+
+        post = PostSchema.model_validate(response.json())
+
+        return post
 
     @staticmethod
     def authenticate_user(bearer_token: str) -> str:
