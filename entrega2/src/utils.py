@@ -7,10 +7,10 @@ import requests
 from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH
 from src.exceptions import UnauthorizedUserException, \
     PostNotFoundException, InvalidCredentialsUserException, OfferInvalidValuesException, \
-    UnexpectedResponseCodeException, RouteNotFoundException, InvalidParamsException
+    UnexpectedResponseCodeException, RouteNotFoundException, InvalidParamsException, RouteExpireAtDateExpiredException
 from src.rf003.schemas import CreatedRouteSchema
 from src.rf004.schemas import PostOfferResponseSchema
-from src.schemas import PostSchema, RouteSchema, BagSize
+from src.schemas import PostSchema, RouteSchema, BagSize, CreatedPostSchema
 
 
 class CommonUtils:
@@ -162,6 +162,34 @@ class CommonUtils:
             raise InvalidCredentialsUserException()
 
         post = PostSchema.model_validate(response.json())
+
+        return post
+
+    @staticmethod
+    def create_post(route_id: UUID, expireAt: datetime, bearer_token: str) -> CreatedPostSchema:
+        """
+        Asks offer endpoint to create new offer
+        """
+        posts_url = POSTS_PATH.rstrip("/") + "/posts"
+
+        payload = {
+            "postId": str(route_id),
+            "expireAt": expireAt
+        }
+
+        response = requests.post(posts_url, json=payload, headers={"Authorization": bearer_token})
+        if response.status_code == 401:
+            raise UnauthorizedUserException()
+        elif response.status_code == 403:
+            raise InvalidCredentialsUserException()
+        elif response.status_code == 400:
+            InvalidParamsException()
+        elif response.status_code == 412:
+            raise RouteExpireAtDateExpiredException()
+        elif response.status_code != 201:
+            raise UnexpectedResponseCodeException(response)
+
+        post: CreatedPostSchema = CreatedPostSchema.model_validate(response.json())
 
         return post
 

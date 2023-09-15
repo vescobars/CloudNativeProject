@@ -4,7 +4,7 @@ import uuid
 
 from pydantic import BaseModel
 
-from src.schemas import CreatedPostSchema
+from src.rf004.schemas import PostOfferResponseSchema
 
 
 class CreateRoutePostRequestSchema(BaseModel):
@@ -21,13 +21,6 @@ class CreateRoutePostRequestSchema(BaseModel):
     plannedEndDate: datetime
     expireAt: datetime
 
-
-class CreateRoutePostResponseSchema(BaseModel):
-    """
-    Sent after creating an offer successfully
-    """
-    data: CreatedPostSchema
-    msg: str
 
 
 class CreatedRouteSchema(BaseModel):

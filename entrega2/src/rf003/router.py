@@ -1,9 +1,9 @@
 import uuid
 
 from fastapi import APIRouter, HTTPException, Response, Request
-from src.rf003.schemas import CreateRoutePostRequestSchema, CreateRoutePostResponseSchema, CreatedRouteSchema
+from src.rf003.schemas import CreateRoutePostRequestSchema, CreatedRouteSchema
 from src.rf003.utils import RF003
-from src.schemas import RouteSchema, PostSchema
+from src.schemas import RouteSchema, CreateRoutePostResponseSchema, CreatedPostSchema
 from src.utils import CommonUtils
 from src.exceptions import UnauthorizedUserException, RouteNotFoundException
 
@@ -38,12 +38,16 @@ def create_post(route_data: CreateRoutePostRequestSchema, route_id: str, request
                                                              route_data.plannedStartDate,
                                                              route_data.plannedEndDate,
                                                              full_token)
-
     RF003.validate_same_user_or_dates(route, route_data.expireAt)
     posts = CommonUtils.get_post_filtered(None, route.id, user_id, full_token)
     RF003.validate_post(posts)
+    post: CreatedPostSchema = CommonUtils.create_post(route.id, route_data.expireAt, full_token)
 
-    return None
+    final_response = CreateRoutePostResponseSchema(
+        data=post,
+        msg=f"Post (id={str(post.id)}) has been successfully created")
+    response.status_code = 201
+    return final_response
 
 
 def authenticate(request: Request) -> tuple[str, str]:

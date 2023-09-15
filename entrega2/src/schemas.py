@@ -36,7 +36,6 @@ class CreatedPostSchema(BaseModel):
     id: UUID4
     userId: UUID4
     createdAt: datetime
-    routeId: UUID4
 
 
 class UtilitySchema(BaseModel):
@@ -77,3 +76,11 @@ class RouteSchema(BaseModel):
     plannedStartDate: datetime
     plannedEndDate: datetime
     createdAt: datetime
+
+
+class CreateRoutePostResponseSchema(BaseModel):
+    """
+    Sent after creating an offer successfully
+    """
+    data: CreatedPostSchema
+    msg: str

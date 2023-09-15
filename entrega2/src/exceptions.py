@@ -72,20 +72,22 @@ class PostNotFoundException(ResponseException):
     status_code = 404
     msg = "The requested post doesnt exist"
 
+
 class PostNotFoundException(ResponseException):
     """The requested post was not found"""
     status_code = 404
     msg = "The requested post doesnt exist"
+
 
 class PostUniqueException(ResponseException):
     """There is one or more posts that assigned to your route"""
     status_code = 409
     msg = "There is one or more posts that assigned to your route"
 
+
 class InvalidParamsException(ResponseException):
     code = 400
     msg = "Invalid Parameters"
-
 
 
 class InvalidCredentialsUserException(ResponseException):
@@ -105,10 +107,12 @@ class RouteStartDateExpiredException(ResponseException):
     status_code = 412
     msg = "The route's start date is invalid"
 
+
 class RouteEndDateExpiredException(ResponseException):
     """The route's end date is invalid"""
     status_code = 412
     msg = "The route's end date is invalid"
+
 
 class RouteExpireAtDateExpiredException(ResponseException):
     """The post's expire at date is invalid"""
@@ -120,4 +124,3 @@ class RouteNotFoundException(ResponseException):
     """The requested route was not found"""
     status_code = 404
     msg = "The requested route was not found"
-
