@@ -31,6 +31,14 @@ class CreatedOfferSchema(BaseModel):
     postId: UUID4
 
 
+class CreatedPostSchema(BaseModel):
+    """Schema used to represent a recently created post"""
+    id: UUID4
+    userId: UUID4
+    createdAt: datetime
+    routeId: UUID4
+
+
 class UtilitySchema(BaseModel):
     """
     Defines the pydantic model (schema) for Utility

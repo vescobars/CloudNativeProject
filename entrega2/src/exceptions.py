@@ -83,3 +83,15 @@ class UnauthorizedUserException(ResponseException):
     """The provided credentials were valid, but were rejected due to lack of authorization or expiration"""
     status_code = 401
     msg = "Credentials were correctly formatted, but were rejected by the server"
+
+
+class RouteStartDateExpiredException(ResponseException):
+    """The route's start date is invalid"""
+    status_code = 412
+    msg = "The route's start date is invalid"
+
+
+class RouteNotFoundException(ResponseException):
+    """The requested route was not found"""
+    status_code = 404
+    msg = "The requested route was not found"

@@ -1,11 +1,14 @@
 """ Utils for RF004 """
 from uuid import UUID
+from datetime import datetime
 
 import requests
 
 from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH
 from src.exceptions import UnauthorizedUserException, \
-    PostNotFoundException, InvalidCredentialsUserException, OfferInvalidValuesException, UnexpectedResponseCodeException
+    PostNotFoundException, InvalidCredentialsUserException, OfferInvalidValuesException, \
+    UnexpectedResponseCodeException, RouteNotFoundException
+from src.rf003.schemas import CreatedRouteSchema
 from src.rf004.schemas import PostOfferResponseSchema
 from src.schemas import PostSchema, RouteSchema, BagSize
 
@@ -47,6 +50,8 @@ class CommonUtils:
             raise UnauthorizedUserException()
         elif response.status_code == 403:
             raise InvalidCredentialsUserException()
+        elif response.status_code == 404:
+            raise RouteNotFoundException();
 
         route = RouteSchema.model_validate(response.json())
 
@@ -81,6 +86,47 @@ class CommonUtils:
         offer: PostOfferResponseSchema = PostOfferResponseSchema.model_validate(response.json())
 
         return offer
+
+    @staticmethod
+    def create_route(flightId: str, sourceAirportCode: str, sourceCountry: str,
+                     destinyAirportCode: str, destinyCountry: str, bagCost: int,
+                     plannedStartDate: datetime, plannedEndDate: datetime, bearer_token: str) -> CreatedRouteSchema:
+        """
+        Asks offer endpoint to create new offer
+        """
+        routes_url = ROUTES_PATH.rstrip("/") + "/routes"
+
+        payload = {
+            "flightId": flightId,
+            "sourceAirportCode": sourceAirportCode,
+            "sourceCountry": sourceCountry,
+            "destinyAirportCode": destinyAirportCode,
+            "destinyCountry": destinyCountry,
+            "bagCost": bagCost,
+            "plannedStartDate": plannedStartDate,
+            "plannedEndDate": plannedEndDate
+        }
+
+        response = requests.post(routes_url, json=payload, headers={"Authorization": bearer_token})
+        if response.status_code == 401:
+            raise UnauthorizedUserException()
+        elif response.status_code == 403:
+            raise InvalidCredentialsUserException()
+        elif response.status_code == 412:
+            raise OfferInvalidValuesException(response.json())
+        elif response.status_code == 412:
+            response_json = response.json()
+            error_description = response_json.get("description")
+            if error_description == "Las fechas del trayecto no son válidas":
+                raise OfferInvalidValuesException(response_json)
+            elif error_description == "Flight ID already exists":
+                raise OfferInvalidValuesException(response_json)
+        elif response.status_code != 201:
+            raise UnexpectedResponseCodeException(response)
+
+        route: CreatedRouteSchema = CreatedRouteSchema.model_validate(response.json())
+
+        return route
 
     @staticmethod
     def authenticate_user(bearer_token: str) -> str:

@@ -6,11 +6,13 @@ from fastapi.responses import JSONResponse
 
 from src.config import lifespan
 from src.exceptions import ResponseException
+from src.rf003.router import router as rf003_router
 from src.rf004.router import router as rf004_router
 from src.rf005.router import router as rf005_router
 
 app = FastAPI(lifespan=lifespan)
 
+app.include_router(rf005_router, prefix="/rf003", tags=["RF003"])
 app.include_router(rf004_router, prefix="/rf004", tags=["RF004"])
 app.include_router(rf005_router, prefix="/rf005", tags=["RF005"])
 
