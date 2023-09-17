@@ -19,35 +19,49 @@ def ping():
     return Response(content="pong", media_type="application/text", status_code=200)
 
 
-@router.post("/routes/{route_id}/posts")
-def create_post(route_data: CreateRoutePostRequestSchema, route_id: str, request: Request,
+@router.post("/rf003/posts")
+def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
                 response: Response) -> CreateRoutePostResponseSchema:
     """
     Creates a post with the given data.
     """
     user_id, full_token = authenticate(request)
+    route_id = None
+    post_id = None
     try:
-        route: RouteSchema = CommonUtils.get_route(uuid.UUID(route_id), full_token)
-    except RouteNotFoundException:
-        route: CreatedRouteSchema = CommonUtils.create_route(route_data.flightId,
-                                                             route_data.sourceAirportCode,
-                                                             route_data.sourceCountry,
-                                                             route_data.destinyAirportCode,
-                                                             route_data.destinyCountry,
-                                                             route_data.bagCost,
-                                                             route_data.plannedStartDate,
-                                                             route_data.plannedEndDate,
-                                                             full_token)
-    RF003.validate_same_user_or_dates(route, route_data.expireAt)
-    posts = CommonUtils.get_post_filtered(None, route.id, user_id, full_token)
-    RF003.validate_post(posts)
-    post: CreatedPostSchema = CommonUtils.create_post(route.id, route_data.expireAt, full_token)
+        try:
+            route: RouteSchema = CommonUtils.get_route(uuid.UUID(route_data.id), full_token)
+        except RouteNotFoundException:
+            route: CreatedRouteSchema = CommonUtils.create_route(route_data.flightId,
+                                                                 route_data.sourceAirportCode,
+                                                                 route_data.sourceCountry,
+                                                                 route_data.destinyAirportCode,
+                                                                 route_data.destinyCountry,
+                                                                 route_data.bagCost,
+                                                                 route_data.plannedStartDate,
+                                                                 route_data.plannedEndDate,
+                                                                 full_token)
+        route_id = route.id
+        RF003.validate_same_user_or_dates(route, route_data.expireAt)
+        posts = CommonUtils.get_post_filtered(None, route.id, user_id, full_token)
+        if len(posts) == 0:
+            post: CreatedPostSchema = CommonUtils.create_post(route.id, route_data.expireAt, full_token)
+            final_response = CreateRoutePostResponseSchema(
+                data=post,
+                msg=f"Post (id={str(post.id)}) has been successfully created")
+            response.status_code = 201
+            return final_response
+        else:
+            RF003.validate_post(posts)
+            final_response: CreateRoutePostResponseSchema = CreateRoutePostResponseSchema(
+                data=posts[0],
+                msg=f"Post (id={str(posts[0].id)}) has been successfully created")
+            response.status_code = 201
+            return final_response
+    except:
+        RF003.delete_route(route_id, full_token)
+        RF003.delete_post(post_id, full_token)
 
-    final_response = CreateRoutePostResponseSchema(
-        data=post,
-        msg=f"Post (id={str(post.id)}) has been successfully created")
-    response.status_code = 201
-    return final_response
 
 
 def authenticate(request: Request) -> tuple[str, str]:
