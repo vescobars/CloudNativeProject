@@ -1,10 +1,8 @@
 """ Pydantic schemas for request and response bodies """
-from datetime import datetime
 import uuid
+from datetime import datetime
 
 from pydantic import BaseModel
-
-from src.rf004.schemas import PostOfferResponseSchema
 
 
 class CreateRoutePostRequestSchema(BaseModel):
@@ -22,10 +20,9 @@ class CreateRoutePostRequestSchema(BaseModel):
     expireAt: datetime
 
 
-
 class CreatedRouteSchema(BaseModel):
     """
     Response returned by POST /offer
     """
-    id = uuid.UUID
-    createdAt = datetime
+    id: uuid.UUID
+    createdAt: datetime
