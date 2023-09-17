@@ -31,13 +31,6 @@ class CreatedOfferSchema(BaseModel):
     postId: UUID4
 
 
-class CreatedPostSchema(BaseModel):
-    """Schema used to represent a recently created post"""
-    id: UUID4
-    userId: UUID4
-    createdAt: datetime
-
-
 class UtilitySchema(BaseModel):
     """
     Defines the pydantic model (schema) for Utility
@@ -76,14 +69,6 @@ class RouteSchema(BaseModel):
     plannedStartDate: datetime
     plannedEndDate: datetime
     createdAt: datetime
-
-
-class CreateRoutePostResponseSchema(BaseModel):
-    """
-    Sent after creating an offer successfully
-    """
-    data: CreatedPostSchema
-    msg: str
 
 
 class Location(BaseModel):

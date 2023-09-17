@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 
 from src.schemas import Location
 
@@ -28,3 +28,20 @@ class CreatedRouteSchema(BaseModel):
     """
     id: uuid.UUID
     createdAt: datetime
+
+
+class PostWithRouteSchema(BaseModel):
+    """The inner class returned in data by RF003"""
+    id: UUID4
+    userId: UUID4
+    createdAt: datetime
+    expireAt: datetime
+    route: CreatedRouteSchema
+
+
+class CreatePostResponseSchema(BaseModel):
+    """
+        Sent after creating an offer successfully
+        """
+    data: PostWithRouteSchema
+    msg: str
