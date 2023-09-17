@@ -19,7 +19,7 @@ def ping():
     return Response(content="pong", media_type="application/text", status_code=200)
 
 
-@router.post("/rf003/posts")
+@router.post("/posts")
 def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
                 response: Response) -> CreateRoutePostResponseSchema:
     """
