@@ -75,12 +75,15 @@ class RF003:
             raise PostFoundInRouteException()
 
     @staticmethod
-    def validate_same_user_or_dates(route, expire_at):
-        if route.plannedStartDate < datetime.utcnow():
+    def validate_same_user_or_dates(route, expire_at: datetime):
+        expire_at_naive = expire_at.replace(tzinfo=None)
+        dt_now_naive = datetime.utcnow()
+
+        if route.plannedStartDate < dt_now_naive:
             raise RouteStartDateExpiredException()
-        if datetime.utcnow() > route.plannedEndDate:
+        if route.plannedEndDate < dt_now_naive:
             raise RouteEndDateExpiredException()
-        if datetime.utcnow() > expire_at:
+        if dt_now_naive > expire_at_naive:
             raise RouteExpireAtDateExpiredException()
-        if expire_at > route.plannedStartDate:
+        if expire_at_naive > route.plannedStartDate:
             raise RouteExpireAtDateExpiredException()
