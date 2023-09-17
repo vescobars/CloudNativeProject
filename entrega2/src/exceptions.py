@@ -99,19 +99,19 @@ class UnauthorizedUserException(ResponseException):
 class RouteStartDateExpiredException(ResponseException):
     """The route's start date is invalid"""
     status_code = 412
-    msg = "The route's start date is invalid"
+    msg = "Las fechas del trayecto no son válidas"
 
 
 class RouteEndDateExpiredException(ResponseException):
     """The route's end date is invalid"""
     status_code = 412
-    msg = "The route's end date is invalid"
+    msg = "Las fechas del trayecto no son válidas"
 
 
 class RouteExpireAtDateExpiredException(ResponseException):
     """The post's expire at date is invalid"""
     status_code = 412
-    msg = "The post's expire at date is invalid"
+    msg = "La fecha expiración no es válida"
 
 
 class RouteNotFoundException(ResponseException):
@@ -123,7 +123,7 @@ class RouteNotFoundException(ResponseException):
 class PostFoundInRouteException(ResponseException):
     """There is already posts with your user in this route"""
     status_code = 404
-    msg = "There is already posts with your user in this route"
+    msg = "El usuario ya tiene una publicación para la misma fecha"
 
 
 class SuccessfullyDeletedRouteException(ResponseException):
