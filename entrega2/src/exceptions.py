@@ -73,12 +73,6 @@ class PostNotFoundException(ResponseException):
     msg = "The requested post doesnt exist"
 
 
-class PostNotFoundException(ResponseException):
-    """The requested post was not found"""
-    status_code = 404
-    msg = "The requested post doesnt exist"
-
-
 class PostUniqueException(ResponseException):
     """There is one or more posts that assigned to your route"""
     status_code = 409
@@ -124,3 +118,15 @@ class RouteNotFoundException(ResponseException):
     """The requested route was not found"""
     status_code = 404
     msg = "The requested route was not found"
+
+
+class PostFoundInRouteException(ResponseException):
+    """There is already posts with your user in this route"""
+    status_code = 404
+    msg = "There is already posts with your user in this route"
+
+
+class SuccessfullyDeletedRouteException(ResponseException):
+    """Fired after a failed to implement RF003"""
+    status_code = 500
+    detail = "Route failed to be stored, offer deleted"
