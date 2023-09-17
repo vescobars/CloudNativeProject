@@ -1,7 +1,8 @@
 """ Utils for RF003 """
 from datetime import datetime
+from typing import List, Optional
 from uuid import UUID
-from typing import List
+
 import requests
 
 from src.constants import POSTS_PATH, ROUTES_PATH
@@ -14,7 +15,7 @@ from src.schemas import PostSchema
 class RF003:
 
     @staticmethod
-    def get_post_filtered(expire: str, route_id: str, owner: str, bearer_token: str) -> List[PostSchema]:
+    def get_post_filtered(expire: Optional[str], route_id: str, owner: str, bearer_token: str) -> List[PostSchema]:
         """
         Retrieves a post from the Posts endpoint
         :param expire: if the post expires
@@ -74,12 +75,12 @@ class RF003:
             raise PostFoundInRouteException()
 
     @staticmethod
-    def validate_same_user_or_dates(route, expireAt):
+    def validate_same_user_or_dates(route, expire_at):
         if route.plannedStartDate > datetime.utcnow():
             raise RouteStartDateExpiredException()
         if datetime.utcnow() > route.plannedEndDate:
             raise RouteEndDateExpiredException()
-        if datetime.utcnow() > expireAt:
+        if datetime.utcnow() > expire_at:
             raise RouteExpireAtDateExpiredException()
-        if expireAt > route.plannedStartDate:
+        if expire_at > route.plannedStartDate:
             raise RouteExpireAtDateExpiredException()
