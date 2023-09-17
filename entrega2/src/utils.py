@@ -39,10 +39,31 @@ class CommonUtils:
         return post
 
     @staticmethod
-    def search_route(flight_id: str, bearer_token: str) -> RouteSchema:
+    def get_route(route_id: UUID, bearer_token: str) -> RouteSchema:
         """
         Retrieves a route from the Routes endpoint
-        :param flight_id: the route's UUID
+        :param route_id: the route's UUID
+        :param bearer_token: the bearer token with which the request is authenticated
+        :return: a route object
+        """
+        routes_url = ROUTES_PATH.rstrip("/") + f"/routes/{str(route_id)}"
+        response = requests.get(routes_url, headers={"Authorization": bearer_token})
+        if response.status_code == 401:
+            raise UnauthorizedUserException()
+        elif response.status_code == 403:
+            raise InvalidCredentialsUserException()
+        elif response.status_code == 404:
+            raise RouteNotFoundException();
+
+        route = RouteSchema.model_validate(response.json())
+
+        return route
+
+    @staticmethod
+    def search_route(flight_id: str, bearer_token: str) -> RouteSchema:
+        """
+        Retrieves a route from the Routes endpoint by filtering through the flight ID
+        :param flight_id: the route's flightID
         :param bearer_token: the bearer token with which the request is authenticated
         :return: a route object
         """

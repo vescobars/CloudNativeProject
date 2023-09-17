@@ -18,8 +18,7 @@ class RF005:
         response_filtered = requests.get(
             offers_url, headers={"Authorization": bearer_token},
             params={
-                "post": str(post_id),
-                "owner": "me"
+                "post": str(post_id)
             }
         )
         if response_filtered.status_code == 401:

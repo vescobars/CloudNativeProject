@@ -3,9 +3,9 @@
 from fastapi import APIRouter, HTTPException, Response, Request
 
 from src.exceptions import UnauthorizedUserException
-from src.rf005.schemas import WrappedRF005ResponseSchema, RF005ResponseSchema
+from src.rf005.schemas import WrappedRF005ResponseSchema, RF005ResponseSchema, ScoredOfferSchema
 from src.rf005.utils import RF005
-from src.schemas import PostSchema, RouteSchema, OfferSchema
+from src.schemas import PostSchema, RouteSchema
 from src.utils import CommonUtils
 
 router = APIRouter()
@@ -35,7 +35,7 @@ def find_post(
     route: RouteSchema = CommonUtils.get_route(post.routeId, full_token)
     detailed_route = RF005.get_detailed_route(route)
 
-    offers: list[OfferSchema] = RF005.get_filtered_offers(post.id, full_token)
+    offers: list[ScoredOfferSchema] = RF005.get_filtered_offers(post.id, full_token)
 
     post_info = RF005ResponseSchema(
         id=post.id,
