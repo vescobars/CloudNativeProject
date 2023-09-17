@@ -84,3 +84,9 @@ class CreateRoutePostResponseSchema(BaseModel):
     """
     data: CreatedPostSchema
     msg: str
+
+
+class Location(BaseModel):
+    """An airport code and a country, representing an origin or destination"""
+    airportCode: str = Field(max_length=4)
+    country: str

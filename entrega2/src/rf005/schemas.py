@@ -2,15 +2,9 @@
 from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel, UUID4, Field
+from pydantic import BaseModel, UUID4
 
-from src.schemas import BagSize
-
-
-class Location(BaseModel):
-    """An airport code and a country, representing an origin or destination"""
-    airportCode: str = Field(max_length=4)
-    country: str
+from src.schemas import BagSize, Location
 
 
 class ImprovedRouteSchema(BaseModel):
