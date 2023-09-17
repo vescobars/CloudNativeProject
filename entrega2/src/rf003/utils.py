@@ -76,7 +76,7 @@ class RF003:
 
     @staticmethod
     def validate_same_user_or_dates(route, expire_at):
-        if route.plannedStartDate > datetime.utcnow():
+        if route.plannedStartDate < datetime.utcnow():
             raise RouteStartDateExpiredException()
         if datetime.utcnow() > route.plannedEndDate:
             raise RouteEndDateExpiredException()

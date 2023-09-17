@@ -46,7 +46,7 @@ class CommonUtils:
         :param bearer_token: the bearer token with which the request is authenticated
         :return: a route object
         """
-        routes_url = ROUTES_PATH.rstrip("/") + "/routes/"
+        routes_url = ROUTES_PATH.rstrip("/") + "/routes"
         response = requests.get(routes_url, headers={"Authorization": bearer_token}, params={"flight": str(flight_id)})
         if response.status_code == 401:
             raise UnauthorizedUserException()
@@ -93,9 +93,9 @@ class CommonUtils:
         return offer
 
     @staticmethod
-    def create_route(flight_id: str, sourceAirportCode: str, sourceCountry: str,
-                     destinyAirportCode: str, destinyCountry: str, bagCost: int,
-                     plannedStartDate: datetime, plannedEndDate: datetime, bearer_token: str) -> CreatedRouteSchema:
+    def create_route(flight_id: str, source_airport_code: str, source_country: str,
+                     destiny_airport_code: str, destiny_country: str, bag_cost: int,
+                     planned_start_date: datetime, planned_end_date: datetime, bearer_token: str) -> CreatedRouteSchema:
         """
         Asks offer endpoint to create new offer
         """
@@ -103,13 +103,13 @@ class CommonUtils:
 
         payload = {
             "flightId": flight_id,
-            "sourceAirportCode": sourceAirportCode,
-            "sourceCountry": sourceCountry,
-            "destinyAirportCode": destinyAirportCode,
-            "destinyCountry": destinyCountry,
-            "bagCost": bagCost,
-            "plannedStartDate": plannedStartDate,
-            "plannedEndDate": plannedEndDate
+            "sourceAirportCode": source_airport_code,
+            "sourceCountry": source_country,
+            "destinyAirportCode": destiny_airport_code,
+            "destinyCountry": destiny_country,
+            "bagCost": bag_cost,
+            "plannedStartDate": planned_start_date,
+            "plannedEndDate": planned_end_date
         }
 
         response = requests.post(routes_url, json=payload, headers={"Authorization": bearer_token})
