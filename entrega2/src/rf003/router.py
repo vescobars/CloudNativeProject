@@ -2,9 +2,10 @@ from fastapi import APIRouter, HTTPException, Response, Request
 
 from src.exceptions import UnauthorizedUserException, RouteNotFoundException, SuccessfullyDeletedRouteException, \
     ResponseException
-from src.rf003.schemas import CreateRoutePostRequestSchema, CreatedRouteSchema
+from src.rf003.schemas import CreateRoutePostRequestSchema, CreatedRouteSchema, CreatePostResponseSchema, \
+    PostWithRouteSchema, CreatedPostSchema
 from src.rf003.utils import RF003
-from src.schemas import RouteSchema, CreateRoutePostResponseSchema, CreatedPostSchema
+from src.schemas import RouteSchema
 from src.utils import CommonUtils
 
 router = APIRouter()
@@ -21,16 +22,18 @@ def ping():
 
 @router.post("/posts")
 def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
-                response: Response) -> CreateRoutePostResponseSchema:
+                response: Response) -> CreatePostResponseSchema:
     """
     Creates a post with the given data.
     """
     user_id, full_token = authenticate(request)
     route_created = False
+    RF003.validate_same_user_or_dates(route_data.plannedStartDate, route_data.plannedEndDate, route_data.expireAt)
     try:
         route: RouteSchema = CommonUtils.search_route(route_data.flightId, full_token)
+        RF003.validate_same_user_or_dates(route.plannedStartDate, route.plannedEndDate, route_data.expireAt)
     except RouteNotFoundException:
-        route: CreatedRouteSchema = CommonUtils.create_route(
+        created_route: CreatedRouteSchema = CommonUtils.create_route(
             route_data.flightId,
             route_data.origin.airportCode,
             route_data.origin.country,
@@ -40,15 +43,31 @@ def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
             route_data.plannedStartDate,
             route_data.plannedEndDate,
             full_token)
+        route: RouteSchema = RouteSchema(
+            id=created_route.id,
+            flightId=route_data.flightId,
+            sourceAirportCode=route_data.origin.airportCode,
+            sourceCountry=route_data.origin.country,
+            destinyAirportCode=route_data.destiny.airportCode,
+            destinyCountry=route_data.destiny.country,
+            bagCost=route_data.bagCost,
+            plannedStartDate=route_data.plannedStartDate,
+            plannedEndDate=route_data.plannedEndDate,
+            createdAt=created_route.createdAt)
         route_created = True
-
-    RF003.validate_same_user_or_dates(route, route_data.expireAt)
 
     posts = RF003.get_post_filtered(None, route.id, user_id, full_token)
     if len(posts) == 0:
         try:
-            post: CreatedPostSchema = CommonUtils.create_post(route.id, route_data.expireAt, full_token)
-            final_response = CreateRoutePostResponseSchema(
+            post_raw: CreatedPostSchema = CommonUtils.create_post(route.id, route_data.expireAt, full_token)
+            post: PostWithRouteSchema = PostWithRouteSchema(
+                **post_raw.model_dump(),
+                route=CreatedRouteSchema(
+                    id=route.id,
+                    createdAt=route.createdAt
+                ),
+            )
+            final_response = CreatePostResponseSchema(
                 data=post,
                 msg=f"Post (id={str(post.id)}) has been successfully created")
             response.status_code = 201
@@ -61,8 +80,16 @@ def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
 
     else:
         RF003.validate_post(posts)
-        post: CreatedPostSchema = CreatedPostSchema.model_validate(posts[0])
-        final_response: CreateRoutePostResponseSchema = CreateRoutePostResponseSchema(
+        post: PostWithRouteSchema = PostWithRouteSchema(
+            route=CreatedRouteSchema(
+                id=route.id,
+                createdAt=route.createdAt
+            ),
+            id=posts[0].id,
+            userId=posts[0].userId,
+            createdAt=posts[0].createdAt,
+            expireAt=posts[0].expireAt)
+        final_response: CreatePostResponseSchema = CreatePostResponseSchema(
             data=post,
             msg="There is already a post in this route with your user")
         response.status_code = 201

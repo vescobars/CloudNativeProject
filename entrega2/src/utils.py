@@ -10,9 +10,9 @@ from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH
 from src.exceptions import UnauthorizedUserException, \
     PostNotFoundException, InvalidCredentialsUserException, OfferInvalidValuesException, \
     UnexpectedResponseCodeException, RouteNotFoundException, InvalidParamsException, RouteExpireAtDateExpiredException
-from src.rf003.schemas import CreatedRouteSchema
+from src.rf003.schemas import CreatedRouteSchema, CreatedPostSchema
 from src.rf004.schemas import PostOfferResponseSchema
-from src.schemas import PostSchema, RouteSchema, BagSize, CreatedPostSchema
+from src.schemas import PostSchema, RouteSchema, BagSize
 
 
 class CommonUtils:
@@ -108,8 +108,8 @@ class CommonUtils:
             "destinyAirportCode": destiny_airport_code,
             "destinyCountry": destiny_country,
             "bagCost": bag_cost,
-            "plannedStartDate": planned_start_date,
-            "plannedEndDate": planned_end_date
+            "plannedStartDate": str(planned_start_date),
+            "plannedEndDate": str(planned_end_date)
         }
 
         response = requests.post(routes_url, json=payload, headers={"Authorization": bearer_token})
@@ -154,7 +154,12 @@ class CommonUtils:
         elif response.status_code != 201:
             raise UnexpectedResponseCodeException(response)
 
-        post: CreatedPostSchema = CreatedPostSchema.model_validate(response.json())
+        res_body_dict = response.json()
+        post: CreatedPostSchema = CreatedPostSchema(
+            id=res_body_dict['id'],
+            userId=res_body_dict['userId'],
+            createdAt=res_body_dict['createdAt'],
+            expireAt=expire_at)
 
         return post
 
