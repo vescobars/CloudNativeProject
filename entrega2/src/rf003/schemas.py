@@ -30,6 +30,14 @@ class CreatedRouteSchema(BaseModel):
     createdAt: datetime
 
 
+class CreatedPostSchema(BaseModel):
+    """Schema of a post. Doesn't include route"""
+    id: UUID4
+    userId: UUID4
+    createdAt: datetime
+    expireAt: datetime
+
+
 class PostWithRouteSchema(BaseModel):
     """The inner class returned in data by RF003"""
     id: UUID4
