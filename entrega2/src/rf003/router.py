@@ -26,36 +26,39 @@ def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
     Creates a post with the given data.
     """
     user_id, full_token = authenticate(request)
-    route_id = None
     route_created = False
     try:
         route: RouteSchema = CommonUtils.search_route(route_data.flightId, full_token)
     except RouteNotFoundException:
-        route: CreatedRouteSchema = CommonUtils.create_route(route_data.flightId,
-                                                             route_data.origin.airportCode,
-                                                             route_data.origin.country,
-                                                             route_data.destiny.airportCode,
-                                                             route_data.destiny.country,
-                                                             route_data.bagCost,
-                                                             route_data.plannedStartDate,
-                                                             route_data.plannedEndDate,
-                                                             full_token)
+        route: CreatedRouteSchema = CommonUtils.create_route(
+            route_data.flightId,
+            route_data.origin.airportCode,
+            route_data.origin.country,
+            route_data.destiny.airportCode,
+            route_data.destiny.country,
+            route_data.bagCost,
+            route_data.plannedStartDate,
+            route_data.plannedEndDate,
+            full_token)
         route_created = True
-    route_id = route.id
+
     RF003.validate_same_user_or_dates(route, route_data.expireAt)
+
     posts = RF003.get_post_filtered(None, route.id, user_id, full_token)
     if len(posts) == 0:
         try:
             post: CreatedPostSchema = CommonUtils.create_post(route.id, route_data.expireAt, full_token)
-        except ResponseException:
+            final_response = CreateRoutePostResponseSchema(
+                data=post,
+                msg=f"Post (id={str(post.id)}) has been successfully created")
+            response.status_code = 201
+            return final_response
+        except ResponseException as e:
+            print(e)
             if route_created:
-                RF003.delete_route(route_id, full_token)
-            raise SuccessfullyDeletedRouteException()
-        final_response = CreateRoutePostResponseSchema(
-            data=post,
-            msg=f"Post (id={str(post.id)}) has been successfully created")
-        response.status_code = 201
-        return final_response
+                RF003.delete_route(route.id, full_token)
+                raise SuccessfullyDeletedRouteException()
+
     else:
         RF003.validate_post(posts)
         post: CreatedPostSchema = CreatedPostSchema.model_validate(posts[0])

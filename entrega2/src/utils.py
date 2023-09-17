@@ -6,7 +6,7 @@ from uuid import UUID
 import requests
 from pydantic import TypeAdapter
 
-from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH, datetime_to_str
+from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH
 from src.exceptions import UnauthorizedUserException, \
     PostNotFoundException, InvalidCredentialsUserException, OfferInvalidValuesException, \
     UnexpectedResponseCodeException, RouteNotFoundException, InvalidParamsException, RouteExpireAtDateExpiredException
@@ -138,8 +138,8 @@ class CommonUtils:
         posts_url = POSTS_PATH.rstrip("/") + "/posts"
 
         payload = {
-            "postId": str(route_id),
-            "expireAt": datetime_to_str(expire_at)
+            "routeId": str(route_id),
+            "expireAt": str(expire_at)
         }
 
         response = requests.post(posts_url, json=payload, headers={"Authorization": bearer_token})
