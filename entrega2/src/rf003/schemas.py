@@ -4,20 +4,22 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from src.schemas import Location
+
 
 class CreateRoutePostRequestSchema(BaseModel):
     """
-    Used when creating an Offer
+    Used when creating a Route
     """
     flightId: str
-    sourceAirportCode: str
-    sourceCountry: str
-    destinyAirportCode: str
-    destinyCountry: str
-    bagCost: int
+    expireAt: datetime
     plannedStartDate: datetime
     plannedEndDate: datetime
-    expireAt: datetime
+
+    origin: Location
+    destiny: Location
+
+    bagCost: int
 
 
 class CreatedRouteSchema(BaseModel):
