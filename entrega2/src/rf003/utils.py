@@ -65,7 +65,7 @@ class RF003:
 
     @staticmethod
     def validate_post(posts):
-        if len(posts) > 1:
+        if len(posts) > 0:
             raise PostFoundInRouteException()
 
     @staticmethod

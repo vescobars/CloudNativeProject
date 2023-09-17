@@ -80,20 +80,6 @@ def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
 
     else:
         RF003.validate_post(posts)
-        post: PostWithRouteSchema = PostWithRouteSchema(
-            route=CreatedRouteSchema(
-                id=route.id,
-                createdAt=route.createdAt
-            ),
-            id=posts[0].id,
-            userId=posts[0].userId,
-            createdAt=posts[0].createdAt,
-            expireAt=posts[0].expireAt)
-        final_response: CreatePostResponseSchema = CreatePostResponseSchema(
-            data=post,
-            msg="There is already a post in this route with your user")
-        response.status_code = 201
-        return final_response
 
 
 def authenticate(request: Request) -> tuple[str, str]:
