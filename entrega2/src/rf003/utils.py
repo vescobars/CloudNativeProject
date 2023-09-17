@@ -27,19 +27,13 @@ class RF003:
 
         posts_url = POSTS_PATH.rstrip("/") + "/posts?"
 
-        if expire is not None:
-            posts_url += f"expire={expire}&"
+        params = {
+            "expire": expire,
+            "route": route_id,
+            "owner": owner,
+        }
 
-        if route_id is not None:
-            posts_url += f"route={route_id}&"
-
-        if owner is not None:
-            posts_url += f"owner={owner}&"
-
-        if posts_url.endswith('&'):
-            posts_url = posts_url[:-1]
-
-        response = requests.get(posts_url, headers={"Authorization": bearer_token})
+        response = requests.get(posts_url, headers={"Authorization": bearer_token}, params=params)
         if response.status_code == 404:
             raise InvalidParamsException()
         elif response.status_code == 401:
