@@ -122,7 +122,7 @@ class RouteNotFoundException(ResponseException):
 
 class PostFoundInRouteException(ResponseException):
     """There is already posts with your user in this route"""
-    status_code = 404
+    status_code = 412
     msg = "El usuario ya tiene una publicación para la misma fecha"
 
 
