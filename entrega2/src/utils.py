@@ -1,8 +1,10 @@
 """ Utils"""
-from uuid import UUID
 from datetime import datetime
+from typing import List
+from uuid import UUID
 
 import requests
+from pydantic import TypeAdapter
 
 from src.constants import USERS_PATH, POSTS_PATH, ROUTES_PATH, OFFERS_PATH
 from src.exceptions import UnauthorizedUserException, \
@@ -37,25 +39,28 @@ class CommonUtils:
         return post
 
     @staticmethod
-    def get_route(route_id: UUID, bearer_token: str) -> RouteSchema:
+    def search_route(flight_id: str, bearer_token: str) -> RouteSchema:
         """
         Retrieves a route from the Routes endpoint
-        :param route_id: the route's UUID
+        :param flight_id: the route's UUID
         :param bearer_token: the bearer token with which the request is authenticated
         :return: a route object
         """
-        routes_url = ROUTES_PATH.rstrip("/") + f"/routes/{str(route_id)}"
-        response = requests.get(routes_url, headers={"Authorization": bearer_token})
+        routes_url = ROUTES_PATH.rstrip("/") + "/routes/"
+        response = requests.get(routes_url, headers={"Authorization": bearer_token}, params={"flight": str(flight_id)})
         if response.status_code == 401:
             raise UnauthorizedUserException()
         elif response.status_code == 403:
             raise InvalidCredentialsUserException()
         elif response.status_code == 404:
-            raise RouteNotFoundException();
+            raise RouteNotFoundException()
 
-        route = RouteSchema.model_validate(response.json())
+        ta = TypeAdapter(List[RouteSchema])
+        routes_list = ta.validate_python(response.json())
+        if len(routes_list) != 1:
+            raise RouteNotFoundException()
 
-        return route
+        return routes_list[0]
 
     @staticmethod
     def create_offer(post_id: UUID, description: str, size: BagSize, fragile: bool, offer: float,
@@ -88,7 +93,7 @@ class CommonUtils:
         return offer
 
     @staticmethod
-    def create_route(flightId: str, sourceAirportCode: str, sourceCountry: str,
+    def create_route(flight_id: str, sourceAirportCode: str, sourceCountry: str,
                      destinyAirportCode: str, destinyCountry: str, bagCost: int,
                      plannedStartDate: datetime, plannedEndDate: datetime, bearer_token: str) -> CreatedRouteSchema:
         """
@@ -97,7 +102,7 @@ class CommonUtils:
         routes_url = ROUTES_PATH.rstrip("/") + "/routes"
 
         payload = {
-            "flightId": flightId,
+            "flightId": flight_id,
             "sourceAirportCode": sourceAirportCode,
             "sourceCountry": sourceCountry,
             "destinyAirportCode": destinyAirportCode,
@@ -113,13 +118,10 @@ class CommonUtils:
         elif response.status_code == 403:
             raise InvalidCredentialsUserException()
         elif response.status_code == 412:
-            raise OfferInvalidValuesException(response.json())
-        elif response.status_code == 412:
             response_json = response.json()
             error_description = response_json.get("description")
-            if error_description == "Las fechas del trayecto no son válidas":
-                raise OfferInvalidValuesException(response_json)
-            elif error_description == "Flight ID already exists":
+            if (error_description == "Las fechas del trayecto no son válidas" or
+                    error_description == "Flight ID already exists"):
                 raise OfferInvalidValuesException(response_json)
         elif response.status_code != 201:
             raise UnexpectedResponseCodeException(response)
@@ -129,7 +131,7 @@ class CommonUtils:
         return route
 
     @staticmethod
-    def create_post(route_id: UUID, expireAt: datetime, bearer_token: str) -> CreatedPostSchema:
+    def create_post(route_id: UUID, expire_at: datetime, bearer_token: str) -> CreatedPostSchema:
         """
         Asks offer endpoint to create new offer
         """
@@ -137,7 +139,7 @@ class CommonUtils:
 
         payload = {
             "postId": str(route_id),
-            "expireAt": expireAt
+            "expireAt": expire_at
         }
 
         response = requests.post(posts_url, json=payload, headers={"Authorization": bearer_token})

@@ -1,11 +1,11 @@
-import uuid
-
 from fastapi import APIRouter, HTTPException, Response, Request
+
+from src.exceptions import UnauthorizedUserException, RouteNotFoundException, SuccessfullyDeletedRouteException, \
+    ResponseException
 from src.rf003.schemas import CreateRoutePostRequestSchema, CreatedRouteSchema
 from src.rf003.utils import RF003
 from src.schemas import RouteSchema, CreateRoutePostResponseSchema, CreatedPostSchema
 from src.utils import CommonUtils
-from src.exceptions import UnauthorizedUserException, RouteNotFoundException, SuccessfullyDeletedRouteException
 
 router = APIRouter()
 
@@ -29,7 +29,7 @@ def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
     route_id = None
     try:
         try:
-            route: RouteSchema = CommonUtils.get_route(uuid.UUID(route_data.id), full_token)
+            route: RouteSchema = CommonUtils.search_route(route_data.flightId, full_token)
         except RouteNotFoundException:
             route: CreatedRouteSchema = CommonUtils.create_route(route_data.flightId,
                                                                  route_data.sourceAirportCode,
@@ -55,10 +55,10 @@ def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
             post: CreatedPostSchema = CreatedPostSchema.model_validate(posts[0])
             final_response: CreateRoutePostResponseSchema = CreateRoutePostResponseSchema(
                 data=post,
-                msg=f"There is already a post in this route with your user")
+                msg="There is already a post in this route with your user")
             response.status_code = 201
             return final_response
-    except:
+    except ResponseException:
         RF003.delete_route(route_id, full_token)
         raise SuccessfullyDeletedRouteException()
 
