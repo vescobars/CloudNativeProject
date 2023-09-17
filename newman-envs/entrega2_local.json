@@ -1,0 +1,21 @@
+{
+  "id": "fb8ad829-85eb-4363-9d3a-98283b671df9",
+  "name": "nubes_cluster_entrega2",
+  "values": [
+    {
+      "key": "INGRESS_PATH",
+      "value": "34.117.41.0",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "RF_MICRO_PATH",
+      "value": "localhost:8200",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2023-09-16T16:18:09.567Z",
+  "_postman_exported_using": "Postman/10.17.7"
+}
