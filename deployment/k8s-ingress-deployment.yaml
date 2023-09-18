@@ -44,7 +44,7 @@ spec:
             port:
               number: 80
       - pathType: Prefix
-        path: /rf005
+        path: /rf003
         backend:
           service:
             name: service-entrega2

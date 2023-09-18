@@ -46,7 +46,7 @@ metadata:
 spec:
   healthCheck:
     checkIntervalSec: 30
-    port: 3000
+    port: 8000
     type: HTTP
     requestPath: /utility/ping
 ---
@@ -63,8 +63,9 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 3000
+      targetPort: 8000
       nodePort: 31014
+
 ---
 ###################################
 # Entrega2 RF003, RF004, RF005
@@ -87,7 +88,7 @@ spec:
     spec:
       containers:
         - name: entrega2
-          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/entrega2:0.1
+          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/entrega2:0.5
           env:
             - name: USERS_PATH
               value: http://service-users
@@ -112,7 +113,7 @@ metadata:
 spec:
   healthCheck:
     checkIntervalSec: 30
-    port: 3000
+    port: 8000
     type: HTTP
     requestPath: /rf004/ping
 ---
@@ -129,5 +130,5 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 3000
+      targetPort: 8000
       nodePort: 31015
