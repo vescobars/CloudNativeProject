@@ -17,6 +17,7 @@ Team: Cloudians
 - [Ejecutar Docker Compose](#ejecutar-docker-compose)
 - [Ejecutar Colección de Postman](#ejecutar-colección-de-postman)
 - [Ejecutar evaluador github action workflow](#ejecutar-evaluador-github-action-workflow)
+- [Ejecución Entrega 2](#Ejecución-Entrega-2)
 
 ## Pre-requisitos para cada microservicio
 - Python ~3.9
@@ -292,3 +293,24 @@ Luego, encontrarás en la sección izquierda una lista de todos los flujos de tr
 Esto iniciará la ejecución del workflow en la rama. Si todo funciona correctamente y la entrega es correcta, verás que todas las comprobaciones aparecen como aprobadas (passed).
 
 <img src="https://github.com/MISW-4301-Desarrollo-Apps-en-la-Nube/proyecto-202314-base/assets/78829363/c6c580b2-80e0-411d-8971-a252312ce5ea" alt="Screenshot" width="800">
+
+# Ejecución Entrega 2
+El archivo ci_pipeline.yaml contiene la configuración para el proceso de Integración Continua (CI) de un proyecto; específicamente, define una serie de trabajos (Jobs) que se ejecutan automáticamente en eventos particulares, como el push de código a las ramas "main" y "develop". Uno de estos trabajos se llama test_entrega2.
+
+El job test_entrega2 se encarga de todas las pruebas relacionadas con la segunda entrega del proyecto; aquí detallamos sus pasos específicos:
+
+1.	Configuración del Entorno: Ejecutamos la tarea en una máquina virtual con el sistema operativo Ubuntu; en este caso, utilizamos la versión 3.9 de Python.
+
+2.	Preparación del Entorno de Python: Configuramos la versión especificada de Python e instalamos todas las herramientas necesarias para el proyecto, garantizando así un funcionamiento sin problemas y procesos de desarrollo.
+
+3.	Instalación de Dependencias: Nos dirigimos al directorio ./entrega2 e instalamos las dependencias del proyecto utilizando Pipenv, asegurando que todas las bibliotecas necesarias estén disponibles para las pruebas.
+
+4.	Configuración de la Base de Datos: Instalamos una instancia de PostgreSQL en un contenedor Docker, específicamente para la Prueba de Entrega 2; establecemos las credenciales para asegurarnos de que la base de datos esté disponible antes de continuar.
+
+5.	Ejecución de Pruebas Unitarias: Finalmente, se ejecutan las pruebas unitarias del proyecto utilizando Pytest, y posteriormente se configuran las variables de entorno como el nombre de la base de datos, el host y otras configuraciones relacionadas. Estas pruebas incluyen la medición de la cobertura del código; si la cobertura es inferior al 70%, se considera que el trabajo ha fallado.
+
+<img src="https://github.com/MISW-4301-Desarrollo-Apps-en-la-Nube/s202314-proyecto-grupo17/assets/56740710/351a89fd-1ecd-457d-8f54-885d10654137" alt="Screenshot" width="800">
+
+
+En resumen, la función de test_entrega2 es automatizar la ejecución de las pruebas de entrega 2, asegurando que el entorno esté configurado de manera adecuada y consistente. Si la cobertura de código no alcanza un mínimo de 70%, esto indica un fallo en nuestro proceso de integración continua; estos parámetros garantizan pruebas rigurosas antes de implementar en las ramas principales del proyecto.
+
