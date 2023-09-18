@@ -295,7 +295,7 @@ Esto iniciará la ejecución del workflow en la rama. Si todo funciona correctam
 <img src="https://github.com/MISW-4301-Desarrollo-Apps-en-la-Nube/proyecto-202314-base/assets/78829363/c6c580b2-80e0-411d-8971-a252312ce5ea" alt="Screenshot" width="800">
 
 # Ejecución Entrega 2
-El archivo ci_pipeline.yaml contiene la configuración para el proceso de Integración Continua (CI) de un proyecto; específicamente, define una serie de trabajos (Jobs) que se ejecutan automáticamente en eventos particulares, como el push de código a las ramas "main" y "develop". Uno de estos trabajos se llama test_entrega2.
+El archivo ci_pipeline.yaml contiene la configuración para el proceso de Integración Continua (CI) del proyecto; específicamente, define una serie de trabajos (Jobs) que se ejecutan automáticamente en eventos particulares, como el push de código a las ramas "main" y "develop". Uno de estos trabajos se llama test_entrega2.
 
 El job test_entrega2 se encarga de todas las pruebas relacionadas con la segunda entrega del proyecto; aquí detallamos sus pasos específicos:
 
