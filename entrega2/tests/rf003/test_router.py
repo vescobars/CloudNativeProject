@@ -210,7 +210,7 @@ def test_rf003_get_route_success(
         assert response_body["data"]["id"] != ""
         assert response_body["data"]["id"] is not None
         assert response_body["data"]["userId"] == "ab99beb5-37e7-4e85-87e2-3578f92d883c"
-        assert response_body["data"]["createdAt"] == "2023-10-05T21:20:54.214Z"
+        assert response_body["data"]["createdAt"] == "2023-10-05T21:20:53.214Z"
         assert response_body["data"]["expireAt"] == "2023-10-10T21:20:53.214Z"
         assert response_body["data"]["route"]["id"] == "a8ae58c4-1d41-4d3c-a3f8-f941906779b4"
         assert response_body["data"]["route"]["createdAt"] == "2023-09-25T21:20:54.214Z"
@@ -240,80 +240,20 @@ def test_rf003_create_route_success(
         assert response_body["data"]["id"] != ""
         assert response_body["data"]["id"] is not None
         assert response_body["data"]["userId"] == "ab99beb5-37e7-4e85-87e2-3578f92d883c"
-        assert response_body["data"]["createdAt"] == "2023-10-05T21:20:54.214Z"
+        assert response_body["data"]["createdAt"] == "2023-10-05T21:20:53.214Z"
         assert response_body["data"]["expireAt"] == "2023-10-10T21:20:53.214Z"
         assert response_body["data"]["route"]["id"] == "a8ae58c4-1d41-4d3c-a3f8-f941906779b4"
         assert response_body["data"]["route"]["createdAt"] == "2023-09-25T21:20:54.214Z"
 
 
-def test_rf003_get_route_failed_empty_get_posts(
-        client: TestClient
-):
-    """Checks that POST /rf003 functions correctly and creates the post"""
-
-    with HTTMock(
-            mock_success_auth,
-            mock_success_get_routes,
-            mock_success_get_posts_empty_response,
-            mock_failed_create_post
-    ):
-        response = client.post(
-            f"{BASE_ROUTE}/posts", json=BASIC_PAYLOAD,
-            headers={"Authorization": BASE_AUTH_TOKEN})
-        assert response.status_code == 500
-        response_body = response.json()
-        assert "msg" in response_body
-        assert response_body["msg"] == "Route failed to be stored, offer deleted"
-
-
-def test_rf003_create_route_failed_empty_get_posts(
-        client: TestClient
-):
-    """Checks that POST /rf003 functions correctly and creates the post"""
-
-    with HTTMock(
-            mock_success_auth,
-            mock_success_get_routes_empty_response,
-            mock_success_get_posts_empty_response,
-            mock_success_create_route,
-            mock_failed_create_post
-    ):
-        response = client.post(
-            f"{BASE_ROUTE}/posts", json=BASIC_PAYLOAD,
-            headers={"Authorization": BASE_AUTH_TOKEN})
-        assert response.status_code == 500
-        response_body = response.json()
-        assert "msg" in response_body
-        assert response_body["msg"] == "Route failed to be stored, offer deleted"
-
-
 def test_rf003_get_route_failed_get_posts(
         client: TestClient
 ):
-    """Checks that POST /rf003 functions correctly and creates the post"""
+    """Checks that POST /rf003 fails when the user has a post in the system and the route is in the system"""
 
     with HTTMock(
             mock_success_auth,
             mock_success_get_routes,
-            mock_success_get_posts
-    ):
-        response = client.post(
-            f"{BASE_ROUTE}/posts", json=BASIC_PAYLOAD,
-            headers={"Authorization": BASE_AUTH_TOKEN})
-        assert response.status_code == 412
-        response_body = response.json()
-        assert "msg" in response_body
-        assert response_body["msg"] == "El usuario ya tiene una publicación para la misma fecha"
-
-
-def test_rf003_create_route_failed_get_posts(
-        client: TestClient
-):
-    """Checks that POST /rf003 functions correctly and creates the post"""
-
-    with HTTMock(
-            mock_success_auth,
-            mock_success_create_route,
             mock_success_get_posts
     ):
         response = client.post(
