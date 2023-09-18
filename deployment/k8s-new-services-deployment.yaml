@@ -65,6 +65,7 @@ spec:
       port: 80
       targetPort: 8000
       nodePort: 31014
+
 ---
 ###################################
 # Entrega2 RF003, RF004, RF005
@@ -87,7 +88,7 @@ spec:
     spec:
       containers:
         - name: entrega2
-          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/entrega2:0.3
+          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/entrega2:0.5
           env:
             - name: USERS_PATH
               value: http://service-users
