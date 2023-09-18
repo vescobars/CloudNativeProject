@@ -10,6 +10,7 @@ team:
       - user: v.escobar1@uniandes.edu.co
         percentage: 30
 board: https://github.com/orgs/MISW-4301-Desarrollo-Apps-en-la-Nube/projects/108
+url: http://34.117.41.0
 user-management:
   folder: users
   port: 3000
@@ -29,4 +30,16 @@ route-management:
   folder: routes
   port: 3000
   authors:
+    - v.escobar1@uniandes.edu.co
+utility-management:
+  folder: utility
+  port: 8000
+  authors:
+    - d.granadam@uniandes.edu.co
+entrega2-management:
+  folder: entrega2
+  port: 8000
+  authors:
+    - d.granadam@uniandes.edu.co
+    - j.charryg@uniandes.edu.co
     - v.escobar1@uniandes.edu.co
