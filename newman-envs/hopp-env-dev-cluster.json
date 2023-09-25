@@ -4,31 +4,31 @@
 	"values": [
 		{
 			"key": "POSTS_PATH",
-			"value": "34.117.41.0",
+          "value": "34.149.221.138",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "OFFERS_PATH",
-			"value": "34.117.41.0",
+          "value": "34.149.221.138",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "USERS_PATH",
-			"value": "34.117.41.0",
+          "value": "34.149.221.138",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "ROUTES_PATH",
-			"value": "34.117.41.0",
+          "value": "34.149.221.138",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "UTILITIES_PATH",
-			"value": "localhost:8001",
+          "value": "34.149.221.138",
 			"type": "default",
 			"enabled": true
 		}

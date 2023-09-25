@@ -7,12 +7,6 @@
       "value": "34.149.221.138",
       "type": "default",
       "enabled": true
-    },
-    {
-      "key": "RF_MICRO_PATH",
-      "value": "localhost:8200",
-      "type": "default",
-      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment",
