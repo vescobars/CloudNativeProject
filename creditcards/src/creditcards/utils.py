@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from src.constants import USERS_PATH
 from src.creditcards.schemas import CreateCCRequestSchema
-from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException
+from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException, ExpiredCreditCardException
 from src.models import Utility
 from src.schemas import UtilitySchema
 
@@ -23,6 +23,7 @@ class CreditCardUtils:
         Insert a new credit card into the CreditCard table
         """
         new_utility = None
+        CreditCardUtils.validate_cc_expiration_date(data.expirationDate)
         utility_value = get_utility(data.offer, data.size, data.bag_cost)
         current_time = datetime.now(timezone.utc)
         try:
@@ -38,6 +39,19 @@ class CreditCardUtils:
         except IntegrityError as e:
             raise UniqueConstraintViolatedException(e)
         return new_utility
+
+    @staticmethod
+    def validate_cc_expiration_date(date: str):
+        """Throws exception if date is already expired"""
+        yy_raw, mm_raw = date.split("/")
+        mm = int(mm_raw)
+        yy = int(yy_raw)
+        current_date = datetime.now()
+        if current_date.year % 100 > yy:
+            raise ExpiredCreditCardException()
+        elif (current_date.year % 100 == yy and
+              current_date.month > mm):
+            raise ExpiredCreditCardException()
 
     @staticmethod
     def get_utilities(offer_ids: List[UUID4], sess: Session) -> list[UtilitySchema]:

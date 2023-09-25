@@ -34,6 +34,12 @@ class InvalidParamsException(ResponseException):
     msg = "Invalid Parameters"
 
 
+class ExpiredCreditCardException(ResponseException):
+    """Credit card is already expired"""
+    code = 412
+    msg = "Credit card is already expired"
+
+
 class InvalidCredentialsUserException(ResponseException):
     """The provided credentials were not valid or missing"""
     status_code = 403
