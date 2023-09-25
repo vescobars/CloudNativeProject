@@ -4,9 +4,13 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from src import models
 from src.config import lifespan
 from src.creditcards.router import router as creditcards_router
+from src.database import engine
 from src.exceptions import ResponseException
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(lifespan=lifespan)
 

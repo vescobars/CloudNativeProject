@@ -8,14 +8,11 @@ from fastapi.responses import JSONResponse
 from pydantic import UUID4
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
-from src.utility.schemas import CreateUtilityRequestSchema, UpdateUtilityRequestSchema
-from src.utility.utils import Utilities
 
+from src.creditcards.schemas import CreateCCRequestSchema, CreateCCResponseSchema
+from src.creditcards.utils import CreditCardUtils
 from src.database import get_session
-from src.exceptions import UniqueConstraintViolatedException, InvalidRequestException, \
-    UtilityNotFoundException, UnauthorizedUserException
-from src.models import Utility
-from src.schemas import UtilitySchema
+from src.models import CreditCard
 
 router = APIRouter()
 
@@ -34,12 +31,12 @@ async def reset(
         session: Session = Depends(get_session),
 ):
     """
-    Clears the utilities table
+    Clears the credit card table
     Returns:
         msg: Todos los datos fueron eliminados
     """
     try:
-        statement = delete(Utility)
+        statement = delete(CreditCard)
         print(statement)
         with session:
             session.execute(statement)
@@ -52,17 +49,16 @@ async def reset(
 
 
 @router.post("/")
-def create_utility(
-        util_data: CreateUtilityRequestSchema, request: Request, response: Response,
+def create_card(
+        card_data: CreateCCRequestSchema, request: Request, response: Response,
         sess: Annotated[Session, Depends(get_session)],
-) -> UtilitySchema:
+) -> CreateCCResponseSchema:
     """
-    Creates a utility with the given data.
-    Offer_id must be unique
+    Creates a credit card with the given data.
     """
     authenticate(request)
     try:
-        new_user = Utilities().create_utility(util_data, sess)
+        new_user = CreditCardUtils().create_utility(util_data, sess)
         response.status_code = 201
         return new_user
     except UniqueConstraintViolatedException as e:

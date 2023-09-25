@@ -4,33 +4,23 @@ from typing import List
 
 import requests
 from pydantic import UUID4
-from sqlalchemy import select, delete
-from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
-from src.utility.schemas import CreateUtilityRequestSchema, BagSize, UpdateUtilityRequestSchema
 
 from src.constants import USERS_PATH
-from src.exceptions import UniqueConstraintViolatedException, UtilityNotFoundException, UnauthorizedUserException
+from src.creditcards.schemas import CreateCCRequestSchema
+from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException
 from src.models import Utility
 from src.schemas import UtilitySchema
 
 
-def get_utility(offer: float, size: BagSize, bag_cost: int) -> float:
-    """Calculates utility score"""
-    bag_occupation = 1.0
-    if size == BagSize.MEDIUM:
-        bag_occupation = 0.5
-    if size == BagSize.SMALL:
-        bag_occupation = 0.25
-    return offer - (bag_occupation * float(bag_cost))
-
-
-class Utilities:
+class CreditCardUtils:
 
     @staticmethod
-    def create_utility(data: CreateUtilityRequestSchema, session: Session) -> UtilitySchema:
+    def create_card(data: CreateCCRequestSchema, session: Session) -> UtilitySchema:
         """
-        Insert a new utility into the Utilities table
+        Insert a new credit card into the CreditCard table
         """
         new_utility = None
         utility_value = get_utility(data.offer, data.size, data.bag_cost)
@@ -48,52 +38,6 @@ class Utilities:
         except IntegrityError as e:
             raise UniqueConstraintViolatedException(e)
         return new_utility
-
-    @staticmethod
-    def update_utility(offer_id: str, data: UpdateUtilityRequestSchema, sess: Session) -> bool:
-        """Updates utility value given a certain offer_id"""
-        try:
-            retrieved_utility = sess.execute(
-                select(Utility).where(Utility.offer_id == offer_id)
-            ).scalar_one()
-
-            updated = False
-            utility_value = get_utility(data.offer, data.size, data.bag_cost)
-            if retrieved_utility.utility != utility_value:
-                retrieved_utility.utility = utility_value
-                updated = True
-
-            if updated:
-                retrieved_utility.updateAt = datetime.now(timezone.utc)
-                sess.commit()
-            return updated
-        except (NoResultFound, DataError, TypeError):
-            raise UtilityNotFoundException()
-
-    @staticmethod
-    def get_utility(offer_id: str, sess: Session) -> UtilitySchema:
-        """
-        Retrieves utility from the database
-        Args:
-            offer_id:
-            sess:
-
-        Returns:
-            utility schema
-        """
-        try:
-            retrieved_utility: Utility = sess.execute(
-                select(Utility).where(Utility.offer_id == offer_id)
-            ).scalar_one()
-        except NoResultFound:
-            raise UtilityNotFoundException()
-
-        return UtilitySchema(
-            offer_id=retrieved_utility.offer_id,
-            utility=retrieved_utility.utility,
-            createdAt=retrieved_utility.createdAt,
-            updateAt=retrieved_utility.updateAt
-        )
 
     @staticmethod
     def get_utilities(offer_ids: List[UUID4], sess: Session) -> list[UtilitySchema]:
@@ -120,22 +64,6 @@ class Utilities:
             return []
 
         return retrieved_utilities if retrieved_utilities else []
-
-    @staticmethod
-    def delete_utility(offer_id: str, sess: Session) -> str:
-        """
-        Deletes utility from the database
-        Args:
-            offer_id:
-            sess:
-
-        Returns:
-            utility schema
-        """
-        delete_statement = delete(Utility).where(Utility.offer_id == offer_id)
-        sess.execute(delete_statement)
-        sess.commit()
-        return offer_id
 
     @staticmethod
     def authenticate_user(bearer_token: str) -> str:
