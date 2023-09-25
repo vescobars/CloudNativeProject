@@ -10,7 +10,7 @@ team:
       - user: v.escobar1@uniandes.edu.co
         percentage: 30
 board: https://github.com/orgs/MISW-4301-Desarrollo-Apps-en-la-Nube/projects/108
-url: 34.117.41.0
+url: 34.149.221.138
 user-management:
   folder: users
   port: 3000

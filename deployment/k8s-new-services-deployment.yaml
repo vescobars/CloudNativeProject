@@ -19,14 +19,14 @@ spec:
     spec:
       containers:
         - name: utility
-          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/utility:1.0
+          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/utility:1.0
           env:
             - name: DB_USER
               value: postgres
             - name: DB_PASSWORD
-              value: Excavator-Opium-Resident2
+              value: Sadly-Rack-Distinct7
             - name: DB_HOST
-              value: 35.209.59.86
+              value: 34.29.124.123
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
@@ -77,7 +77,7 @@ metadata:
   labels:
     app: entrega2
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: entrega2
@@ -88,7 +88,7 @@ spec:
     spec:
       containers:
         - name: entrega2
-          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/entrega2:0.5
+          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/entrega2:1.0
           env:
             - name: USERS_PATH
               value: http://service-users
