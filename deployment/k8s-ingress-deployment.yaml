@@ -64,3 +64,10 @@ spec:
             name: service-entrega2
             port:
               number: 80
+      - pathType: Prefix
+        path: /native
+        backend:
+          service:
+            name: service-truenative
+            port:
+              number: 80

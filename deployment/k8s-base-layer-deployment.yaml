@@ -19,18 +19,18 @@ spec:
     spec:
       containers:
         - name: users
-          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/users:1.0
+          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/users:1.0
           env:
             - name: DB_USER
               value: postgres
             - name: DB_PASSWORD
-              value: Excavator-Opium-Resident2
+              value: Sadly-Rack-Distinct7
             - name: DB_HOST
-              value: 35.209.59.86
+              value: 34.29.124.123
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
-              value: monitor_users
+              value: users
           ports:
             - containerPort: 3000
           # Realizar pull siempre a la imagen
@@ -86,14 +86,14 @@ spec:
     spec:
       containers:
         - name: routes
-          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/routes:1.0
+          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/routes:1.0
           env:
             - name: DB_USER
               value: postgres
             - name: DB_PASSWORD
-              value: Excavator-Opium-Resident2
+              value: Sadly-Rack-Distinct7
             - name: DB_HOST
-              value: 35.209.59.86
+              value: 34.29.124.123
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
@@ -155,14 +155,14 @@ spec:
     spec:
       containers:
         - name: posts
-          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/posts:1.0
+          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/posts:1.0
           env:
             - name: DB_USER
               value: postgres
             - name: DB_PASSWORD
-              value: Excavator-Opium-Resident2
+              value: Sadly-Rack-Distinct7
             - name: DB_HOST
-              value: 35.209.59.86
+              value: 34.29.124.123
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
@@ -223,14 +223,14 @@ spec:
     spec:
       containers:
         - name: offers
-          image: us-central1-docker.pkg.dev/miso-first-project-396722/grupo17-registry/offers:1.0
+          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/offers:1.0
           env:
             - name: DB_USER
               value: postgres
             - name: DB_PASSWORD
-              value: Excavator-Opium-Resident2
+              value: Sadly-Rack-Distinct7
             - name: DB_HOST
-              value: 35.209.59.86
+              value: 34.29.124.123
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
