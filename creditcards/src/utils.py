@@ -3,11 +3,12 @@ from datetime import datetime, timezone
 
 import requests
 from pydantic import UUID4
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
 from src.constants import USERS_PATH
-from src.exceptions import UnauthorizedUserException, UniqueConstraintViolatedException
+from src.exceptions import UnauthorizedUserException, UniqueConstraintViolatedException, CreditCardTokenExistsException
 from src.models import CreditCard
 from src.schemas import IssuerEnum, StatusEnum
 
@@ -44,6 +45,21 @@ class CommonUtils:
         except IntegrityError as e:
             raise UniqueConstraintViolatedException(e)
         return new_cc
+
+    @staticmethod
+    def check_card_token_exists(
+            token: str,
+            session: Session
+    ):
+        """Raises exception if token already exists"""
+
+        try:
+            retrieved_cc = session.execute(
+                select(CreditCard).where(CreditCard.token == token)
+            ).scalar_one()
+            raise CreditCardTokenExistsException()
+        except NoResultFound:
+            return
 
     @staticmethod
     def authenticate_user(bearer_token: str) -> str:

@@ -40,6 +40,12 @@ class ExpiredCreditCardException(ResponseException):
     msg = "Credit card is already expired"
 
 
+class CreditCardTokenExistsException(ResponseException):
+    """Credit card token matches one already in the database"""
+    code = 409
+    msg = "Credit card token matches one already in the database"
+
+
 class InvalidCredentialsUserException(ResponseException):
     """The provided credentials were not valid or missing"""
     status_code = 403

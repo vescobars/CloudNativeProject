@@ -10,7 +10,7 @@ class CreditCard(Base):
 
     id = Column(UUID, primary_key=True, index=True, nullable=False)
 
-    token = Column(String, nullable=False)
+    token = Column(String, index=True, nullable=False)
     userId = Column(UUID, nullable=False)
     lastFourDigits = Column(String, nullable=False)
     ruv = Column(String, nullable=False)

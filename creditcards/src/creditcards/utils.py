@@ -1,4 +1,4 @@
-""" Utils for users """
+""" Utils for credit cards """
 from datetime import datetime, timezone
 from typing import List
 
