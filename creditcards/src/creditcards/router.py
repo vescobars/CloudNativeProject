@@ -1,11 +1,8 @@
 from fastapi import APIRouter, HTTPException, Response, Request
 
+from src.creditcards.schemas import CreateCCRequestSchema, CreateCCResponseSchema
 from src.exceptions import UnauthorizedUserException, RouteNotFoundException, SuccessfullyDeletedRouteException, \
     ResponseException
-from src.rf003.schemas import CreateRoutePostRequestSchema, CreatedRouteSchema, CreatePostResponseSchema, \
-    PostWithRouteSchema, CreatedPostSchema
-from src.rf003.utils import RF003
-from src.schemas import RouteSchema
 from src.utils import CommonUtils
 
 router = APIRouter()
@@ -21,10 +18,10 @@ def ping():
 
 
 @router.post("/posts")
-def create_post(route_data: CreateRoutePostRequestSchema, request: Request,
-                response: Response) -> CreatePostResponseSchema:
+def create_card(route_data: CreateCCRequestSchema, request: Request,
+                response: Response) -> CreateCCResponseSchema:
     """
-    Creates a post with the given data.
+    Creates a credit card with the given data.
     """
     user_id, full_token = authenticate(request)
     route_created = False

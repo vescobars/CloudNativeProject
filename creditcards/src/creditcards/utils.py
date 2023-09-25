@@ -9,10 +9,9 @@ from src.constants import POSTS_PATH, ROUTES_PATH
 from src.exceptions import RouteStartDateExpiredException, RouteEndDateExpiredException, \
     RouteExpireAtDateExpiredException, InvalidParamsException, UnauthorizedUserException, \
     InvalidCredentialsUserException, PostFoundInRouteException
-from src.schemas import PostSchema
 
 
-class RF003:
+class CreditCardUtils:
 
     @staticmethod
     def get_post_filtered(expire: Optional[str], route_id: str, owner: str, bearer_token: str) -> List[PostSchema]:
