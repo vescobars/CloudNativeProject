@@ -1,9 +1,21 @@
-from fastapi import APIRouter, HTTPException, Response, Request
+""" /users router """
+import json
+import logging
+from typing import Annotated, List
 
-from src.creditcards.schemas import CreateCCRequestSchema, CreateCCResponseSchema
-from src.exceptions import UnauthorizedUserException, RouteNotFoundException, SuccessfullyDeletedRouteException, \
-    ResponseException
-from src.utils import CommonUtils
+from fastapi import APIRouter, HTTPException, Depends, Response, Request
+from fastapi.responses import JSONResponse
+from pydantic import UUID4
+from sqlalchemy import delete
+from sqlalchemy.orm import Session
+from src.utility.schemas import CreateUtilityRequestSchema, UpdateUtilityRequestSchema
+from src.utility.utils import Utilities
+
+from src.database import get_session
+from src.exceptions import UniqueConstraintViolatedException, InvalidRequestException, \
+    UtilityNotFoundException, UnauthorizedUserException
+from src.models import Utility
+from src.schemas import UtilitySchema
 
 router = APIRouter()
 
@@ -17,84 +29,128 @@ def ping():
     return Response(content="pong", media_type="application/text", status_code=200)
 
 
-@router.post("/posts")
-def create_card(route_data: CreateCCRequestSchema, request: Request,
-                response: Response) -> CreateCCResponseSchema:
+@router.post("/reset")
+async def reset(
+        session: Session = Depends(get_session),
+):
     """
-    Creates a credit card with the given data.
+    Clears the utilities table
+    Returns:
+        msg: Todos los datos fueron eliminados
     """
-    user_id, full_token = authenticate(request)
-    route_created = False
-    RF003.validate_same_user_or_dates(route_data.plannedStartDate, route_data.plannedEndDate, route_data.expireAt)
     try:
-        route: RouteSchema = CommonUtils.search_route(route_data.flightId, full_token)
-        RF003.validate_same_user_or_dates(route.plannedStartDate, route.plannedEndDate, route_data.expireAt)
-    except RouteNotFoundException:
-        created_route: CreatedRouteSchema = CommonUtils.create_route(
-            route_data.flightId,
-            route_data.origin.airportCode,
-            route_data.origin.country,
-            route_data.destiny.airportCode,
-            route_data.destiny.country,
-            route_data.bagCost,
-            route_data.plannedStartDate,
-            route_data.plannedEndDate,
-            full_token)
-        route: RouteSchema = RouteSchema(
-            id=created_route.id,
-            flightId=route_data.flightId,
-            sourceAirportCode=route_data.origin.airportCode,
-            sourceCountry=route_data.origin.country,
-            destinyAirportCode=route_data.destiny.airportCode,
-            destinyCountry=route_data.destiny.country,
-            bagCost=route_data.bagCost,
-            plannedStartDate=route_data.plannedStartDate,
-            plannedEndDate=route_data.plannedEndDate,
-            createdAt=created_route.createdAt)
-        route_created = True
-
-    posts = RF003.get_post_filtered(None, route.id, user_id, full_token)
-    if len(posts) == 0:
-        try:
-            post_raw: CreatedPostSchema = CommonUtils.create_post(route.id, route_data.expireAt, full_token)
-            post: PostWithRouteSchema = PostWithRouteSchema(
-                **post_raw.model_dump(),
-                route=CreatedRouteSchema(
-                    id=route.id,
-                    createdAt=route.createdAt
-                ),
-            )
-            final_response = CreatePostResponseSchema(
-                data=post,
-                msg=f"Post (id={str(post.id)}) has been successfully created")
-            response.status_code = 201
-            return final_response
-        except ResponseException as e:
-            print(e)
-            if route_created:
-                RF003.delete_route(route.id, full_token)
-                raise SuccessfullyDeletedRouteException()
-
-    else:
-        RF003.validate_post(posts)
+        statement = delete(Utility)
+        print(statement)
+        with session:
+            session.execute(statement)
+            session.commit()
+    except Exception as e:
+        logging.error(e)
+        return JSONResponse(status_code=500, content={
+            "msg": "Un error desconocido ha ocurrido", "error": json.dumps(e)})
+    return {"msg": "Todos los datos fueron eliminados"}
 
 
-def authenticate(request: Request) -> tuple[str, str]:
+@router.post("/")
+def create_utility(
+        util_data: CreateUtilityRequestSchema, request: Request, response: Response,
+        sess: Annotated[Session, Depends(get_session)],
+) -> UtilitySchema:
+    """
+    Creates a utility with the given data.
+    Offer_id must be unique
+    """
+    authenticate(request)
+    try:
+        new_user = Utilities().create_utility(util_data, sess)
+        response.status_code = 201
+        return new_user
+    except UniqueConstraintViolatedException as e:
+        print(e)
+        raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
+
+
+@router.get("/{offer_id}")
+def get_utility(
+        offer_id: str,
+        sess: Annotated[Session, Depends(get_session)],
+        request: Request) -> UtilitySchema:
+    """
+    Retrieves a utility with the given offer id.
+    """
+    authenticate(request)
+
+    try:
+        return Utilities.get_utility(offer_id, sess)
+
+    except UtilityNotFoundException:
+        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
+
+
+@router.post("/list")
+def get_utilities(
+        offer_ids: List[UUID4],
+        sess: Annotated[Session, Depends(get_session)],
+        request: Request) -> List[UtilitySchema]:
+    """
+    Retrieves a list of utilitie with the given offer ids.
+    """
+    authenticate(request)
+
+    return Utilities.get_utilities(offer_ids, sess)
+
+
+@router.patch("/{offer_id}")
+def update_utility(
+        offer_id: str, util_data: UpdateUtilityRequestSchema,
+        sess: Annotated[Session, Depends(get_session)],
+        request: Request) -> dict:
+    """
+    Updates a utility with the given data.
+
+    """
+    authenticate(request)
+
+    try:
+        updated = Utilities.update_utility(offer_id, util_data, sess)
+        if updated:
+            return {"msg": "la utilidad ha sido actualizada"}
+        else:
+            raise InvalidRequestException()
+
+    except InvalidRequestException:
+        raise HTTPException(status_code=400, detail="Solicitud invalida")
+    except UtilityNotFoundException:
+        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
+
+
+@router.delete("/{offer_id}")
+def delete_utility(
+        offer_id: str,
+        sess: Annotated[Session, Depends(get_session)],
+        request: Request) -> dict:
+    """
+    Deletes a utility with the given offer id.
+    """
+    authenticate(request)
+
+    return {
+        "deleted_offer_id": Utilities.delete_utility(offer_id, sess)
+    }
+
+
+def authenticate(request: Request) -> str:
     """
     Checks if authorization token is present and valid, then calls users endpoint to
     verify whether credentials are still authorized
-
-    Returns the user's id, and the full bearer token present in the
-        authentication header (including the "Bearer " prefix)
     """
     if 'Authorization' in request.headers and 'Bearer ' in request.headers.get('Authorization'):
-        full_token = request.headers.get('Authorization')
-        bearer_token = full_token.split(" ")[1]
+        bearer_token = request.headers.get('Authorization').split(" ")[1]
         try:
-            user_id = CommonUtils.authenticate_user(bearer_token)
+            user_id = Utilities.authenticate_user(bearer_token)
         except UnauthorizedUserException:
             raise HTTPException(status_code=401, detail="Unauthorized. Valid credentials were rejected.")
 
     else:
         raise HTTPException(status_code=403, detail="No valid credentials were provided.")
-    return user_id, full_token
+    return user_id

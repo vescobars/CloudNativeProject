@@ -1,88 +1,151 @@
-""" Utils for RF003 """
-from datetime import datetime
-from typing import List, Optional
-from uuid import UUID
+""" Utils for users """
+from datetime import datetime, timezone
+from typing import List
 
 import requests
+from pydantic import UUID4
+from sqlalchemy import select, delete
+from sqlalchemy.exc import IntegrityError, NoResultFound, DataError
+from sqlalchemy.orm import Session
+from src.utility.schemas import CreateUtilityRequestSchema, BagSize, UpdateUtilityRequestSchema
 
-from src.constants import POSTS_PATH, ROUTES_PATH
-from src.exceptions import RouteStartDateExpiredException, RouteEndDateExpiredException, \
-    RouteExpireAtDateExpiredException, InvalidParamsException, UnauthorizedUserException, \
-    InvalidCredentialsUserException, PostFoundInRouteException
+from src.constants import USERS_PATH
+from src.exceptions import UniqueConstraintViolatedException, UtilityNotFoundException, UnauthorizedUserException
+from src.models import Utility
+from src.schemas import UtilitySchema
 
 
-class CreditCardUtils:
+def get_utility(offer: float, size: BagSize, bag_cost: int) -> float:
+    """Calculates utility score"""
+    bag_occupation = 1.0
+    if size == BagSize.MEDIUM:
+        bag_occupation = 0.5
+    if size == BagSize.SMALL:
+        bag_occupation = 0.25
+    return offer - (bag_occupation * float(bag_cost))
+
+
+class Utilities:
 
     @staticmethod
-    def get_post_filtered(expire: Optional[str], route_id: str, owner: str, bearer_token: str) -> List[PostSchema]:
+    def create_utility(data: CreateUtilityRequestSchema, session: Session) -> UtilitySchema:
         """
-        Retrieves a post from the Posts endpoint
-        :param expire: if the post expires
-        :param route_id: the route's UUID associated with the post
-        :param owner: the post's owner UUID
-        :param bearer_token: the bearer token with which the request is authenticated
-        :return: a post object
+        Insert a new utility into the Utilities table
         """
+        new_utility = None
+        utility_value = get_utility(data.offer, data.size, data.bag_cost)
+        current_time = datetime.now(timezone.utc)
+        try:
+            new_utility = Utility(
+                offer_id=data.offer_id,
+                utility=utility_value,
+                createdAt=current_time,
+                updateAt=current_time
+            )
 
-        posts_url = POSTS_PATH.rstrip("/") + "/posts?"
+            session.add(new_utility)
+            session.commit()
+        except IntegrityError as e:
+            raise UniqueConstraintViolatedException(e)
+        return new_utility
 
-        params = {
-            "expire": expire,
-            "route": route_id,
-            "owner": owner,
-        }
+    @staticmethod
+    def update_utility(offer_id: str, data: UpdateUtilityRequestSchema, sess: Session) -> bool:
+        """Updates utility value given a certain offer_id"""
+        try:
+            retrieved_utility = sess.execute(
+                select(Utility).where(Utility.offer_id == offer_id)
+            ).scalar_one()
 
-        response = requests.get(posts_url, headers={"Authorization": bearer_token}, params=params)
-        if response.status_code == 404:
-            raise InvalidParamsException()
-        elif response.status_code == 401:
+            updated = False
+            utility_value = get_utility(data.offer, data.size, data.bag_cost)
+            if retrieved_utility.utility != utility_value:
+                retrieved_utility.utility = utility_value
+                updated = True
+
+            if updated:
+                retrieved_utility.updateAt = datetime.now(timezone.utc)
+                sess.commit()
+            return updated
+        except (NoResultFound, DataError, TypeError):
+            raise UtilityNotFoundException()
+
+    @staticmethod
+    def get_utility(offer_id: str, sess: Session) -> UtilitySchema:
+        """
+        Retrieves utility from the database
+        Args:
+            offer_id:
+            sess:
+
+        Returns:
+            utility schema
+        """
+        try:
+            retrieved_utility: Utility = sess.execute(
+                select(Utility).where(Utility.offer_id == offer_id)
+            ).scalar_one()
+        except NoResultFound:
+            raise UtilityNotFoundException()
+
+        return UtilitySchema(
+            offer_id=retrieved_utility.offer_id,
+            utility=retrieved_utility.utility,
+            createdAt=retrieved_utility.createdAt,
+            updateAt=retrieved_utility.updateAt
+        )
+
+    @staticmethod
+    def get_utilities(offer_ids: List[UUID4], sess: Session) -> list[UtilitySchema]:
+        """
+        Retrieves utilities from the database with the given offer ids.
+
+        """
+        try:
+            retrieved_utilities_raw = list(sess.execute(
+                select(Utility)
+                .where(Utility.offer_id.in_(offer_ids))
+                .order_by(Utility.utility.desc())
+            ).scalars().all())
+
+            retrieved_utilities = [
+                UtilitySchema(
+                    offer_id=util.offer_id,
+                    utility=util.utility,
+                    createdAt=util.createdAt,
+                    updateAt=util.updateAt)
+                for util in retrieved_utilities_raw
+            ]
+        except NoResultFound:
+            return []
+
+        return retrieved_utilities if retrieved_utilities else []
+
+    @staticmethod
+    def delete_utility(offer_id: str, sess: Session) -> str:
+        """
+        Deletes utility from the database
+        Args:
+            offer_id:
+            sess:
+
+        Returns:
+            utility schema
+        """
+        delete_statement = delete(Utility).where(Utility.offer_id == offer_id)
+        sess.execute(delete_statement)
+        sess.commit()
+        return offer_id
+
+    @staticmethod
+    def authenticate_user(bearer_token: str) -> str:
+        headers = {"Authorization": 'Bearer ' + bearer_token}
+        url = USERS_PATH.rstrip('/') + "/users/me"
+        print(url)
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            user_data = response.json()
+            user_id = user_data["id"]
+            return user_id
+        else:
             raise UnauthorizedUserException()
-        elif response.status_code == 403:
-            raise InvalidCredentialsUserException()
-
-        posts = []
-        for post in response.json():
-            posts.append(PostSchema.model_validate(post))
-
-        return posts
-
-    @staticmethod
-    def delete_route(route_id: UUID, bearer_token: str):
-        """
-        Asks post endpoint to delete post
-        """
-        route_url = ROUTES_PATH.rstrip("/") + f"/routes/{str(route_id)}"
-        requests.delete(route_url, headers={"Authorization": bearer_token})
-
-    @staticmethod
-    def delete_post(post_id: UUID, bearer_token: str):
-        """
-        Asks post endpoint to delete post
-        """
-        posts_url = POSTS_PATH.rstrip("/") + f"/posts/{str(post_id)}"
-        requests.delete(posts_url, headers={"Authorization": bearer_token})
-
-    @staticmethod
-    def validate_post(posts):
-        if len(posts) > 0:
-            raise PostFoundInRouteException()
-
-    @staticmethod
-    def validate_same_user_or_dates(
-            planned_start_date_raw: datetime,
-            planned_end_date_raw: datetime,
-            expire_at_raw: datetime):
-
-        planned_start_date_naive = planned_start_date_raw.replace(tzinfo=None)
-        planned_end_date_naive = planned_end_date_raw.replace(tzinfo=None)
-        expire_at_naive = expire_at_raw.replace(tzinfo=None)
-        dt_now_naive = datetime.utcnow()
-
-        if planned_start_date_naive < dt_now_naive:
-            raise RouteStartDateExpiredException()
-        if planned_end_date_naive < dt_now_naive:
-            raise RouteEndDateExpiredException()
-        if dt_now_naive > expire_at_naive:
-            raise RouteExpireAtDateExpiredException()
-        if expire_at_naive > planned_start_date_naive:
-            raise RouteExpireAtDateExpiredException()
