@@ -19,9 +19,6 @@ class UnexpectedResponseCodeException(ResponseException):
     msg = "The expected response status_code was not received."
 
 
-class FailedCreatedUtilityException(Exception):
-    """Creating utility did not succeed"""
-
 
 class SuccessfullyDeletedOfferException(ResponseException):
     """Fired after a utility failed to be created, so a corrective offer deletion is successfully issued"""
@@ -29,10 +26,10 @@ class SuccessfullyDeletedOfferException(ResponseException):
     detail = "Utility failed to be stored, offer deleted"
 
 
-class FailedDeletingOfferException(ResponseException):
-    """Deleting an offer did not succeed"""
+class UniqueConstraintViolatedException(ResponseException):
+    """A unique constraint has been violated"""
     status_code = 500
-    msg = "Deleting an offer did not succeed"
+    msg = "A unique constraint has been violated"
 
 
 class InvalidRequestException(Exception):
