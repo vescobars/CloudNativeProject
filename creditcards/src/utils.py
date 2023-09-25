@@ -23,11 +23,11 @@ class CommonUtils:
             ruv: str,
             issuer: IssuerEnum,
             status: StatusEnum,
+            created_at: datetime,
             session: Session
     ) -> CreditCard:
         """Insert new credit card into the table"""
         new_cc = None
-        current_time = datetime.now(timezone.utc)
         try:
             new_cc = CreditCard(
                 token=token,
@@ -36,8 +36,8 @@ class CommonUtils:
                 ruv=ruv,
                 issuer=issuer.value,
                 status=status.value,
-                createdAt=current_time,
-                updateAt=current_time,
+                createdAt=created_at,
+                updateAt=created_at,
             )
 
             session.add(new_cc)

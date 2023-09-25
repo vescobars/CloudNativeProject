@@ -60,9 +60,13 @@ def create_card(
     """
     user_id, full_token = authenticate(request)
     try:
-        new_user = CreditCardUtils().create_card(card_data, sess)
+        new_card_id, created_at = CreditCardUtils().create_card(card_data, user_id, sess)
         response.status_code = 201
-        return new_user
+        return CreateCCResponseSchema(
+            id=new_card_id,
+            userId=user_id,
+            createdAt=created_at
+        )
     except UniqueConstraintViolatedException as e:
         print(e)
         raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
