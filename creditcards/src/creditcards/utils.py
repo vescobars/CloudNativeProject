@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
-from src.constants import USERS_PATH, SECRET_TOKEN, TRUENATIVE_PATH
+from src.constants import USERS_PATH, SECRET_TOKEN, TRUENATIVE_PATH, POLLING_PATH, SECRET_POLLING_TOKEN
 from src.creditcards.schemas import CreateCCRequestSchema, TrueNativeRegisterCardResponseSchema
 from src.exceptions import UnauthorizedUserException, ExpiredCreditCardException, \
     UnexpectedResponseCodeException
@@ -23,27 +23,30 @@ class CreditCardUtils:
     def create_card(data: CreateCCRequestSchema, user_id: UUID4, session: Session) -> tuple[UUID4, datetime]:
         """
         Insert a new credit card into the CreditCard table
+
+        Returns a tuple with the card's id and createdAt datetime
         """
         transaction_identifier = str(uuid.uuid4())
 
         CreditCardUtils.validate_cc_expiration_date(data.expirationDate)
 
-        registration = CreditCardUtils.register_card_truenative(data, transaction_identifier)
-        token = "TO BE DELIVERED BY TRUENATIVE"
-        ruv = "TO BE DELIVERED BY TRUENATIVE"
-        issuer = "TO BE DELIVERED BY TRUENATIVE"
-        created_at = "TO BE DELIVERED BY TRUENATIVE"
-        CommonUtils.check_card_token_exists(token, session)
+        registration_response: TrueNativeRegisterCardResponseSchema = CreditCardUtils.register_card_truenative(
+            data,
+            transaction_identifier)
+        CreditCardUtils.initiate_polling_call(registration_response.RUV, transaction_identifier)
+
+        CommonUtils.check_card_token_exists(registration_response.token, session)
         credit_card = CommonUtils.create_card(
-            token,
+            registration_response.token,
             user_id,
             data.cardNumber[-4:],
-            ruv,
-            issuer,
+            registration_response.RUV,
+            registration_response.issuer,
             StatusEnum.POR_VERIFICAR,
-            created_at,
+            registration_response.createdAt,
             session
         )
+        return credit_card.id, credit_card.createdAt
 
     @staticmethod
     def validate_cc_expiration_date(date: str):
@@ -79,6 +82,26 @@ class CreditCardUtils:
             return TrueNativeRegisterCardResponseSchema.model_validate(registration_data)
         else:
             # print(str(response.json()))
+            raise UnexpectedResponseCodeException(response)
+
+    @staticmethod
+    def initiate_polling_call(
+            ruv: str,
+            transaction_identifier: str):
+        """
+        Initiates call to cloud function to begin polling
+        """
+        request_body = {
+            "RUV": ruv,
+            "transactionIdentifier": transaction_identifier,
+            "SECRET_TOKEN": SECRET_TOKEN
+        }
+        headers = {"Authorization": 'Bearer ' + SECRET_POLLING_TOKEN}
+        url = POLLING_PATH
+        response = requests.post(url, json=request_body, headers=headers)
+        if response.status_code == 200:
+            print(f"Polling initiated for transaction {transaction_identifier}")
+        else:
             raise UnexpectedResponseCodeException(response)
 
     @staticmethod

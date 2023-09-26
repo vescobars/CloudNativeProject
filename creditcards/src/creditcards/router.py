@@ -9,6 +9,7 @@ from pydantic import UUID4
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
+from src.constants import datetime_to_str
 from src.creditcards.schemas import CreateCCRequestSchema, CreateCCResponseSchema
 from src.creditcards.utils import CreditCardUtils
 from src.database import get_session
@@ -58,18 +59,14 @@ def create_card(
     """
     Creates a credit card with the given data.
     """
-    user_id, full_token = authenticate(request)
-    try:
-        new_card_id, created_at = CreditCardUtils().create_card(card_data, user_id, sess)
-        response.status_code = 201
-        return CreateCCResponseSchema(
-            id=new_card_id,
-            userId=user_id,
-            createdAt=created_at
-        )
-    except UniqueConstraintViolatedException as e:
-        print(e)
-        raise HTTPException(status_code=412, detail="A utility for that offer_id already exists")
+    user_id, _ = authenticate(request)
+    new_card_id, created_at = CreditCardUtils().create_card(card_data, user_id, sess)
+    response.status_code = 201
+    return CreateCCResponseSchema(
+        id=new_card_id,
+        userId=user_id,
+        createdAt=datetime_to_str(created_at)
+    )
 
 
 @router.get("/{offer_id}")
