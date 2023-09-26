@@ -13,7 +13,10 @@ class UnexpectedResponseCodeException(ResponseException):
     """The expected response status_code was not received."""
 
     def __init__(self, original_response):
-        self.detail = {"received_status_code": original_response.status_code}
+        self.detail = {
+            "received_status_code": original_response.status_code,
+            "original_response": original_response.json(),
+        }
 
     status_code = 500
     msg = "The expected response status_code was not received."

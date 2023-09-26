@@ -1,16 +1,18 @@
 """ Utils for credit cards """
-from datetime import datetime, timezone
+import uuid
+from datetime import datetime
 from typing import List
 
 import requests
 from pydantic import UUID4
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
-from src.constants import USERS_PATH
-from src.creditcards.schemas import CreateCCRequestSchema
-from src.exceptions import UniqueConstraintViolatedException, UnauthorizedUserException, ExpiredCreditCardException
+from src.constants import USERS_PATH, SECRET_TOKEN, TRUENATIVE_PATH
+from src.creditcards.schemas import CreateCCRequestSchema, TrueNativeRegisterCardResponseSchema
+from src.exceptions import UnauthorizedUserException, ExpiredCreditCardException, \
+    UnexpectedResponseCodeException
 from src.schemas import StatusEnum
 from src.utils import CommonUtils
 
@@ -22,7 +24,11 @@ class CreditCardUtils:
         """
         Insert a new credit card into the CreditCard table
         """
+        transaction_identifier = str(uuid.uuid4())
+
         CreditCardUtils.validate_cc_expiration_date(data.expirationDate)
+
+        registration = CreditCardUtils.register_card_truenative(data, transaction_identifier)
         token = "TO BE DELIVERED BY TRUENATIVE"
         ruv = "TO BE DELIVERED BY TRUENATIVE"
         issuer = "TO BE DELIVERED BY TRUENATIVE"
@@ -46,11 +52,34 @@ class CreditCardUtils:
         mm = int(mm_raw)
         yy = int(yy_raw)
         current_date = datetime.now()
-        if current_date.year % 100 > yy:
+        if current_date.year % 100 > yy or (
+                current_date.year % 100 == yy and
+                current_date.month > mm):
             raise ExpiredCreditCardException()
-        elif (current_date.year % 100 == yy and
-              current_date.month > mm):
-            raise ExpiredCreditCardException()
+
+    @staticmethod
+    def register_card_truenative(
+            card: CreateCCRequestSchema,
+            transaction_identifier: str) -> TrueNativeRegisterCardResponseSchema:
+        """
+        Registers card in the TrueNative microservice
+        """
+
+        request_body = {
+            "card": card.model_dump(),
+            "transactionIdentifier": transaction_identifier
+        }
+
+        headers = {"Authorization": 'Bearer ' + SECRET_TOKEN}
+        url = TRUENATIVE_PATH.rstrip('/') + "/native/cards"
+        response = requests.post(url, json=request_body, headers=headers)
+
+        if response.status_code == 201:
+            registration_data = response.json()
+            return TrueNativeRegisterCardResponseSchema.model_validate(registration_data)
+        else:
+            # print(str(response.json()))
+            raise UnexpectedResponseCodeException(response)
 
     @staticmethod
     def get_utilities(offer_ids: List[UUID4], sess: Session) -> list[UtilitySchema]:
