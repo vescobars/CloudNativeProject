@@ -1,6 +1,9 @@
 """ Pydantic schemas for request and response bodies """
+from datetime import datetime
 
 from pydantic import BaseModel, UUID4, Field
+
+from src.schemas import IssuerEnum
 
 
 class CreateCCRequestSchema(BaseModel):
@@ -20,3 +23,14 @@ class CreateCCResponseSchema(BaseModel):
     id: UUID4
     userId: UUID4
     createdAt: str
+
+
+class TrueNativeRegisterCardResponseSchema(BaseModel):
+    """
+    Object returned after registering card in Truenative successfully
+    """
+    RUV: str
+    token: str
+    issuer: IssuerEnum
+    transactionIdentifier: str
+    createdAt: datetime
