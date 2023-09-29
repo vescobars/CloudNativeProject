@@ -40,3 +40,20 @@ class CreditCardSchema(BaseModel):
 
     createdAt: datetime = Field(default_factory=datetime.now)
     updateAt: datetime = Field(default_factory=datetime.now)
+
+
+class CreditCardListItemSchema(BaseModel):
+    """
+    Defines the pydantic model (schema) for a CreditCard belonging to a list
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID4
+    token: str
+    userId: UUID4
+    lastFourDigits: str
+    issuer: IssuerEnum
+    status: StatusEnum
+
+    createdAt: datetime = Field()
+    updateAt: datetime = Field()

@@ -15,7 +15,7 @@ from src.creditcards.schemas import CreateCCRequestSchema, TrueNativeRegisterCar
 from src.exceptions import UnauthorizedUserException, ExpiredCreditCardException, \
     UnexpectedResponseCodeException, CreditCardNotFoundException
 from src.models import CreditCard
-from src.schemas import StatusEnum
+from src.schemas import StatusEnum, CreditCardListItemSchema, IssuerEnum
 from src.utils import CommonUtils
 
 
@@ -159,3 +159,35 @@ class CreditCardUtils:
         credit_card.updateAt = datetime.now()
         sess.commit()
         return credit_card
+
+    @classmethod
+    def get_credit_cards(cls, user_id: str, sess: Session) -> List[CreditCardListItemSchema]:
+        """
+        Gets all credit cards for the authenticated user.
+        :param user_id:
+        :param sess:
+        :return:
+        """
+
+        try:
+            retrieved_ccs_raw = list(sess.execute(
+                select(CreditCard)
+                .where(CreditCard.userId == uuid.UUID(user_id))
+            ).scalars().all())
+
+            retrieved_ccs = [
+                CreditCardListItemSchema(
+                    id=cc.id,
+                    token=cc.token,
+                    userId=cc.userId,
+                    lastFourDigits=cc.lastFourDigits,
+                    issuer=IssuerEnum(cc.issuer),
+                    status=StatusEnum(cc.status),
+                    createdAt=cc.createdAt,
+                    updateAt=cc.updateAt)
+                for cc in retrieved_ccs_raw
+            ]
+        except NoResultFound:
+            return []
+
+        return retrieved_ccs if retrieved_ccs else []

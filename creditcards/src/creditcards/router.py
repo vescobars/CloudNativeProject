@@ -5,7 +5,6 @@ from typing import Annotated, List
 
 from fastapi import APIRouter, HTTPException, Depends, Response, Request
 from fastapi.responses import JSONResponse
-from pydantic import UUID4
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
@@ -15,6 +14,7 @@ from src.creditcards.utils import CreditCardUtils
 from src.database import get_session
 from src.exceptions import UnauthorizedUserException, InvalidRequestException
 from src.models import CreditCard
+from src.schemas import CreditCardListItemSchema
 from src.utils import CommonUtils
 
 router = APIRouter()
@@ -71,15 +71,13 @@ def create_card(
 
 @router.get("/")
 def get_credit_cards(
-        offer_ids: List[UUID4],
         sess: Annotated[Session, Depends(get_session)],
-        request: Request) -> List[UtilitySchema]:
+        request: Request) -> List[CreditCardListItemSchema]:
     """
-    Retrieves a list of utilitie with the given offer ids.
+    Gets all credit cards for the authenticated user.
     """
     user_id, _ = authenticate(request)
-
-    return Utilities.get_utilities(offer_ids, sess)
+    return CreditCardUtils.get_credit_cards(user_id, sess)
 
 
 @router.post("/{ruv}")
@@ -107,20 +105,6 @@ def update_card_state(
         raise HTTPException(status_code=400, detail="Solicitud invalida")
 
 
-
-@router.delete("/{offer_id}")
-def delete_utility(
-        offer_id: str,
-        sess: Annotated[Session, Depends(get_session)],
-        request: Request) -> dict:
-    """
-    Deletes a utility with the given offer id.
-    """
-    authenticate(request)
-
-    return {
-        "deleted_offer_id": Utilities.delete_utility(offer_id, sess)
-    }
 
 
 def authenticate(request: Request) -> tuple[str, str]:
