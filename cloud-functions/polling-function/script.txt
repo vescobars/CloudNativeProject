@@ -1,6 +1,6 @@
 gcloud functions deploy card_status_polling \
   --entry-point card_status_polling \
-  --runtime python310 \
+  --runtime python39 \
   --trigger-http \
   --region us-central1 \
   --allow-unauthenticated \
