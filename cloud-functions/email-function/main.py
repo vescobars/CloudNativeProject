@@ -1,20 +1,25 @@
 import os
 import smtplib
 from email.message import EmailMessage
-from flask import jsonify, request
-from datetime import datetime
-
+import yaml
 
 def send_email_notification(request):
-    # Extract data from the request
-    data = request.get_json()
-    recipient_email = data.get("email")
+    with open('.env.yaml', 'r') as file:
+        env_vars = yaml.load(file, Loader=yaml.FullLoader)
+        print(env_vars)  # Add this line to debug
+
+    # Set the environment variables
+    for key, value in env_vars.items():
+        os.environ[key] = value
+
+    recipient_email = request.get("recipient")
     if not recipient_email:
-        return jsonify({"error": "Email not provided"}), 400
+        print("Error: Email not provided")
+        return
 
     # Email configuration
-    SENDER_EMAIL_ADDRESS = os.environ.get('EMAIL_USER')
-    SENDER_EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD ')
+    SENDER_EMAIL_ADDRESS = os.environ.get('SENDER_EMAIL_ADDRESS')
+    SENDER_EMAIL_PASSWORD = os.environ.get('SENDER_EMAIL_PASSWORD')
     SUBJECT = "Credit Card Processing Confirmation"
     CONTENT = "Your credit card has been processed completely without any issues."
 
@@ -28,9 +33,12 @@ def send_email_notification(request):
     # Send the email
     try:
         with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+            smtp.starttls()  # Start TLS for security
             smtp.login(SENDER_EMAIL_ADDRESS, SENDER_EMAIL_PASSWORD)
             smtp.send_message(msg)
-        print("Success")
-        return jsonify({"message": "Email sent successfully"}), 200
+
+        print("Success: Email sent successfully")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error: {str(e)}")
+
+send_email_notification(None)
