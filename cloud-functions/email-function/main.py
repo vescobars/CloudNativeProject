@@ -41,4 +41,3 @@ def send_email_notification(request):
     except Exception as e:
         print(f"Error: {str(e)}")
 
-send_email_notification(None)
