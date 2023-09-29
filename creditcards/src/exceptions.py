@@ -43,6 +43,12 @@ class ExpiredCreditCardException(ResponseException):
     msg = "Credit card is already expired"
 
 
+class CreditCardNotFoundException(ResponseException):
+    """Credit card ruv was not found"""
+    code = 404
+    msg = "Credit card ruv was not found"
+
+
 class CreditCardTokenExistsException(ResponseException):
     """Credit card token matches one already in the database"""
     code = 409

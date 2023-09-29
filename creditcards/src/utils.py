@@ -1,5 +1,5 @@
 """ Utils"""
-from datetime import datetime, timezone
+from datetime import datetime
 
 import requests
 from pydantic import UUID4

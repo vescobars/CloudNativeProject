@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, UUID4, Field
 
-from src.schemas import IssuerEnum
+from src.schemas import IssuerEnum, StatusEnum
 
 
 class CreateCCRequestSchema(BaseModel):
@@ -34,3 +34,12 @@ class TrueNativeRegisterCardResponseSchema(BaseModel):
     issuer: IssuerEnum
     transactionIdentifier: str
     createdAt: datetime
+
+
+class UpdateCCStatusRequestSchema(BaseModel):
+    """
+    Used when updating a Credit Card status
+    """
+    createdAt: datetime
+    transactionIdentifier: str
+    status: StatusEnum

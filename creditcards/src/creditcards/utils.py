@@ -10,9 +10,11 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from src.constants import USERS_PATH, SECRET_TOKEN, TRUENATIVE_PATH, POLLING_PATH, SECRET_POLLING_TOKEN
-from src.creditcards.schemas import CreateCCRequestSchema, TrueNativeRegisterCardResponseSchema
+from src.creditcards.schemas import CreateCCRequestSchema, TrueNativeRegisterCardResponseSchema, \
+    UpdateCCStatusRequestSchema
 from src.exceptions import UnauthorizedUserException, ExpiredCreditCardException, \
-    UnexpectedResponseCodeException
+    UnexpectedResponseCodeException, CreditCardNotFoundException
+from src.models import CreditCard
 from src.schemas import StatusEnum
 from src.utils import CommonUtils
 
@@ -142,3 +144,18 @@ class CreditCardUtils:
             return user_id
         else:
             raise UnauthorizedUserException()
+
+    @classmethod
+    def update_status(cls, ruv: str, data: UpdateCCStatusRequestSchema, sess):
+        """
+        Updates the status of a credit card with the given data.
+        """
+        try:
+            credit_card = sess.query(CreditCard).filter(CreditCard.ruv == ruv).one()
+        except NoResultFound:
+            raise CreditCardNotFoundException()
+
+        credit_card.status = data.status.value
+        credit_card.updateAt = datetime.now()
+        sess.commit()
+        return credit_card

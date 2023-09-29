@@ -17,7 +17,7 @@ DB_NAME = os.environ.get("DB_NAME", "db")
 USERS_PATH = os.environ.get("USERS_PATH", "http://localhost:3000")
 TRUENATIVE_PATH = os.environ.get("TRUENATIVE_PATH", "http://localhost:3000")
 SECRET_TOKEN = os.environ.get("SECRET_TOKEN", "secrettoken")
-SECRET_POLLING_TOKEN = os.environ.get("SECRET_POLLING_TOKEN", "secretpollingtoken")
+SECRET_FAAS_TOKEN = os.environ.get("SECRET_FAAS_TOKEN", "secret_faas_token")
 POLLING_PATH = os.environ.get("POLLING_PATH",
                               "https://us-central1-miso-grupo-17.cloudfunctions.net/card-status-polling")
 

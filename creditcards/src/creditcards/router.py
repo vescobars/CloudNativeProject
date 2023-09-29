@@ -9,11 +9,11 @@ from pydantic import UUID4
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
-from src.constants import datetime_to_str
-from src.creditcards.schemas import CreateCCRequestSchema, CreateCCResponseSchema
+from src.constants import datetime_to_str, SECRET_FAAS_TOKEN
+from src.creditcards.schemas import CreateCCRequestSchema, CreateCCResponseSchema, UpdateCCStatusRequestSchema
 from src.creditcards.utils import CreditCardUtils
 from src.database import get_session
-from src.exceptions import UnauthorizedUserException
+from src.exceptions import UnauthorizedUserException, InvalidRequestException
 from src.models import CreditCard
 from src.utils import CommonUtils
 
@@ -69,58 +69,43 @@ def create_card(
     )
 
 
-@router.get("/{offer_id}")
-def get_utility(
-        offer_id: str,
-        sess: Annotated[Session, Depends(get_session)],
-        request: Request) -> UtilitySchema:
-    """
-    Retrieves a utility with the given offer id.
-    """
-    authenticate(request)
-
-    try:
-        return Utilities.get_utility(offer_id, sess)
-
-    except UtilityNotFoundException:
-        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
-
-
-@router.post("/list")
-def get_utilities(
+@router.get("/")
+def get_credit_cards(
         offer_ids: List[UUID4],
         sess: Annotated[Session, Depends(get_session)],
         request: Request) -> List[UtilitySchema]:
     """
     Retrieves a list of utilitie with the given offer ids.
     """
-    authenticate(request)
+    user_id, _ = authenticate(request)
 
     return Utilities.get_utilities(offer_ids, sess)
 
 
-@router.patch("/{offer_id}")
-def update_utility(
-        offer_id: str, util_data: UpdateUtilityRequestSchema,
+@router.post("/{ruv}")
+def update_card_state(
+        data: UpdateCCStatusRequestSchema,
         sess: Annotated[Session, Depends(get_session)],
         request: Request) -> dict:
     """
-    Updates a utility with the given data.
-
+    Updates a credit card status with the given data.
+    :param data:
+    :param sess:
+    :param request:
+    :return:
     """
-    authenticate(request)
-
+    authenticate_secret_token(request)
+    ruv = request.path_params.get("ruv")
     try:
-        updated = Utilities.update_utility(offer_id, util_data, sess)
+        updated = CreditCardUtils.update_status(ruv, data, sess)
         if updated:
-            return {"msg": "la utilidad ha sido actualizada"}
+            return {"msg": "Credit card successfully updated"}
         else:
             raise InvalidRequestException()
 
     except InvalidRequestException:
         raise HTTPException(status_code=400, detail="Solicitud invalida")
-    except UtilityNotFoundException:
-        raise HTTPException(status_code=404, detail="La utilidad no fue encontrado")
+
 
 
 @router.delete("/{offer_id}")
@@ -157,3 +142,17 @@ def authenticate(request: Request) -> tuple[str, str]:
     else:
         raise HTTPException(status_code=403, detail="No valid credentials were provided.")
     return user_id, full_token
+
+
+def authenticate_secret_token(request: Request) -> None:
+    """
+    Checks if bearer token matches FaaS secret token
+    """
+    if 'Authorization' in request.headers and 'Bearer ' in request.headers.get('Authorization'):
+        full_token = request.headers.get('Authorization')
+        bearer_token = full_token.split(" ")[1]
+
+        if bearer_token != SECRET_FAAS_TOKEN:
+            raise HTTPException(status_code=401, detail="Unauthorized. Valid credentials were rejected.")
+    else:
+        raise HTTPException(status_code=403, detail="No valid credentials were provided.")
