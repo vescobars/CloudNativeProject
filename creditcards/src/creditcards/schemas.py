@@ -10,9 +10,9 @@ class CreateCCRequestSchema(BaseModel):
     """
     Used when creating a Credit Card
     """
-    cardNumber: str = Field(regex=r'\d{16}')
-    cvv: str = Field(regex=r'\d{3,4}')
-    expirationDate: str = Field(regex=r'\d{2}/\d{2}')
+    cardNumber: str = Field(pattern=r'\d{16}')
+    cvv: str = Field(pattern=r'\d{3,4}')
+    expirationDate: str = Field(pattern=r'\d{2}/\d{2}')
     cardHolderName: str
 
 
