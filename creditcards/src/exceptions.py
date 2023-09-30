@@ -33,25 +33,25 @@ class InvalidRequestException(Exception):
 
 
 class InvalidParamsException(ResponseException):
-    code = 400
+    status_code = 400
     msg = "Invalid Parameters"
 
 
 class ExpiredCreditCardException(ResponseException):
     """Credit card is already expired"""
-    code = 412
+    status_code = 412
     msg = "Credit card is already expired"
 
 
 class CreditCardNotFoundException(ResponseException):
     """Credit card ruv was not found"""
-    code = 404
+    status_code = 404
     msg = "Credit card ruv was not found"
 
 
 class CreditCardTokenExistsException(ResponseException):
     """Credit card token matches one already in the database"""
-    code = 409
+    status_code = 409
     msg = "Credit card token matches one already in the database"
 
 
