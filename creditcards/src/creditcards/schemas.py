@@ -1,7 +1,8 @@
 """ Pydantic schemas for request and response bodies """
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel, UUID4, Field
+from pydantic import BaseModel, UUID4, Field, field_validator
 
 from src.schemas import IssuerEnum, StatusEnum
 
@@ -34,6 +35,14 @@ class TrueNativeRegisterCardResponseSchema(BaseModel):
     issuer: IssuerEnum
     transactionIdentifier: str
     createdAt: datetime
+
+    @field_validator('createdAt', mode="before")
+    @classmethod
+    def parse_string_datetime(cls, dt) -> datetime:
+        if type(dt) is datetime:
+            return dt
+        # Parses a string of the format 'Sat, 30 Sep 2023 22:57:26 GMT' to a datetime object
+        return datetime.strptime(dt, '%a, %d %b %Y %H:%M:%S %Z')
 
 
 class UpdateCCStatusRequestSchema(BaseModel):

@@ -12,7 +12,9 @@ class IssuerEnum(Enum):
     VISA = 'VISA'
     MASTERCARD = 'MASTERCARD'
     AMERICAN_EXPRESS = 'AMERICAN_EXPRESS'
+    DISCOVER = 'DISCOVER'
     OTHER = 'OTHER'
+    UNKNOWN = 'UNKNOWN'
 
 
 class StatusEnum(Enum):
