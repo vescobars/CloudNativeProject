@@ -42,6 +42,7 @@ def send_email_notification(request):
             smtp.starttls()  # Start TLS for security
             smtp.login(SENDER_EMAIL_ADDRESS, SENDER_EMAIL_PASSWORD)
             smtp.send_message(msg)
+            return "OK", 200
 
         print("Success: Email sent successfully")
     except Exception as e:
