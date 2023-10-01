@@ -21,7 +21,7 @@ class VerifyUser(BaseCommannd):
 
         user = session.query(User).filter_by(id=self.route_id).one()
 
-        if self.data.get('task_status') == 'ACCEPTED':
+        if self.data.get('score') > 60:
             user.status = 'VERIFICADO'
         else:
             user.status = 'NO_VERIFICADO'
