@@ -60,11 +60,19 @@ def card_status_polling(request):
     }
 
     headers = {"Authorization": f'Bearer {SECRET_FAAS_TOKEN}'}
+    print(f"Sending data to credit card microservice at path: {CC_PATH}/{ruv}\n"
+          f'"Authorization": {headers["Authorization"]}\n'
+          f'"createdAt": {created_at}\n'
+          f'"transactionIdentifier": {transaction_identifier}\n',
+          f'"status": {status}')
 
-    credit_card_response = request.post(f'{CC_PATH}/{ruv}', json=credit_card_data, headers=headers)
+    credit_card_response = requests.post(f'{CC_PATH}/{ruv}', json=credit_card_data, headers=headers)
 
     # Check if post was successfully
     if credit_card_response.status_code != 200:
-        return jsonify({"error": "Failed to send data to Credit Card microservice"}), 500
+        return jsonify({
+            "error": "Failed to send data to Credit Card microservice",
+            "request_body": credit_card_data
+        }), 500
 
     return "", 200
