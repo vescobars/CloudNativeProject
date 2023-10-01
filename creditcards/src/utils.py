@@ -1,4 +1,5 @@
 """ Utils"""
+import uuid
 from datetime import datetime
 
 import requests
@@ -30,6 +31,7 @@ class CommonUtils:
         new_cc = None
         try:
             new_cc = CreditCard(
+                id=uuid.uuid4(),
                 token=token,
                 userId=user_id,
                 lastFourDigits=last_four_digits,
