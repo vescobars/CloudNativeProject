@@ -38,7 +38,7 @@ def card_status_polling(request):
 
     # Polling protocol
     while True:
-        response = requests.get(f'{NATIVE_PATH}/{ruv}', header=headers)
+        response = requests.get(f'{NATIVE_PATH}/{ruv}', headers=headers)
         if response.status_code == 200:
             break
         elif response.status_code == 202:
