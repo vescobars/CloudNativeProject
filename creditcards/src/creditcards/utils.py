@@ -1,4 +1,5 @@
 """ Utils for credit cards """
+import threading
 import uuid
 from datetime import datetime
 from typing import List
@@ -35,7 +36,10 @@ class CreditCardUtils:
         registration_response: TrueNativeRegisterCardResponseSchema = CreditCardUtils.register_card_truenative(
             data,
             transaction_identifier)
-        #CreditCardUtils.initiate_polling_call(registration_response.RUV, transaction_identifier)
+
+        threading.Thread(
+            target=CreditCardUtils.initiate_polling_call,
+            args=(registration_response.RUV, transaction_identifier))
 
         CommonUtils.check_card_token_exists(registration_response.token, session)
         credit_card = CommonUtils.create_card(
@@ -106,6 +110,25 @@ class CreditCardUtils:
         else:
             raise UnexpectedResponseCodeException(response)
 
+        @staticmethod
+        def send_email_notif(
+                recipient_email: str,
+                transaction_identifier: str):
+            """
+            Initiates call to cloud function to begin polling
+            """
+            request_body = {
+                "RUV": ruv,
+                "transactionIdentifier": transaction_identifier,
+                "SECRET_TOKEN": SECRET_TOKEN
+            }
+            headers = {"Authorization": 'Bearer ' + SECRET_FAAS_TOKEN}
+            url = POLLING_PATH
+            response = requests.post(url, json=request_body, headers=headers)
+            if response.status_code == 200:
+                print(f"Polling initiated for transaction {transaction_identifier}")
+            else:
+                raise UnexpectedResponseCodeException(response)
 
     @staticmethod
     def authenticate_user(bearer_token: str) -> str:
@@ -126,8 +149,11 @@ class CreditCardUtils:
         Updates the status of a credit card with the given data.
         """
         try:
-            credit_card = sess.query(CreditCard).filter(CreditCard.ruv == ruv).one()
-        except NoResultFound:
+            credit_card: CreditCard = sess.execute(
+                select(CreditCard).where(CreditCard.ruv == ruv)
+            ).scalar_one()
+        except NoResultFound as e:
+            print(e)
             raise CreditCardNotFoundException()
 
         credit_card.status = data.status.value
