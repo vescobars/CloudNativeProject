@@ -1,10 +1,10 @@
-import os
-import smtplib
-from email.message import EmailMessage
-import yaml
-import requests
 
-def send_email_notification(request):
+
+def send_email_notification(incomming_request):
+    import os
+    import smtplib
+    from email.message import EmailMessage
+    import yaml
 
     with open('.env.yaml', 'r') as file:
         env_vars = yaml.load(file, Loader=yaml.FullLoader)
@@ -14,7 +14,7 @@ def send_email_notification(request):
     for key, value in env_vars.items():
         os.environ[key] = value
 
-    recipient_email = request.get("recipient")
+    recipient_email = incomming_request.get("recipient")
     if not recipient_email:
         print("Error: Email not provided")
         return
@@ -23,8 +23,8 @@ def send_email_notification(request):
     SENDER_EMAIL_ADDRESS = os.environ.get('SENDER_EMAIL_ADDRESS')
     SENDER_EMAIL_PASSWORD = os.environ.get('SENDER_EMAIL_PASSWORD')
 
-    subject = request.get("subject")
-    content = request.get("content")
+    subject = incomming_request.get("subject")
+    content = incomming_request.get("content")
 
     # Create the email message
     msg = EmailMessage()
