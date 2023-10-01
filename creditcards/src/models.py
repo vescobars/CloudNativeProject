@@ -18,4 +18,4 @@ class CreditCard(Base):
     status = Column(String, nullable=False)
 
     createdAt = Column(DateTime, nullable=False)
-    updateAt = Column(DateTime, nullable=False)
+    updatedAt = Column(DateTime, nullable=False)

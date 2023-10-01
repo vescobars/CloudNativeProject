@@ -35,7 +35,7 @@ class CreditCardUtils:
         registration_response: TrueNativeRegisterCardResponseSchema = CreditCardUtils.register_card_truenative(
             data,
             transaction_identifier)
-        CreditCardUtils.initiate_polling_call(registration_response.RUV, transaction_identifier)
+        #CreditCardUtils.initiate_polling_call(registration_response.RUV, transaction_identifier)
 
         CommonUtils.check_card_token_exists(registration_response.token, session)
         credit_card = CommonUtils.create_card(
@@ -131,7 +131,7 @@ class CreditCardUtils:
             raise CreditCardNotFoundException()
 
         credit_card.status = data.status.value
-        credit_card.updateAt = datetime.now()
+        credit_card.updatedAt = datetime.now()
         sess.commit()
         return credit_card
 
@@ -159,7 +159,7 @@ class CreditCardUtils:
                     issuer=IssuerEnum(cc.issuer),
                     status=StatusEnum(cc.status),
                     createdAt=cc.createdAt,
-                    updateAt=cc.updateAt)
+                    updatedAt=cc.updatedAt)
                 for cc in retrieved_ccs_raw
             ]
         except NoResultFound:

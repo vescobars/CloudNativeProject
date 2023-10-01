@@ -58,4 +58,4 @@ class CreditCardListItemSchema(BaseModel):
     status: StatusEnum
 
     createdAt: datetime = Field()
-    updateAt: datetime = Field()
+    updatedAt: datetime = Field()
