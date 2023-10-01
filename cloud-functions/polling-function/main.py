@@ -1,15 +1,16 @@
 import os
 import time
+import requests
 from flask import jsonify
 
 # Environment variable
-SECRET_POLLING_TOKEN = os.environ.get("SECRET_POLLING_TOKEN")
+SECRET_FAAS_TOKEN = os.environ.get("SECRET_FAAS_TOKEN", "secret_faas_token")
 
 # True native route
-true_native_route = "https://truenative_service_url/native/cards"  # TODO: Replace this when I have the endpoints
+NATIVE_PATH = os.environ.get("NATIVE_PATH", "http://34.149.221.138/native/cards")
 
 # Credit card route
-credit_card_route = "https://credit_card_service_url/credit-card"  # TODO: Replace this when I have the endpoints
+CC_PATH = os.environ.get("CC_PATH", "http://34.149.221.138/credit-cards")
 
 
 # Status polling function
@@ -37,7 +38,7 @@ def card_status_polling(request):
 
     # Polling protocol
     while True:
-        response = request.get(f'{true_native_route}/{ruv}', header=headers)
+        response = request.get(f'{NATIVE_PATH}/{ruv}', header=headers)
         if response.status_code == 200:
             break
         elif response.status_code == 202:
@@ -60,7 +61,7 @@ def card_status_polling(request):
 
     headers = {"Authorization": f'Bearer {SECRET_POLLING_TOKEN}'}
 
-    credit_card_response = request.post(f'{credit_card_route}/{ruv}', json=credit_card_data, headers=headers)
+    credit_card_response = request.post(f'{CC_PATH}/{ruv}', json=credit_card_data, headers=headers)
 
     # Check if post was successfully
     if credit_card_response.status_code != 200:
