@@ -11,13 +11,13 @@ def send_email_notification(request):
         print(env_vars)  # Add this line to debug
 
     # Extract the request content
-    incoming_request = request.args
+    data = request.get_json()
 
     # Set the environment variables
     for key, value in env_vars.items():
         os.environ[key] = value
 
-    recipient_email = incoming_request['recipient']
+    recipient_email = data.get('recipient')
     if not recipient_email:
         print("Error: Email not provided")
         return
@@ -26,8 +26,8 @@ def send_email_notification(request):
     SENDER_EMAIL_ADDRESS = os.environ.get('SENDER_EMAIL_ADDRESS')
     SENDER_EMAIL_PASSWORD = os.environ.get('SENDER_EMAIL_PASSWORD')
 
-    subject = incoming_request['subject']
-    content = incoming_request['content']
+    subject = data.get('subject')
+    content = data.get('content')
 
     # Create the email message
     msg = EmailMessage()
