@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.message import EmailMessage
 import yaml
+import requests
 
 def send_email_notification(request):
     with open('.env.yaml', 'r') as file:
