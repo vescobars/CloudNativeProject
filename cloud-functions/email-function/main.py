@@ -4,6 +4,7 @@ from email.message import EmailMessage
 import yaml
 
 def send_email_notification(request):
+
     with open('.env.yaml', 'r') as file:
         env_vars = yaml.load(file, Loader=yaml.FullLoader)
         print(env_vars)  # Add this line to debug
@@ -20,15 +21,16 @@ def send_email_notification(request):
     # Email configuration
     SENDER_EMAIL_ADDRESS = os.environ.get('SENDER_EMAIL_ADDRESS')
     SENDER_EMAIL_PASSWORD = os.environ.get('SENDER_EMAIL_PASSWORD')
-    SUBJECT = "Credit Card Processing Confirmation"
-    CONTENT = "Your credit card has been processed completely without any issues."
+
+    subject = request.get("subject")
+    content = request.get("content")
 
     # Create the email message
     msg = EmailMessage()
     msg['From'] = SENDER_EMAIL_ADDRESS
     msg['To'] = recipient_email
-    msg['Subject'] = SUBJECT
-    msg.set_content(CONTENT)
+    msg['Subject'] = subject
+    msg.set_content(content)
 
     # Send the email
     try:
@@ -40,4 +42,3 @@ def send_email_notification(request):
         print("Success: Email sent successfully")
     except Exception as e:
         print(f"Error: {str(e)}")
-
