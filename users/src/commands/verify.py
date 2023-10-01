@@ -7,22 +7,22 @@ from sqlalchemy import or_
 
 
 class VerifyUser(BaseCommannd):
-    def __init__(self, user_id):
-        if self.is_uuid(user_id):
-            self.route_id = user_id
+    def __init__(self, id):
+        if self.is_uuid(id):
+            self.user_id = id
         else:
             raise InvalidParams()
 
     def execute(self):
         session = Session()
 
-        if not self.user_exists(session, self.route_id):
+        if not self.user_exists(session, self.user_id):
             session.close()
             raise UserNotFoundError()
 
-        user = session.query(User).filter_by(id=self.route_id).one()
+        user = session.query(User).filter_by(id=self.user_id).one()
 
-        if self.data.get('score') > 60:
+        if self.data.get('score') > 60 and self.data.get('RUV') == user.RUV:
             user.status = 'VERIFICADO'
         else:
             user.status = 'NO_VERIFICADO'
@@ -32,5 +32,5 @@ class VerifyUser(BaseCommannd):
         session.commit()
         session.close()
 
-    def user_exists(self, session, id):
-        return len(session.query(User).filter_by(id=id).all()) > 0
+    def user_exists(self, session, RUV):
+        return len(session.query(User).filter_by(RUV=RUV).all()) > 0
