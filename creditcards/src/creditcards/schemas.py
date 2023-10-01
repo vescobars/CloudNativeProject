@@ -1,6 +1,6 @@
 """ Pydantic schemas for request and response bodies """
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Optional
 
 from pydantic import BaseModel, UUID4, Field, field_validator
 
@@ -49,6 +49,6 @@ class UpdateCCStatusRequestSchema(BaseModel):
     """
     Used when updating a Credit Card status
     """
-    createdAt: datetime
+    createdAt: Optional[str]
     transactionIdentifier: str
     status: StatusEnum
