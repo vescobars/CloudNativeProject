@@ -31,3 +31,4 @@ class Unauthorized(ApiError):
 class UserNotVerifiedError(ApiError):
     code = 403
     description = "Please verify your user"
+

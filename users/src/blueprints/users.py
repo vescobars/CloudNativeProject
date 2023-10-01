@@ -3,6 +3,7 @@ from ..commands.create_user import CreateUser
 from ..commands.generate_token import GenerateToken
 from ..commands.get_user import GetUser
 from ..commands.reset import Reset
+from ..commands.verify import VerifyUser
 from ..commands.update_user import UpdateUser
 
 users_blueprint = Blueprint('users', __name__)

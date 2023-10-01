@@ -2,6 +2,7 @@ from .base_command import BaseCommannd
 from ..models.user import User
 from ..session import Session
 from ..errors.errors import IncompleteParams, UserNotFoundError
+from datetime import datetime, timedelta
 from sqlalchemy import or_
 
 
@@ -25,6 +26,8 @@ class VerifyUser(BaseCommannd):
             user.status = 'VERIFICADO'
         else:
             user.status = 'NO_VERIFICADO'
+
+        user.createdAt = datetime.utcnow().date()
 
         session.commit()
         session.close()

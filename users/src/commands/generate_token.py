@@ -26,8 +26,10 @@ class GenerateToken(BaseCommannd):
             session.close()
             raise UserNotFoundError()
 
-        if user.status == 'TO_VERIFY':
+        if user.status == 'POR_VERIFICAR':
             return UserNotVerifiedError()
+        elif user.status == 'NO_VERIFICADO':
+            return Unauthorized()
 
         user.set_token()
         session.commit()
