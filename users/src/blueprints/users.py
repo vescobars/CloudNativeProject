@@ -18,7 +18,11 @@ def create():
 def update(id):
     response = UpdateUser(id, request.get_json()).execute()
     return jsonify(response)
+@users_blueprint.route('/hook_users/<id>', methods=['PATCH'])
+def hook_user(id):
 
+    response = VerifyUser(id).execute()
+    return jsonify(response)
 
 @users_blueprint.route('/users/auth', methods=['POST'])
 def auth():

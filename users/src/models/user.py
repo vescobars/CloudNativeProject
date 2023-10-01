@@ -11,7 +11,8 @@ class User(Model, Base):
 
     STATUS = {
         'VERIFIED': 'VERIFICADO',
-        'NOT_VERIFIED': 'NO_VERIFICADO'
+        'NOT_VERIFIED': 'NO_VERIFICADO',
+        'TO_VERIFY': 'POR_VERIFICAR'
     }
 
     username = Column(String)
@@ -38,7 +39,7 @@ class User(Model, Base):
 
         self.password = bcrypt.hashpw(password, salt).decode()
         self.salt = salt.decode()
-        self.status = User.STATUS['NOT_VERIFIED']
+        self.status = User.STATUS['TO_VERIFY']
         self.set_token()
 
     def set_token(self):
