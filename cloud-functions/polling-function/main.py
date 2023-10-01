@@ -24,21 +24,21 @@ def card_status_polling(request):
 
     # Validate polling token
     auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer") or auth_header.split("Bearer ")[1] != SECRET_POLLING_TOKEN:
+    if not auth_header.startswith("Bearer") or auth_header.split("Bearer ")[1] != SECRET_FAAS_TOKEN:
         return jsonify({"error": "Invalid token"}), 403
 
     # Extract request content
     data = request.get_json()
-    ruv = data.get("RUV")
-    transaction_identifier = data.get("transactionIdentifier")
-    secret_token = data.get("SECRET_TOKEN")
+    ruv = data["RUV"]
+    transaction_identifier = data["transactionIdentifier"]
+    secret_token = data["SECRET_TOKEN"]
 
     # Auth headers set up
     headers = {"Authorization": f'Bearer {secret_token}'}
 
     # Polling protocol
     while True:
-        response = request.get(f'{NATIVE_PATH}/{ruv}', header=headers)
+        response = requests.get(f'{NATIVE_PATH}/{ruv}', header=headers)
         if response.status_code == 200:
             break
         elif response.status_code == 202:
@@ -59,7 +59,7 @@ def card_status_polling(request):
         "status": status
     }
 
-    headers = {"Authorization": f'Bearer {SECRET_POLLING_TOKEN}'}
+    headers = {"Authorization": f'Bearer {SECRET_FAAS_TOKEN}'}
 
     credit_card_response = request.post(f'{CC_PATH}/{ruv}', json=credit_card_data, headers=headers)
 
