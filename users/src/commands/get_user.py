@@ -1,7 +1,7 @@
 from .base_command import BaseCommannd
 from ..models.user import User, UserJsonSchema
 from ..session import Session
-from ..errors.errors import Unauthorized, NotToken
+from ..errors.errors import Unauthorized, NotToken, UserNotVerifiedError
 from datetime import datetime
 
 
@@ -23,6 +23,9 @@ class GetUser(BaseCommannd):
         if user.expireAt < datetime.now():
             session.close()
             raise Unauthorized()
+
+        if user.status == 'TO_VERIFY' or user.status == 'NOT_VERIFIED':
+            return UserNotVerifiedError()
 
         schema = UserJsonSchema()
         user = schema.dump(user)

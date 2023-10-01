@@ -26,3 +26,9 @@ class NotToken(ApiError):
 class Unauthorized(ApiError):
     code = 401
     description = "Unauthorized"
+
+
+class UserNotVerifiedError(ApiError):
+    code = 403
+    description = "Please verify your user"
+
