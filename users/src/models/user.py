@@ -25,6 +25,7 @@ class User(Model, Base):
     token = Column(String)
     status = Column(String)
     expireAt = Column(DateTime)
+    last_updated = Column(DateTime)
 
     def __init__(self, username, email, phoneNumber, dni, fullName, password):
         Model.__init__(self)
@@ -41,6 +42,7 @@ class User(Model, Base):
         self.salt = salt.decode()
         self.status = User.STATUS['TO_VERIFY']
         self.set_token()
+        self.last_updated = datetime.now()
 
     def set_token(self):
         self.token = uuid4()
@@ -59,6 +61,7 @@ class UserSchema(Schema):
     token = fields.Str()
     expireAt = fields.DateTime()
     createdAt = fields.DateTime()
+    last_updated = fields.DateTime()
 
 
 class CreatedUserJsonSchema(Schema):

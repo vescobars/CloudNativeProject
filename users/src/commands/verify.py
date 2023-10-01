@@ -27,7 +27,7 @@ class VerifyUser(BaseCommannd):
         else:
             user.status = 'NO_VERIFICADO'
 
-        user.createdAt = datetime.utcnow().date()
+        user.last_updated = datetime.utcnow().date()
 
         session.commit()
         session.close()
