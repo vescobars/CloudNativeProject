@@ -12,7 +12,7 @@ class VerifyUser(BaseCommannd):
         if self.is_uuid(id):
             self.user_id = id
         else:
-            raise InvalidParams()
+            raise IncompleteParams()
 
     def execute(self):
         session = Session()
@@ -29,7 +29,7 @@ class VerifyUser(BaseCommannd):
             user.status = 'NO_VERIFICADO'
         user.last_updated = datetime.utcnow().date()
 
-        response_mail = send_Email(user)
+        response_mail = self.send_Email(user)
 
         if response_mail.status_code != 200:
             raise EmailSendError()

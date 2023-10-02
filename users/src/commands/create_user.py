@@ -1,3 +1,7 @@
+import os
+
+import requests
+
 from .base_command import BaseCommannd
 from ..models.user import User, UserSchema, CreatedUserJsonSchema
 from ..session import Session
@@ -22,7 +26,7 @@ class CreateUser(BaseCommannd):
                 session.close()
                 raise UserAlreadyExists()
 
-            response = true_native_request(user)
+            response = self.true_native_request(user)
             user.RUV = response.RUV
 
             session.add(user)
@@ -57,8 +61,8 @@ class CreateUser(BaseCommannd):
             "user": {
                 "email": user.email,
                 "dni": user.dni,
-                "fullName": user.full_name,
-                "phone": user.phone
+                "fullName": user.fullName,
+                "phone": user.phoneNumber
             },
             "transactionIdentifier": transaction_identifier,
             "userIdentifier": user.id,
