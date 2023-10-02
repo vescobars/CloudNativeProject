@@ -20,6 +20,8 @@ SECRET_TOKEN = os.environ.get("SECRET_TOKEN", "secrettoken")
 SECRET_FAAS_TOKEN = os.environ.get("SECRET_FAAS_TOKEN", "secret_faas_token")
 POLLING_PATH = os.environ.get("POLLING_PATH",
                               "https://us-central1-miso-grupo-17.cloudfunctions.net/card_status_polling")
+EMAIL_PATH = os.environ.get("EMAIL_PATH",
+                              "https://us-central1-miso-grupo-17.cloudfunctions.net/send_email_notification")
 
 
 def datetime_to_str(date: datetime) -> str:

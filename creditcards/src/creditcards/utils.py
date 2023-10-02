@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
-from src.constants import USERS_PATH, SECRET_TOKEN, TRUENATIVE_PATH, POLLING_PATH, SECRET_FAAS_TOKEN
+from src.constants import USERS_PATH, SECRET_TOKEN, TRUENATIVE_PATH, POLLING_PATH, SECRET_FAAS_TOKEN, EMAIL_PATH
 from src.creditcards.schemas import CreateCCRequestSchema, TrueNativeRegisterCardResponseSchema, \
     UpdateCCStatusRequestSchema
 from src.exceptions import UnauthorizedUserException, ExpiredCreditCardException, \
@@ -37,6 +37,7 @@ class CreditCardUtils:
             data,
             transaction_identifier)
 
+        # Create thread so function doesn't wait for polling CF to finish
         threading.Thread(
             target=CreditCardUtils.initiate_polling_call,
             args=(registration_response.RUV, transaction_identifier))
@@ -110,25 +111,24 @@ class CreditCardUtils:
         else:
             raise UnexpectedResponseCodeException(response)
 
-        @staticmethod
-        def send_email_notif(
-                recipient_email: str,
-                transaction_identifier: str):
-            """
-            Initiates call to cloud function to begin polling
-            """
-            request_body = {
-                "RUV": ruv,
-                "transactionIdentifier": transaction_identifier,
-                "SECRET_TOKEN": SECRET_TOKEN
-            }
-            headers = {"Authorization": 'Bearer ' + SECRET_FAAS_TOKEN}
-            url = POLLING_PATH
-            response = requests.post(url, json=request_body, headers=headers)
-            if response.status_code == 200:
-                print(f"Polling initiated for transaction {transaction_identifier}")
-            else:
-                raise UnexpectedResponseCodeException(response)
+    @staticmethod
+    def send_email_notif(
+            recipient_email: str,
+            ruv: str,
+            new_status: StatusEnum,
+    ):
+        """
+        Initiates call to cloud function to begin polling
+        """
+        request_body = {
+            "subject": f"Tarjeta de credito cambio a estado {new_status.value}",
+            "content": f"Nuevo estatus: {new_status.value}\nRUV: {ruv}",
+            "recipient": recipient_email
+        }
+        headers = {"Authorization": 'Bearer ' + SECRET_FAAS_TOKEN}
+        url = EMAIL_PATH
+        response = requests.post(url, json=request_body, headers=headers)
+        print(f"Email sending status code: {response.status_code}")
 
     @staticmethod
     def authenticate_user(bearer_token: str) -> str:

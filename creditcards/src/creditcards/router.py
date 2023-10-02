@@ -97,6 +97,11 @@ def update_card_state(
     try:
         updated = CreditCardUtils.update_status(ruv, data, sess)
         if updated:
+            CreditCardUtils.send_email_notif(
+                "",
+                ruv,
+                data.status
+            )
             return {"msg": "Credit card successfully updated"}
         else:
             raise InvalidRequestException()
