@@ -60,7 +60,7 @@ def create_card(
     Creates a credit card with the given data.
     """
     user_id, _, user_email = authenticate(request)
-    new_card_id, created_at = CreditCardUtils().create_card(card_data, user_id, sess)
+    new_card_id, created_at = CreditCardUtils().create_card(card_data, user_id, user_email, sess)
     response.status_code = 201
     return CreateCCResponseSchema(
         id=new_card_id,
@@ -98,7 +98,7 @@ def update_card_state(
         updated = CreditCardUtils.update_status(ruv, data, sess)
         if updated:
             CreditCardUtils.send_email_notif(
-                "",
+                data.recipient_email,
                 ruv,
                 data.status
             )

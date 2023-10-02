@@ -51,4 +51,5 @@ class UpdateCCStatusRequestSchema(BaseModel):
     """
     createdAt: Optional[str]
     transactionIdentifier: str
+    recipient_email: str
     status: StatusEnum

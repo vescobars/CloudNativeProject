@@ -23,7 +23,8 @@ from src.utils import CommonUtils
 class CreditCardUtils:
 
     @staticmethod
-    def create_card(data: CreateCCRequestSchema, user_id: UUID4, session: Session) -> tuple[UUID4, datetime]:
+    def create_card(data: CreateCCRequestSchema, user_id: UUID4, user_email: str, session: Session) -> tuple[
+        UUID4, datetime]:
         """
         Insert a new credit card into the CreditCard table
 
@@ -40,7 +41,7 @@ class CreditCardUtils:
         # Create thread so function doesn't wait for polling CF to finish
         threading.Thread(
             target=CreditCardUtils.initiate_polling_call,
-            args=(registration_response.RUV, recipient_email, transaction_identifier))
+            args=(registration_response.RUV, user_email, transaction_identifier))
 
         CommonUtils.check_card_token_exists(registration_response.token, session)
         credit_card = CommonUtils.create_card(
