@@ -11,55 +11,40 @@ team:
         percentage: 30
 board: https://github.com/orgs/MISW-4301-Desarrollo-Apps-en-la-Nube/projects/108
 url: 34.149.221.138
-credit-card-management:
+credit-cards:
   folder: creditcards
   port: 8000
   authors:
     - d.granadam@uniandes.edu.co
-user-management:
+users:
   folder: users
   port: 3000
   authors:
-    - d.granadam@uniandes.edu.co (entrega 1)
-    - j.charryg@uniandes.edu.co (entrega 3)
-polling-cloud-functions:
-  folder: cloud-functions/polling-function
-  port: 8000
-  authors:
-    - v.escobar1@uniandes.edu.co
-email-cloud-functions:
-  folder: cloud-functions/email-function
-  port: 8000
-  authors:
-    - v.escobar1@uniandes.edu.co
-utility-management:
+    - d.granadam@uniandes.edu.co
+    - j.charryg@uniandes.edu.co
+utility:
   folder: utility
   port: 8000
   authors:
     - d.granadam@uniandes.edu.co
-entrega2-management:
+entrega2:
   folder: entrega2
   port: 8000
   authors:
     - d.granadam@uniandes.edu.co
     - j.charryg@uniandes.edu.co
     - v.escobar1@uniandes.edu.co
-user-management:
-  folder: users
-  port: 3000
-  authors:
-    - d.granadam@uniandes.edu.co
-post-management:
+posts:
   folder: posts
   port: 3000
   authors:
     - j.charryg@uniandes.edu.co
-offer-management:
+offers:
   folder: offer
   port: 3000
   authors:
     - af.ariasr@uniandes.edu.co
-route-management:
+routes:
   folder: routes
   port: 3000
   authors:
