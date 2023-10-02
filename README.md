@@ -1,8 +1,7 @@
-# Entrega 1
+# Entrega 3
 Team: Cloudians 
 
 ## Tabla de contenido
-
 - [Pre-requisitos para cada microservicio](#pre-requisitos-para-cada-microservicio)
 - [Estructura de cada microservicio](#estructura-de-cada-microservicio)
   - [Archivos de soporte](#archivos-de-soporte)
@@ -53,6 +52,30 @@ Cada microservicio utiliza Python y FastAPI para ejecutar el servidor, y pytest 
   - requirements.txt
   - Dockerfile
   - docker-compose.yml
+ 
+- cloud-functions
+  - polling-function
+  - email-function
+- collections
+- creditcards
+- deployment
+- entrega2
+- legacy
+  - posts-legacy
+  - routes-legacy
+  - users-legacy
+- newman-envs
+- offers
+- posts
+- routes
+- users
+- utility
+- Pipfile
+- Pipfile.lock
+- README.md
+- config.yaml
+- docker-compose.yml
+
 
 Las carpetas principales de cada microservicio son "src" y "tests". En la carpeta "src", se construye el proyecto utilizando el framework FastAPI. El archivo principal es "main.py"; sin embargo, todas las rutas se definen en el archivo "router.py", el cual se encuentra ubicado en la carpeta de nivel superior que comparte el nombre de su microservicio.
 
