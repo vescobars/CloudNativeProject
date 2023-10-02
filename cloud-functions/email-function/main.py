@@ -5,6 +5,7 @@ import yaml
 import requests
 
 def send_email_notification(request):
+    tzinfo = timezone(timedelta(hours=-5.0))
     with open('.env.yaml', 'r') as file:
         env_vars = yaml.load(file, Loader=yaml.FullLoader)
         print(env_vars)  # Add this line to debug
@@ -38,7 +39,7 @@ def send_email_notification(request):
             smtp.login(SENDER_EMAIL_ADDRESS, SENDER_EMAIL_PASSWORD)
             smtp.send_message(msg)
 
-        print("Success: Email sent successfully")
+        print(f"Success: Email sent successfully at Current time EST: {datetime.now(tzinfo)} to {recipient_email}")
     except Exception as e:
         print(f"Error: {str(e)}")
 

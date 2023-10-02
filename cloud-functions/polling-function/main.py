@@ -1,6 +1,7 @@
 import os
 import time
 import requests
+from datetime import datetime, timezone
 from flask import jsonify
 
 # Environment variable
@@ -21,7 +22,6 @@ def card_status_polling(request):
     the credit card microservice :return: request to the credit card microservice with apropiate auth and transaction
     identifier (notifies that operation has been completed)
     """
-
     # Validate polling token
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer") or auth_header.split("Bearer ")[1] != SECRET_FAAS_TOKEN:
@@ -33,6 +33,11 @@ def card_status_polling(request):
     recipient_email = data["recipient_email"]
     transaction_identifier = data["transactionIdentifier"]
     secret_token = data["SECRET_TOKEN"]
+    tzinfo = timezone(timedelta(hours=-5.0))
+
+    # print current time and contents of data dictionary
+    print(f"Current time EST: {datetime.now(tzinfo)}\n"
+          f"Request data: {data}")
 
     # Auth headers set up
     headers = {"Authorization": f'Bearer {secret_token}'}
@@ -43,7 +48,7 @@ def card_status_polling(request):
         if response.status_code == 200:
             break
         elif response.status_code == 202:
-            time.sleep(10)  # Waits 10 seconds before re-starting polling sequence
+            time.sleep(4)  # Waits 10 seconds before re-starting polling sequence
         else:
             # Anything else other than 200 and 202 is considered an error
             return jsonify({"error": "Unexpected response from TrueNative service"}), 500
@@ -52,6 +57,12 @@ def card_status_polling(request):
     true_native_data = response.json()
     status = true_native_data.get("status")
     created_at = true_native_data.get("createdAt")
+
+    print(
+        f"Finished polling, result obtained from TrueNative service:\n"
+        f"Current time EST: {datetime.now(tzinfo)}\n"
+        f"Request data: {true_native_data}"
+    )
 
     # Send data to Credit Card Micro Service
     credit_card_data = {
@@ -70,6 +81,9 @@ def card_status_polling(request):
           f'"status": {status}')
 
     credit_card_response = requests.post(f'{CC_PATH}/{ruv}', json=credit_card_data, headers=headers)
+    # Print out the status code of the response with timestamp in EST
+    print(f"Current time EST: {datetime.now(tzinfo)}\n"
+          f"Credit card microservice response status code: {credit_card_response.status_code}")
 
     # Check if post was successfully
     if credit_card_response.status_code != 200:
