@@ -32,3 +32,7 @@ class UserNotVerifiedError(ApiError):
     code = 403
     description = "Please verify your user"
 
+
+class EmailSendError(ApiError):
+    code = 500
+    description = "Email send error"

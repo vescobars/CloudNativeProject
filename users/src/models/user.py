@@ -26,6 +26,7 @@ class User(Model, Base):
     status = Column(String)
     expireAt = Column(DateTime)
     last_updated = Column(DateTime)
+    RUV = Column(String)
 
     def __init__(self, username, email, phoneNumber, dni, fullName, password):
         Model.__init__(self)
@@ -43,6 +44,7 @@ class User(Model, Base):
         self.status = User.STATUS['TO_VERIFY']
         self.set_token()
         self.last_updated = datetime.now()
+        self.RUV = ""
 
     def set_token(self):
         self.token = uuid4()
@@ -62,6 +64,7 @@ class UserSchema(Schema):
     expireAt = fields.DateTime()
     createdAt = fields.DateTime()
     last_updated = fields.DateTime()
+    RUV = fields.Str()
 
 
 class CreatedUserJsonSchema(Schema):
