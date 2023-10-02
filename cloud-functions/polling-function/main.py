@@ -30,6 +30,7 @@ def card_status_polling(request):
     # Extract request content
     data = request.get_json()
     ruv = data["RUV"]
+    recipient_email = data["recipient_email"]
     transaction_identifier = data["transactionIdentifier"]
     secret_token = data["SECRET_TOKEN"]
 
@@ -56,6 +57,7 @@ def card_status_polling(request):
     credit_card_data = {
         "createdAt": created_at,
         "transactionIdentifier": transaction_identifier,
+        "recipient_email": recipient_email,
         "status": status
     }
 
@@ -63,6 +65,7 @@ def card_status_polling(request):
     print(f"Sending data to credit card microservice at path: {CC_PATH}/{ruv}\n"
           f'"Authorization": {headers["Authorization"]}\n'
           f'"createdAt": {created_at}\n'
+          f'"recipient_email": {recipient_email}\n'
           f'"transactionIdentifier": {transaction_identifier}\n',
           f'"status": {status}')
 
