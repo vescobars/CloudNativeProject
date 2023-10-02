@@ -82,42 +82,41 @@ spec:
 # Users
 ###################################
 
-#
-#apiVersion: apps/v1
-#kind: Deployment
-#metadata:
-#  name: users
-#  labels:
-#    app: users
-#spec:
-#  replicas: 1
-#  selector:
-#    matchLabels:
-#      app: users
-#  template:
-#    metadata:
-#      labels:
-#        app: users
-#    spec:
-#      containers:
-#        - name: users
-#          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/users:2.0
-#          env:
-#            - name: DB_USER
-#              value: postgres
-#            - name: DB_PASSWORD
-#              value: Sadly-Rack-Distinct7
-#            - name: DB_HOST
-#              value: 34.29.124.123
-#            - name: DB_PORT
-#              value: "5432"
-#            - name: DB_NAME
-#              value: users
-#            - name: NATIVE_PATH
-#              value: http://service-truenative
-#            - name: USERS_PATH
-#              value: http://service-users
-#          ports:
-#            - containerPort: 3000
-#          # Realizar pull siempre a la imagen
-#          imagePullPolicy: Always
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users
+  labels:
+    app: users
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+        - name: users
+          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/users:2.0
+          env:
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              value: Sadly-Rack-Distinct7
+            - name: DB_HOST
+              value: 34.29.124.123
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: users
+            - name: NATIVE_PATH
+              value: http://service-truenative
+            - name: USERS_PATH
+              value: http://service-users
+          ports:
+            - containerPort: 3000
+          # Realizar pull siempre a la imagen
+          imagePullPolicy: Always
