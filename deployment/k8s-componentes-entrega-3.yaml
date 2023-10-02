@@ -1,32 +1,25 @@
 ###################################
 # Credit card service
 ###################################
-
-
-###################################
-# Users
-###################################
-
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users
+  name: credit-cards
   labels:
-    app: users
+    app: credit-cards
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: users
+      app: credit-cards
   template:
     metadata:
       labels:
-        app: users
+        app: credit-cards
     spec:
       containers:
-        - name: users
-          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/users:2.0
+        - name: credit-cards
+          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/credit-card:0.1
           env:
             - name: DB_USER
               value: postgres
@@ -37,12 +30,92 @@ spec:
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
-              value: users
-            - name: NATIVE_PATH
+              value: credit_cards
+            - name: TRUENATIVE_PATH
               value: http://service-truenative
-            - name: USERS_PATH
-              value: http://service-users
+            - name: SECRET_FAAS_TOKEN
+              value: secret_faas_token
+            - name: SECRET_TOKEN
+              value: 7xQuG2ME7SviEos7764eG4oC
+            - name: POLLING_PATH
+              value: https://us-central1-miso-grupo-17.cloudfunctions.net/card_status_polling
+            - name: EMAIL_PATH
+              value: https://us-central1-miso-grupo-17.cloudfunctions.net/send_email_notification
           ports:
-            - containerPort: 3000
+            - containerPort: 8000
           # Realizar pull siempre a la imagen
           imagePullPolicy: Always
+
+
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: grupo17-cc-config
+spec:
+  healthCheck:
+    checkIntervalSec: 30
+    port: 8000
+    type: HTTP
+    requestPath: /credit-cards/ping
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: service-credit-cards
+  annotations:
+    cloud.google.com/backend-config: '{"default": "grupo17-cc-config"}'
+spec:
+  type: NodePort
+  selector:
+    app: credit-cards
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+      nodePort: 31028
+
+---
+###################################
+# Users
+###################################
+
+#
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: users
+#  labels:
+#    app: users
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: users
+#  template:
+#    metadata:
+#      labels:
+#        app: users
+#    spec:
+#      containers:
+#        - name: users
+#          image: us-central1-docker.pkg.dev/miso-grupo-17/grupo17-registry/users:2.0
+#          env:
+#            - name: DB_USER
+#              value: postgres
+#            - name: DB_PASSWORD
+#              value: Sadly-Rack-Distinct7
+#            - name: DB_HOST
+#              value: 34.29.124.123
+#            - name: DB_PORT
+#              value: "5432"
+#            - name: DB_NAME
+#              value: users
+#            - name: NATIVE_PATH
+#              value: http://service-truenative
+#            - name: USERS_PATH
+#              value: http://service-users
+#          ports:
+#            - containerPort: 3000
+#          # Realizar pull siempre a la imagen
+#          imagePullPolicy: Always
