@@ -59,7 +59,7 @@ def create_card(
     """
     Creates a credit card with the given data.
     """
-    user_id, _ = authenticate(request)
+    user_id, _, user_email = authenticate(request)
     new_card_id, created_at = CreditCardUtils().create_card(card_data, user_id, sess)
     response.status_code = 201
     return CreateCCResponseSchema(
@@ -76,7 +76,7 @@ def get_credit_cards(
     """
     Gets all credit cards for the authenticated user.
     """
-    user_id, _ = authenticate(request)
+    user_id, _, _ = authenticate(request)
     return CreditCardUtils.get_credit_cards(user_id, sess)
 
 
@@ -110,9 +110,7 @@ def update_card_state(
         raise HTTPException(status_code=400, detail="Solicitud invalida")
 
 
-
-
-def authenticate(request: Request) -> tuple[str, str]:
+def authenticate(request: Request) -> tuple[str, str, str]:
     """
     Checks if authorization token is present and valid, then calls users endpoint to
     verify whether credentials are still authorized
@@ -124,13 +122,13 @@ def authenticate(request: Request) -> tuple[str, str]:
         full_token = request.headers.get('Authorization')
         bearer_token = full_token.split(" ")[1]
         try:
-            user_id = CommonUtils.authenticate_user(bearer_token)
+            user_id, user_email = CommonUtils.authenticate_user(bearer_token)
         except UnauthorizedUserException:
             raise HTTPException(status_code=401, detail="Unauthorized. Valid credentials were rejected.")
 
     else:
         raise HTTPException(status_code=403, detail="No valid credentials were provided.")
-    return user_id, full_token
+    return user_id, full_token, user_email
 
 
 def authenticate_secret_token(request: Request) -> None:

@@ -40,7 +40,7 @@ class CreditCardUtils:
         # Create thread so function doesn't wait for polling CF to finish
         threading.Thread(
             target=CreditCardUtils.initiate_polling_call,
-            args=(registration_response.RUV, transaction_identifier))
+            args=(registration_response.RUV, recipient_email, transaction_identifier))
 
         CommonUtils.check_card_token_exists(registration_response.token, session)
         credit_card = CommonUtils.create_card(
@@ -94,6 +94,7 @@ class CreditCardUtils:
     @staticmethod
     def initiate_polling_call(
             ruv: str,
+            recipient_email: str,
             transaction_identifier: str):
         """
         Initiates call to cloud function to begin polling
@@ -101,6 +102,7 @@ class CreditCardUtils:
         request_body = {
             "RUV": ruv,
             "transactionIdentifier": transaction_identifier,
+            "recipient_email": recipient_email,
             "SECRET_TOKEN": SECRET_TOKEN
         }
         headers = {"Authorization": 'Bearer ' + SECRET_FAAS_TOKEN}

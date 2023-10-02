@@ -64,7 +64,7 @@ class CommonUtils:
             return
 
     @staticmethod
-    def authenticate_user(bearer_token: str) -> str:
+    def authenticate_user(bearer_token: str) -> tuple[str, str]:
         headers = {"Authorization": 'Bearer ' + bearer_token}
         url = USERS_PATH.rstrip('/') + "/users/me"
         print(url)
@@ -72,6 +72,8 @@ class CommonUtils:
         if response.status_code == 200:
             user_data = response.json()
             user_id = user_data["id"]
-            return user_id
+            user_email = user_data["email"]
+            return user_id, user_email
         else:
             raise UnauthorizedUserException()
+
