@@ -78,10 +78,3 @@ spec:
             name: service-credit-cards
             port:
               number: 80
-      - pathType: Prefix
-        path: /users-old
-        backend:
-          service:
-            name: service-users-old
-            port:
-              number: 80
