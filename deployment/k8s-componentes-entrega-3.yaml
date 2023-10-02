@@ -117,6 +117,8 @@ spec:
               value: http://service-users
             - name: SECRET_TOKEN
               value: 7xQuG2ME7SviEos7764eG4oC
+            - name: PYTHONUNBUFFERED
+              value: "1"
           ports:
             - containerPort: 3000
           # Realizar pull siempre a la imagen

@@ -1,3 +1,5 @@
+import sys
+
 from dotenv import load_dotenv, find_dotenv
 loaded = load_dotenv('.env.development')
 
@@ -19,4 +21,5 @@ def handle_exception(err):
     response = {
         "msg": err.description
     }
+    print(response, file=sys.stderr)
     return jsonify(response), err.code
