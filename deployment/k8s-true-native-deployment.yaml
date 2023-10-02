@@ -24,9 +24,9 @@ spec:
             - name: SECRET_TOKEN
               value: 7xQuG2ME7SviEos7764eG4oC
             - name: MAX_WEBHOOK_DELAY
-              value: '30'
+              value: '8'
             - name: MAX_POLL_DELAY
-              value: '30'
+              value: '8'
             - name: SUCCESS_RATE
               value: '50'
           ports:
