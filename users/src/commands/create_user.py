@@ -27,7 +27,7 @@ class CreateUser(BaseCommannd):
                 raise UserAlreadyExists()
 
             response = self.true_native_request(user)
-            user.RUV = response.RUV
+            user.RUV = response['RUV']
 
             session.add(user)
             session.commit()
