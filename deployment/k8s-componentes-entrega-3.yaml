@@ -32,7 +32,7 @@ spec:
             - name: DB_NAME
               value: credit_cards
             - name: USERS_PATH
-              value: http://service-users-old
+              value: http://service-users
             - name: TRUENATIVE_PATH
               value: http://service-truenative
             - name: SECRET_FAAS_TOKEN
