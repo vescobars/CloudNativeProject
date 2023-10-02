@@ -115,6 +115,8 @@ spec:
               value: http://service-truenative
             - name: USERS_PATH
               value: http://service-users
+            - name: SECRET_TOKEN
+              value: 7xQuG2ME7SviEos7764eG4oC
           ports:
             - containerPort: 3000
           # Realizar pull siempre a la imagen
