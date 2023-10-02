@@ -3,6 +3,7 @@ from ..commands.create_user import CreateUser
 from ..commands.generate_token import GenerateToken
 from ..commands.get_user import GetUser
 from ..commands.reset import Reset
+from ..commands.verify import VerifyUser
 from ..commands.update_user import UpdateUser
 
 users_blueprint = Blueprint('users', __name__)
@@ -18,7 +19,10 @@ def create():
 def update(id):
     response = UpdateUser(id, request.get_json()).execute()
     return jsonify(response)
-
+@users_blueprint.route('/hook_users/<id>', methods=['PATCH'])
+def hook_user(id):
+    response = VerifyUser(id).execute()
+    return jsonify(response)
 
 @users_blueprint.route('/users/auth', methods=['POST'])
 def auth():

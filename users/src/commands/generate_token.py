@@ -1,7 +1,7 @@
 from .base_command import BaseCommannd
 from ..models.user import User, GeneratedTokenUserJsonSchema
 from ..session import Session
-from ..errors.errors import Unauthorized, IncompleteParams, UserNotFoundError
+from ..errors.errors import Unauthorized, IncompleteParams, UserNotFoundError, UserNotVerifiedError
 import bcrypt
 
 
@@ -25,6 +25,11 @@ class GenerateToken(BaseCommannd):
         if not self.valid_password(user.salt, user.password, self.password):
             session.close()
             raise UserNotFoundError()
+
+        if user.status == 'POR_VERIFICAR':
+            return UserNotVerifiedError()
+        elif user.status == 'NO_VERIFICADO':
+            return Unauthorized()
 
         user.set_token()
         session.commit()

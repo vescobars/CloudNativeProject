@@ -24,21 +24,22 @@ def card_status_polling(request):
 
     # Validate polling token
     auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer") or auth_header.split("Bearer ")[1] != SECRET_POLLING_TOKEN:
+    if not auth_header.startswith("Bearer") or auth_header.split("Bearer ")[1] != SECRET_FAAS_TOKEN:
         return jsonify({"error": "Invalid token"}), 403
 
     # Extract request content
     data = request.get_json()
-    ruv = data.get("RUV")
-    transaction_identifier = data.get("transactionIdentifier")
-    secret_token = data.get("SECRET_TOKEN")
+    ruv = data["RUV"]
+    recipient_email = data["recipient_email"]
+    transaction_identifier = data["transactionIdentifier"]
+    secret_token = data["SECRET_TOKEN"]
 
     # Auth headers set up
     headers = {"Authorization": f'Bearer {secret_token}'}
 
     # Polling protocol
     while True:
-        response = request.get(f'{NATIVE_PATH}/{ruv}', header=headers)
+        response = requests.get(f'{NATIVE_PATH}/{ruv}', headers=headers)
         if response.status_code == 200:
             break
         elif response.status_code == 202:
@@ -56,15 +57,25 @@ def card_status_polling(request):
     credit_card_data = {
         "createdAt": created_at,
         "transactionIdentifier": transaction_identifier,
+        "recipient_email": recipient_email,
         "status": status
     }
 
-    headers = {"Authorization": f'Bearer {SECRET_POLLING_TOKEN}'}
+    headers = {"Authorization": f'Bearer {SECRET_FAAS_TOKEN}'}
+    print(f"Sending data to credit card microservice at path: {CC_PATH}/{ruv}\n"
+          f'"Authorization": {headers["Authorization"]}\n'
+          f'"createdAt": {created_at}\n'
+          f'"recipient_email": {recipient_email}\n'
+          f'"transactionIdentifier": {transaction_identifier}\n',
+          f'"status": {status}')
 
-    credit_card_response = request.post(f'{CC_PATH}/{ruv}', json=credit_card_data, headers=headers)
+    credit_card_response = requests.post(f'{CC_PATH}/{ruv}', json=credit_card_data, headers=headers)
 
     # Check if post was successfully
     if credit_card_response.status_code != 200:
-        return jsonify({"error": "Failed to send data to Credit Card microservice"}), 500
+        return jsonify({
+            "error": "Failed to send data to Credit Card microservice",
+            "request_body": credit_card_data
+        }), 500
 
     return "", 200
