@@ -40,6 +40,8 @@ spec:
               value: users
             - name: NATIVE_PATH
               value: http://service-truenative
+            - name: USERS_PATH
+              value: http://service-users
           ports:
             - containerPort: 3000
           # Realizar pull siempre a la imagen
